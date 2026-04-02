@@ -90,7 +90,8 @@ non-grade rows will be ignored.`,value:h,onChange:Y=>c(Y.target.value),className
 <title>Certificates</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700|Cormorant+SC:wght@400;700|Alegreya+SC:wght@400;700|Dancing+Script:wght@400;500;700|Kalam:wght@400;700|Caveat:wght@400;700|Satisfy|Pacifico|Sacramento|Playfair+Display+SC:wght@400;700|Great+Vibes|Allura|Alex+Brush|Yellowtail|Marck+Script|Patrick+Hand|Indie+Flower|Permanent+Marker&display=swap" rel="stylesheet">
 <style>
-  @page { size: 11in 8.5in landscape; margin: 0; }
+  @page { size: 11in 8.5in; margin: 0; }
+  @page { size: landscape; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { margin: 0; padding: 0; background: #fff; }
   .cert {
@@ -117,6 +118,12 @@ non-grade rows will be ignored.`,value:h,onChange:Y=>c(Y.target.value),className
 <body>
 ${t.map(m=>m.type==="principals"?principalsPage(m,i,s):honorRollPage(m,o,s)).join(`
 `)}
+<script>
+// Auto-trigger print after fonts load
+window.addEventListener('load', function() {
+  setTimeout(function() { window.print(); }, 800);
+});
+<\/script>
 </body>
 </html>`}function principalsPage(t,s,i){return`<div class="cert">
   <img src="${s}">
