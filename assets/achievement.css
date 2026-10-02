@@ -1,0 +1,39 @@
+.achievement-logo {
+  position: relative;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Enlarge the cap's touch target without changing the header layout. */
+header .achievement-logo::before { content: ''; position: absolute; inset: -6px; }
+.achievement-logo:active { filter: brightness(1.15); }
+.achievement-burst {
+  position: fixed;
+  z-index: 9999;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.achievement-burst span {
+  position: absolute;
+  left: -7px;
+  top: -10px;
+  color: #e6aa22;
+  font: 20px/1 sans-serif;
+  text-shadow: 0 0 6px #fff2b5, 0 1px 2px #765009;
+  animation: achievement-sparkle 700ms ease-out both;
+}
+.achievement-burst span:nth-child(even) { color: #fff0a3; font-size: 15px; }
+@keyframes achievement-sparkle {
+  0% { opacity: 0; transform: scale(.3); }
+  18% { opacity: 1; }
+  65% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--turn)) scale(.45); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .achievement-burst span { animation: none; transform: translate(var(--x), var(--y)); }
+}
+@media print { .achievement-burst { display: none; } }
