@@ -1,0 +1,116 @@
+/* Liquid Glass-inspired web surfaces; loaded after the generated app CSS. */
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+  --glass-surface: rgba(255, 255, 255, .76);
+  --glass-edge: rgba(255, 255, 255, .92);
+  --glass-shadow: 0 12px 36px rgba(31, 58, 97, .09), inset 0 1px 0 rgba(255,255,255,.9);
+  --glass-selected: rgba(255,255,255,.96);
+  --glass-field: #fff;
+  --muted-foreground: 215 16% 39%;
+}
+:root.dark {
+  --glass-surface: rgba(31, 42, 61, .82);
+  --glass-edge: rgba(191, 212, 244, .20);
+  --glass-shadow: 0 12px 36px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255,255,255,.12);
+  --glass-selected: rgba(92, 125, 175, .34);
+  --glass-field: #1c2636;
+  --muted-foreground: 215 20% 73%;
+}
+body { background: #eef3fa; }
+.dark body { background: #101827; }
+#root > .min-h-screen {
+  background: radial-gradient(ellipse at 8% 12%, rgba(127,178,237,.25), transparent 48%),
+    radial-gradient(ellipse at 95% 45%, rgba(141,207,199,.24), transparent 46%),
+    radial-gradient(ellipse at 45% 95%, rgba(187,166,226,.16), transparent 50%), #eef3fa;
+}
+.dark #root > .min-h-screen {
+  background: radial-gradient(ellipse at 8% 12%, rgba(63,109,179,.28), transparent 48%),
+    radial-gradient(ellipse at 95% 45%, rgba(43,122,123,.19), transparent 46%),
+    radial-gradient(ellipse at 45% 95%, rgba(103,76,154,.14), transparent 50%), #101827;
+}
+#root header {
+  background: var(--glass-surface);
+  border-color: var(--glass-edge);
+  box-shadow: 0 2px 18px rgba(31,58,97,.04), inset 0 1px 0 rgba(255,255,255,.16);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+}
+/* Keep the existing sticky offset and horizontal overflow behavior. */
+#root header + div {
+  background: var(--glass-surface);
+  border-color: var(--glass-edge);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+}
+#root nav[role="tablist"] { gap: 5px; padding-block: 7px; }
+#root [role="tab"] {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 9px 16px;
+  min-height: 44px;
+  transition: background-color .2s, box-shadow .2s, color .2s;
+}
+#root [role="tab"][aria-selected="true"] {
+  background: var(--glass-selected);
+  border-color: var(--glass-edge);
+  box-shadow: 0 3px 12px rgba(30,56,90,.12), inset 0 1px 0 rgba(255,255,255,.3);
+}
+#root [role="tab"]:hover { background: var(--glass-selected); }
+#root [data-testid="button-theme-toggle"] {
+  display: grid; place-items: center; width: 44px; height: 44px;
+  border: 1px solid var(--glass-edge); border-radius: 50%;
+  background: var(--glass-selected); box-shadow: var(--glass-shadow);
+}
+/* Header height stays 53px so the existing sticky navigation remains aligned. */
+#root header > div { padding-block: 4px; min-height: 53px; }
+#root header .bg-primary { border-radius: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 4px 12px rgba(43,88,170,.22); }
+#root main { padding-top: 28px; }
+#root [data-testid^="dropzone-"] {
+  background: var(--glass-surface);
+  border: 1px solid var(--glass-edge);
+  border-radius: 24px;
+  box-shadow: var(--glass-shadow);
+  padding-block: 52px;
+  transition: border-color .2s, background-color .2s, box-shadow .2s;
+}
+#root [data-testid^="dropzone-"]:hover {
+  border-color: hsl(var(--primary));
+  background: var(--glass-selected);
+  box-shadow: var(--glass-shadow), 0 0 0 3px hsl(var(--primary) / .12);
+}
+#root .shadcn-card { border-radius: 20px; box-shadow: var(--glass-shadow); }
+#root main input:not([type="checkbox"]):not([type="file"]),
+#root main select, #root main [role="combobox"] {
+  background: var(--glass-field); border-radius: 12px; min-height: 44px;
+}
+#root main button:not([role="tab"]):not([role="checkbox"]):not([role="switch"]) { border-radius: 12px; min-height: 44px; }
+#root summary { border-radius: 12px; padding: 12px 14px; width: fit-content; background: var(--glass-surface); border: 1px solid var(--glass-edge); }
+#root footer { border-color: var(--glass-edge); }
+#root :is(button, input, select, summary, [tabindex]):focus-visible {
+  outline: 3px solid hsl(var(--primary)); outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  #root [role="tab"] { padding-inline: 12px; }
+  #root main { padding-top: 20px; }
+  #root [data-testid^="dropzone-"] { padding: 36px 20px; border-radius: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #root *, #root *::before, #root *::after { transition: none !important; animation: none !important; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  :root { --glass-surface: #fff; --glass-selected: #edf2fa; --glass-edge: #66758a; }
+  :root.dark { --glass-surface: #1c2636; --glass-selected: #304563; --glass-edge: #98abc6; }
+  #root header, #root header + div { -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root { --glass-surface: #f8fafd; }
+  :root.dark { --glass-surface: #1c2636; }
+}
+@media print {
+  #root > .min-h-screen, .dark #root > .min-h-screen { background: white; }
+  #root header, #root header + div, #root [data-testid^="dropzone-"], #root .shadcn-card, #root summary {
+    background: white; color: black; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+}
+/* A brighter navigation tint keeps selected text legible on dark glass. */
+.dark #root [role="tab"][aria-selected="true"] { color: #bdd6ff; }
