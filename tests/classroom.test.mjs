@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {newChart, furniture, layout, seats, uid, assignUnseated, shuffle, validateBackup, constrain, WIDTH, HEIGHT} from '../classroom/model.mjs';
+
+test('presets provide expected capacity and stay within the room', () => {
+  for (const [kind,capacity] of [['rows',24],['groups',24],['horseshoe',18]]) {
+    const items=layout(kind);assert.equal(seats({items}).length,capacity);
+    for(const it of items) {assert.ok(it.x>=0 && it.y>=0 && it.x+it.width<=WIDTH && it.y+it.height<=HEIGHT);}
+  }
+});
+test('shuffle preserves furniture and locked students, with no duplicate assignments', () => {
+  const c=newChart();c.students=Array.from({length:28},(_,i) => ({id:uid(),name:`Student ${i}`}));assignUnseated(c);
+  const all=seats(c);all[0].locked=true;const locked=all[0].student;
+  const geometry=JSON.stringify(c.items.map(({seats,...item}) => item));const before=all.map(s => s.student);
+  shuffle(c,() => 0.5);
+  assert.equal(all[0].student,locked);assert.equal(JSON.stringify(c.items.map(({seats,...item}) => item)),geometry);
+  assert.equal(new Set(all.map(s => s.student)).size,24);
+  all.slice(1).forEach((s,i) => assert.notEqual(s.student,before[i+1]));
+});
+test('empty locked seats remain empty and excess students remain unassigned', () => {
+  const c={items:[furniture('pair')],students:[{id:uid(),name:'A'},{id:uid(),name:'A'},{id:uid(),name:'C'}]};
+  seats(c)[0].locked=true;shuffle(c);
+  assert.equal(seats(c)[0].student,null);assert.equal(seats(c)[1].student,c.students[0].id);
+});
+test('rotation containment accounts for the rotated footprint', () => {
+  const it=furniture('pair',0,0);it.rotation=90;constrain(it);
+  assert.ok(it.x+(it.width-it.height)/2>=0);assert.ok(it.y+(it.height-it.width)/2>=0);
+  it.x=WIDTH;it.y=HEIGHT;constrain(it);
+  assert.ok(it.x+(it.width+it.height)/2<=WIDTH);assert.ok(it.y+(it.height+it.width)/2<=HEIGHT);
+});
+test('backups round-trip; duplicate, foreign, and malformed assignments are rejected', () => {
+  const c=newChart();c.students=[{id:uid(),name:'<script>Student</script>'}];assignUnseated(c);
+  const data={version:1,active:c.id,charts:[c]};assert.deepEqual(validateBackup(data),data);
+  for(const mutate of [
+    d => {seats(d.charts[0])[1].student=d.charts[0].students[0].id;},
+    d => {seats(d.charts[0])[0].student='unknown';},
+    d => {d.charts[0].items[0].width=Infinity;},
+    d => {d.charts[0].items[0].type='__proto__';},
+    d => {d.charts[0].items[0].seats.push({student:null,locked:false});}
+  ]) {const copy=structuredClone(data);mutate(copy);assert.throws(() => validateBackup(copy));}
+});

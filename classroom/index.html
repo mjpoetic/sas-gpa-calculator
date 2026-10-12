@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Classroom Studio | SAS</title>
+  <link rel="icon" href="../favicon-96x96.png">
+  <link rel="stylesheet" href="studio.css">
+  <script type="module" src="studio.js"></script>
+</head>
+<body>
+  <header class="header"><a href="../" class="brand">SAS <span>Classroom Studio</span></a><span class="badge">WORK IN PROGRESS · UNLISTED</span><a href="../">Back to honors calculator ↗</a></header>
+  <main>
+    <div class="heading"><div><p class="eyebrow">A PLACE FOR EVERY STUDENT</p><h1>Your room. Your arrangement.</h1><p class="subtitle">Build the space, then find the right seats.</p></div><div class="file-actions"><button id="export">Export backup</button><button id="import">Import backup</button><input id="import-file" type="file" accept="application/json,.json" hidden><button id="print">Print chart</button></div></div>
+    <section class="chart-bar" aria-label="Chart settings"><label>Classroom <select id="charts"></select></label><button id="new-chart">+ New</button><button id="copy-chart">Duplicate chart</button><label class="chart-name">Chart name <input id="name" maxlength="80"></label><button id="delete-chart" class="quiet">Delete chart</button><span id="save-state" role="status">Saved in this browser</span></section>
+    <div class="workspace">
+      <aside class="panel library"><div class="tabs" role="tablist" aria-label="Library"><button id="furniture-tab" role="tab" aria-selected="true" aria-controls="furniture-panel">Furniture</button><button id="students-tab" role="tab" aria-selected="false" aria-controls="students-panel">Students <span id="student-count">0</span></button></div>
+        <section id="furniture-panel" role="tabpanel" aria-labelledby="furniture-tab"><h2>Make room</h2><p class="hint">Click an item to add it. Drag it into place.</p><div id="palette" class="palette"></div><div class="section-divider"></div><h2>Start with a layout</h2><label>Arrangement <select id="preset"><option value="rows">Classic rows · 24 seats</option><option value="groups">Table groups · 24 seats</option><option value="horseshoe">Horseshoe · 18 seats</option></select></label><button id="apply-preset" class="wide">Apply layout</button><p class="hint">Replaces furniture; keeps your student list. Undo is available.</p></section>
+        <section id="students-panel" role="tabpanel" aria-labelledby="students-tab" hidden><h2>Your students</h2><p class="hint">Add one name per line. Duplicate names are allowed.</p><form id="add-students"><label for="student-names">Student names</label><textarea id="student-names" rows="4" placeholder="Alex Rivera&#10;Jordan Lee"></textarea><button class="primary wide">Add students</button></form><button id="assign-all" class="wide">Seat unassigned students</button><p id="roster-summary" class="hint"></p><div id="roster"></div></section>
+        <p class="local-note">Stored on this device only. Export a backup to keep a copy or move to another browser.</p>
+      </aside>
+      <section class="room-panel panel" aria-label="Seating chart editor"><div class="room-toolbar"><div><strong id="room-title">Classroom</strong><span id="seat-summary"></span></div><div class="toolbar-actions"><label class="check"><input id="snap" type="checkbox" checked> Snap to grid</label><button id="undo" title="Undo last change">↶ Undo</button><button id="shuffle" class="primary">⇄ Shuffle students</button></div></div><div class="room-scroll"><div id="room" aria-label="Classroom floor plan"></div></div><div class="room-footer"><span>Drag to move · Select a seat to assign · Arrow keys move furniture</span><label>Zoom <select id="zoom"><option value="fit" selected>Fit room</option><option value="0.6">60%</option><option value="0.8">80%</option><option value="1">100%</option><option value="1.2">120%</option></select></label></div></section>
+      <aside class="panel inspector"><p class="eyebrow">DETAILS</p><h2 id="selection-title">Fine-tune your room</h2><p id="selection-hint" class="hint">Select furniture to adjust it, or select a seat to assign a student.</p><div id="item-controls" hidden><label>Furniture label <input id="item-label" maxlength="60"></label><div class="two-fields"><label>Width <input id="item-width" type="number" min="40" max="400" step="10"></label><label>Depth <input id="item-height" type="number" min="30" max="300" step="10"></label></div><div class="two-fields"><label>X position <input id="item-x" type="number" min="-200" max="1160" step="10"></label><label>Y position <input id="item-y" type="number" min="-200" max="880" step="10"></label></div><button id="rotate" class="wide">↻ Rotate 90°</button><button id="duplicate-item" class="wide">Duplicate furniture</button><button id="delete-item" class="wide danger">Remove furniture</button></div><div id="seat-controls" hidden><div class="section-divider"></div><h2 id="seat-title">Seat</h2><label>Student <select id="assignment"></select></label><label class="check"><input id="locked" type="checkbox"> Keep this seat during shuffle</label></div><div class="section-divider"></div><h2>Room guide</h2><p class="hint">A 960 × 680 planning canvas. Add doors, boards, shelves, rugs, and labels to mark the spaces that matter.</p><div class="legend"><span class="legend-dot"></span> Assigned seat <span class="lock-key">●</span> Locked seat</div></aside>
+    </div>
+    <p id="message" class="message" role="status" aria-live="polite">Ready to arrange your classroom.</p>
+  </main>
+</body>
+</html>
