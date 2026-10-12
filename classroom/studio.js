@@ -1,4 +1,5 @@
 import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup} from './model.mjs';
+import {connectCloud} from './cloud.js';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -53,8 +54,19 @@ function renderRoom() {
       const grid = element('div','seat-grid');grid.style.setProperty('--columns',it.seats.length === 1 ? 1 : 2);
       it.seats.forEach((s,i) => {
         const student = chart().students.find(st => st.id === s.student);
-        const btn = element('button',`seat${student ? ' assigned' : ''}${s.locked ? ' locked' : ''}${selection?.id === it.id && selection?.seat === i ? ' selected-seat' : ''}`,student?.name || `Seat ${i+1}`);
-        btn.style.transform = `rotate(${-it.rotation}deg)`;
+        const btn = element('button',`seat${student ? ' assigned' : ''}${s.locked ? ' locked' : ''}${selection?.id === it.id && selection?.seat === i ? ' selected-seat' : ''}`);
+        const text = element('span','seat-name',student?.name || `Seat ${i+1}`);
+        // The seat footprint follows its desk; only its name stays upright.
+        text.style.transform = `rotate(${-it.rotation}deg)`;
+        const sideways = it.rotation % 180 !== 0;
+        text.style.width = sideways ? 'calc(100% - 8px)' : 'calc(100% - 6px)';
+        btn.append(text);
+        new ResizeObserver(([entry], observer) => {
+          const {width,height} = entry.contentRect;
+          text.style.width = `${Math.max(0,(sideways ? height : width)-6)}px`;
+          text.style.maxHeight = `${Math.max(0,(sideways ? width : height)-4)}px`;
+          observer.disconnect();
+        }).observe(btn);
         btn.setAttribute('aria-label',`${it.label}, seat ${i+1}: ${student?.name || 'unassigned'}${s.locked ? ', locked during shuffle' : ''}`);
         btn.onclick = e => {e.stopPropagation();selection = {id:it.id,seat:i};renderRoom();renderInspector();$('assignment').focus();};
         grid.append(btn);
@@ -157,3 +169,4 @@ $('import-file').onchange = async () => {const file=$('import-file').files[0];if
 } catch(error) {say(`Import failed: ${error.message}`);} finally {$('import-file').value='';}};
 $('print').onclick = () => window.print();
 tab(false);render();if(loadError) {say(loadError);$('save-state').textContent='Saved data could not be loaded';}
+void connectCloud({getState:()=>structuredClone(state),applyState:incoming=>change(()=>{state=incoming;selection=null;},'Cloud charts opened. Undo is available.'),notify:say});
