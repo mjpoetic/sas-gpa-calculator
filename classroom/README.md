@@ -127,3 +127,11 @@ Size validation repairs finite legacy/generated dimensions into supported limits
 Open cloud charts loads a modal listing chart names and counts. Choosing a chart opens that chart and retains the account collection; local changes remain recoverable through Undo. Canceling the picker leaves the current chart and revision unchanged. Tests cover modal menu interactions and a two-browser simulated cloud chart collection, including dimension repair and picker cancellation.
 
 Cloud baseline comparisons use canonical property order, so equivalent chart data does not become a false conflict after reloading. Selecting a different active chart in the picker is also saved automatically.
+
+## Chart-first workspace
+
+The seating chart now owns the viewport below a compact header. The chart-name menu contains classroom selection, rename, duplicate, and delete. Account/cloud, Classroom settings (fonts and room geometry), and Files/sharing open dialogs. Appearance stays directly accessible in the header; cloud state appears there on desktop and in the Account button tooltip.
+
+Furniture, Students, Details, and Fit room are always accessible from the workspace toolbar. Desktop uses collapsible sidebars; portrait phones/tablets use bottom drawers, and compact landscape uses a side drawer. Selecting a seat opens Details. Adding furniture closes the mobile drawer so placement is immediately visible. Desktop can show both the library and inspector. Escape or the close control returns to the chart. Fit room uses both available width and height, including resize/orientation changes; manual zoom keeps scrollable room access.
+
+`tests/classroom-workspace.browser.cjs` checks 320/390 px phones, landscape, tablet, and desktop, chart fit, no page overflow, dialog access, drawer flows, seat assignment, and chart fonts. Cloud auto-save/picker tests use the new chart/account dialogs. Physical iPhone behavior remains a separate device check.

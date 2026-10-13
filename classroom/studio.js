@@ -1,7 +1,7 @@
-import {furnitureArt} from './furniture-art.mjs?v=20261013-sync2';
-import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-sync2';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-sync2';
-import {connectCloud} from './cloud.js?v=20261013-sync2';
+import {furnitureArt} from './furniture-art.mjs?v=20261013-layout1';
+import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-layout1';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-layout1';
+import {connectCloud} from './cloud.js?v=20261013-layout1';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -116,7 +116,7 @@ function renderRoom() {
           observer.disconnect();
         }).observe(btn);
         btn.setAttribute('aria-label',`${it.label}, seat ${i+1}: ${student?.name || 'unassigned'}${s.locked ? ', locked during shuffle' : ''}`);
-        btn.onclick = e => {e.stopPropagation();if(e.shiftKey||e.metaKey||multiMode){choose(it,true);renderRoom();renderInspector();return;}selectedIds=new Set([it.id]);selection = {id:it.id,seat:i};renderRoom();renderInspector();$('assignment').focus();};
+        btn.onclick = e => {e.stopPropagation();if(e.shiftKey||e.metaKey||multiMode){choose(it,true);renderRoom();renderInspector();return;}selectedIds=new Set([it.id]);selection = {id:it.id,seat:i};renderRoom();renderInspector();($('assignment').parentElement.querySelector('.site-select-trigger')||$('assignment')).focus();};
         grid.append(btn);
       });node.append(grid);
     }
@@ -181,6 +181,7 @@ function renderRoom() {
   updateZoom();
 }
 function renderInspector() {
+  document.dispatchEvent(new CustomEvent('sas-selection-changed',{detail:{selected:!!selected(),seat:!!selected()&&selection?.seat!==null}}));
   const it = selected(),group=selectedItems().length>1;$('group-controls').hidden=!group;$('group-summary').textContent=`${selectedItems().length} objects selected. Drag any selected object to move the group; drag a resize handle to scale everything together.`;$('group-scale').value=100;$('item-controls').hidden = !it||group;$('seat-controls').hidden = group || !it || selection.seat === null;
   $('selection-title').textContent = group ? `${selectedItems().length} objects selected` : it ? catalog[it.type].label : 'Fine-tune your room';$('selection-hint').hidden = !!it;
   if(!it) return;
@@ -239,7 +240,8 @@ $('assignment').onchange = () => {const it=selected();if(!it || selection.seat==
 };
 $('locked').onchange = () => {const it=selected();if(it && selection.seat!==null) change(() => {it.seats[selection.seat].locked=$('locked').checked;});};
 function updateZoom() {
-  zoom = $('zoom').value === 'fit' ? Math.min(1, ($('room').parentElement.clientWidth-40)/WIDTH) : Number($('zoom').value);
+  $('room').parentElement.dataset.zoom=$('zoom').value==='fit'?'fit':'manual';
+  zoom = $('zoom').value === 'fit' ? Math.min(1,Math.max(80,$('room').parentElement.clientWidth-24)/WIDTH,Math.max(80,$('room').parentElement.clientHeight-24)/HEIGHT) : Number($('zoom').value);
   $('room').style.zoom = zoom;
 }
 $('zoom').onchange = updateZoom;
@@ -284,3 +286,5 @@ function fitCaption(el,it){
 $('apply-room').onclick=()=>{if(!$('room-width').reportValidity()||!$('room-depth').reportValidity())return;change(()=>reshapeRoom(chart(),Number($('room-width').value),Number($('room-depth').value)),'Room resized. Undo is available.');updateZoom();};
 $('square-room').onclick=()=>{change(()=>reshapeRoom(chart(),Math.max(WIDTH,HEIGHT),Math.max(WIDTH,HEIGHT)),'Square room applied.');updateZoom();};
 $('rotate-room').onclick=()=>{change(()=>rotateRoom(chart()),'Room and furniture rotated 90°.');updateZoom();};
+
+document.addEventListener('sas-workspace-resize',updateZoom);window.visualViewport?.addEventListener('resize',updateZoom);

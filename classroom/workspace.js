@@ -1,0 +1,34 @@
+// Move existing controls into compact panels without changing their data bindings.
+const $=id=>document.getElementById(id),body=document.body;
+body.classList.add('chart-first');
+const header=document.querySelector('.header');header.innerHTML='<a href="../" class="brand" aria-label="Back to SAS">SAS <span>Classroom Studio</span></a><button id="workspace-chart" aria-haspopup="dialog">My classroom ▾</button><span id="workspace-save" role="status">Saved locally</span><div class="workspace-actions" data-appearance-host><button id="workspace-account">Account</button><button id="workspace-settings">Settings</button><button id="workspace-more">More</button></div>';
+function dialog(id,title,nodes){const d=document.createElement('dialog');d.id=id;d.className='workspace-dialog';d.setAttribute('aria-label',title);const heading=document.createElement('form');heading.method='dialog';heading.innerHTML=`<h2>${title}</h2><button aria-label="Close ${title}">×</button>`;d.append(heading,...nodes);body.append(d);return d;}
+const heading=document.querySelector('.heading'),files=heading.querySelector('.file-actions');files.removeAttribute('data-appearance-host');heading.remove();
+const charts=dialog('charts-dialog','Classrooms',[document.querySelector('.chart-bar')]);
+const account=dialog('account-dialog','Account and cloud',[document.querySelector('.cloud-panel')]);
+const settings=dialog('settings-dialog','Classroom settings',[...document.querySelectorAll('.chart-customization')]);
+const more=dialog('more-dialog','Files and sharing',[files]);
+for(const [button,d] of [['workspace-chart',charts],['workspace-account',account],['workspace-settings',settings],['workspace-more',more]])$(button).onclick=()=>d.showModal();
+const library=document.querySelector('.library'),inspector=document.querySelector('.inspector');library.id='workspace-library';inspector.id='workspace-inspector';
+function closeButton(panel,name){const b=document.createElement('button');b.type='button';b.className='workspace-panel-close';b.setAttribute('aria-label','Close '+name);b.textContent='×';b.onclick=()=>{if(innerWidth>=1100&&panel===inspector&&!library.hidden)setPanel($('students-panel').hidden?'furniture':'students');else if(innerWidth>=1100&&panel===library&&!inspector.hidden){library.hidden=true;setPanel('details');}else setPanel(null);};panel.prepend(b);}closeButton(library,'library');closeButton(inspector,'details');
+const dock=document.createElement('nav');dock.className='workspace-dock';dock.setAttribute('aria-label','Classroom tools');dock.innerHTML='<button id="dock-furniture" aria-controls="workspace-library">Furniture</button><button id="dock-students" aria-controls="workspace-library">Students</button><button id="dock-details" aria-controls="workspace-inspector">Details</button><button id="dock-fit">Fit room</button>';document.querySelector('.room-panel').append(dock);
+let active=innerWidth>=1100?'furniture':null;
+function setPanel(panel){active=panel;body.dataset.workspacePanel=panel||'';const keepLibrary=innerWidth>=1100&&panel==='details'&&!library.hidden;library.hidden=!keepLibrary&&!['furniture','students'].includes(panel);inspector.hidden=panel!=='details';for(const name of ['furniture','students','details'])$('dock-'+name).setAttribute('aria-expanded',String(active===name));if(panel==='furniture')$('furniture-tab').click();if(panel==='students')$('students-tab').click();document.dispatchEvent(new Event('sas-workspace-resize'));}
+for(const name of ['furniture','students','details'])$('dock-'+name).onclick=()=>setPanel(active===name?null:name);
+$('dock-fit').onclick=()=>{$('zoom').value='fit';$('zoom').dispatchEvent(new Event('change'));setPanel(null);};
+setPanel(active);
+document.addEventListener('sas-selection-changed',event=>{if(event.detail?.seat)setPanel('details');else if(event.detail?.selected&&innerWidth>=1100&&active!=='details')setPanel('details');});
+$('palette').addEventListener('click',()=>{if(innerWidth<1100)setPanel(null);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('dialog[open]')&&!document.querySelector('.site-select-menu'))setPanel(null);});
+let compact=innerWidth<1100;window.addEventListener('resize',()=>{const next=innerWidth<1100;if(next!==compact){compact=next;setPanel(next?null:'furniture');}});
+function status(){const name=$('name').value||'My classroom';if($('workspace-chart').textContent!==name+' ▾')$('workspace-chart').textContent=name+' ▾';const cloud=$('cloud-status').textContent,connected=!$('cloud-account').hidden;const text=connected?(cloud.includes('pending')||cloud.includes('Saving')?'Saving…':cloud.includes('saved')||cloud.includes('automatically')?'Cloud connected':/conflict|another browser|could not|failed|invalid|different charts/i.test(cloud)?'Sync needs attention':'Cloud connected'):'Saved locally';$('workspace-save').textContent=text;$('workspace-account').title=cloud;$('workspace-account').dataset.sync=text==='Sync needs attention'?'attention':'ready';}
+new MutationObserver(status).observe($('cloud-status'),{childList:true,subtree:true});new MutationObserver(status).observe($('save-state'),{childList:true,subtree:true});$('name').addEventListener('change',status);$('charts').addEventListener('change',()=>{charts.close();setTimeout(status,0);});
+document.addEventListener('sas-chart-edited',()=>{status();});
+
+const icons={account:'M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM4 21v-2a8 8 0 0 1 16 0v2',settings:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2',more:'M5 12h.1M12 12h.1M19 12h.1',details:'M4 4h16v16H4ZM9 4v16M12 8h5m-5 4h5m-5 4h5',fit:'M3 9V3h6m6 0h6v6M3 15v6h6m6 0h6v-6'};
+for(const [id,key] of [['workspace-account','account'],['workspace-settings','settings'],['workspace-more','more'],['dock-details','details'],['dock-fit','fit']]){const b=$(id);b.title=b.textContent;b.setAttribute('aria-label',b.textContent);const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');svg.setAttribute('stroke-linecap','round');svg.setAttribute('aria-hidden','true');svg.classList.add('button-glyph');const path=document.createElementNS(svg.namespaceURI,'path');path.setAttribute('d',icons[key]);svg.append(path);b.prepend(svg);}
+$('undo').setAttribute('aria-label','Undo');$('redo').setAttribute('aria-label','Redo');$('shuffle').setAttribute('aria-label','Shuffle students');$('multi-select').setAttribute('aria-label','Select multiple');
+
+document.addEventListener('sas-cloud-picker-open',()=>account.close());
+// Email/recovery callbacks still bring password setup into view.
+new MutationObserver(()=>{if(!$('cloud-password-form').hidden&&!account.open)account.showModal();}).observe($('cloud-password-form'),{attributes:true,attributeFilter:['hidden']});

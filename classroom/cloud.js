@@ -1,5 +1,5 @@
-import {cloudConfig} from './cloud-config.js?v=20261013-sync2';
-import {CloudStore} from './cloud-store.mjs?v=20261013-sync2';
+import {cloudConfig} from './cloud-config.js?v=20261013-layout1';
+import {CloudStore} from './cloud-store.mjs?v=20261013-layout1';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
@@ -138,7 +138,7 @@ export async function connectCloud({getState,applyState,notify}) {
       const list=picker.querySelector('.cloud-chart-list');list.replaceChildren();
       for(const chart of remote.charts){const button=document.createElement('button');button.type='button';const title=document.createElement('strong');title.textContent=chart.name;const detail=document.createElement('span');detail.textContent=`${chart.students.length} students · ${chart.items.length} furniture items · ${chart.room?.width||960} × ${chart.room?.height||680}`;button.append(title,detail);
         button.onclick=()=>{if(store!==current){picker.close();return;}if(!confirm('Open this chart and your account’s collection in this browser? Local changes remain available in Undo; export a backup first if needed.'))return;const baselineRemote=structuredClone(remote);remote.active=chart.id;autoReady=false;clearTimeout(autoTimer);store=reader;applyState(remote);remember(baselineRemote);dirty=fingerprint(remote)!==fingerprint(baselineRemote);autoReady=true;schedule();picker.close();status('✓ Cloud charts opened. Changes now save automatically.');};list.append(button);}
-      picker.showModal();status('Choose a classroom from your cloud charts.');
+      document.dispatchEvent(new Event('sas-cloud-picker-open'));picker.showModal();status('Choose a classroom from your cloud charts.');
     }catch(error){status((error.message||'Could not open cloud charts.')+' Your browser copy has not changed.');}
     finally{busy=false;enable(true);}
   };
