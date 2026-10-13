@@ -76,3 +76,8 @@ test('proportional furniture keeps its catalog ratio for both sizing axes',async
  for(const type of proportionalTypes){const it=furniture(type);for(const axis of ['width','height']){resizeFurniture(it,220,180,axis);assert.ok(Math.abs(it.width/it.height-catalog[type].width/catalog[type].height)<1e-9);assert.ok(it.width>=40&&it.width<=400&&it.height>=30&&it.height<=300);}}
  const desk=furniture('teacher');resizeFurniture(desk,220,100);assert.equal(desk.width,220);assert.equal(desk.height,100);
 });
+
+test('new furniture finds vacant space and snaps flush to room walls',async()=>{
+ const {vacantPosition,snapGroup}=await import('../classroom/model.mjs');const a=furniture('desk',320,220),b=furniture('desk');assert.equal(vacantPosition(b,[a]),true);assert.ok(a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y);
+ const door=furniture('door',4,4);snapGroup([door],[]);assert.equal(door.x,0);assert.equal(door.y,0);door.x=WIDTH-door.width-3;door.y=HEIGHT-door.height-3;snapGroup([door],[]);assert.equal(door.x+door.width,WIDTH);assert.equal(door.y+door.height,HEIGHT);
+});

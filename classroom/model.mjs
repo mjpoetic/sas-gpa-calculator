@@ -16,8 +16,8 @@ export const catalog = {
   door: {label: 'Door', width: 140, height: 40, seats: 0},
   printer: {label:'Printer',width:90,height:75,seats:0},
   cabinet: {label:'Filing cabinet',width:80,height:110,seats:0},
-  window: {label:'Window',width:170,height:35,seats:0},
-  smartboard: {label:'Smart board',width:220,height:55,seats:0},
+  window: {label:'Window',width:170,height:30,seats:0},
+  smartboard: {label:'Smart board',width:220,height:30,seats:0},
   plant: {label:'Plant',width:70,height:70,seats:0},
   laptop: {label:'Laptop',width:85,height:65,seats:0},
   keyboard: {label:'Keyboard',width:95,height:40,seats:0},
@@ -114,7 +114,7 @@ export function snapGroup(items,others,grid=true) {
  for(const it of others){const t=footprint(it);
  if(b.y<t.y+t.height+8&&b.y+b.height>t.y-8)for(const d of [t.x-b.x-b.width,t.x+t.width-b.x,t.x-b.x])if(Math.abs(d)<bestX){bestX=Math.abs(d);dx=d;}
  if(b.x<t.x+t.width+8&&b.x+b.width>t.x-8)for(const d of [t.y-b.y-b.height,t.y+t.height-b.y,t.y-b.y])if(Math.abs(d)<bestY){bestY=Math.abs(d);dy=d;}
- }moveGroup(items,dx,dy);return bestX<9||bestY<9;
+ }if(b.x<9)dx=-b.x;else if(WIDTH-b.x-b.width<9)dx=WIDTH-b.x-b.width;if(b.y<9)dy=-b.y;else if(HEIGHT-b.y-b.height<9)dy=HEIGHT-b.y-b.height;moveGroup(items,dx,dy);return bestX<9||bestY<9;
 }
 
 export const proportionalTypes=new Set(['round','plant','laptop','keyboard','mouse','chair','stool','printer','cabinet','couch','window','smartboard']);
@@ -125,4 +125,11 @@ export function resizeFurniture(it,width,height,axis='width') {
   w=Math.max(40,30*ratio,Math.min(400,300*ratio,w));it.width=w;it.height=w/ratio;
  }else{it.width=Math.max(40,Math.min(400,width));it.height=Math.max(30,Math.min(300,height));}
  constrain(it);
+}
+
+export function vacantPosition(item,others,preferred={x:320,y:220}) {
+ const free=()=>{const b=footprint(item);return !others.filter(it=>!['rug','label'].includes(it.type)).some(it=>{const t=footprint(it);return b.x<t.x+t.width+8&&b.x+b.width+8>t.x&&b.y<t.y+t.height+8&&b.y+b.height+8>t.y;});};
+ item.x=preferred.x;item.y=preferred.y;constrain(item);if(free())return true;
+ for(let y=0;y<=HEIGHT-item.height;y+=20)for(let x=0;x<=WIDTH-item.width;x+=20){item.x=x;item.y=y;constrain(item);if(free())return true;}
+ item.x=preferred.x;item.y=preferred.y;constrain(item);return false;
 }

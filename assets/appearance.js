@@ -1,3 +1,4 @@
+import './site-menus.js';
 import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights,validateWeight} from './font-options.mjs';
 const KEY='sas-appearance-v1';
 const defaults=()=>({theme:'system',font:{source:'preset',family:'system'},scale:100,weight:400});
