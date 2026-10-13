@@ -93,3 +93,5 @@ Site Appearance and chart customization offer weights from Thin (100) to Heavy (
 Doors use a simple wooden leaf and metal handle; teacher desks use overhead monitor, keyboard, mouse, mug, and pen details. Their default labels are omitted, while custom labels remain available. The palette includes plant, laptop, keyboard, mouse, couch, chair, and stool as independent decorative objects. These objects support the same selection, rotation, flipping, resizing, and saved-chart behavior as other furniture.
 
 **⌘Z** undoes and **⌘⇧Z** redoes chart changes (Ctrl equivalents also work). Visible Undo/Redo buttons support touch. Shortcuts leave native text-field undo untouched. A new edit clears the redo stack; both stacks are bounded to 40 changes and reset on reload. `tests/classroom-decor.browser.cjs` covers these behaviors and the illustrated palette.
+
+The door silhouette has been restored to the original pale, dashed rounded-corner design, with its label and 80 × 60 default size. Existing doors retain their saved dimensions. Flipping mirrors the silhouette while keeping the label readable; other overhead illustrations remain unchanged.

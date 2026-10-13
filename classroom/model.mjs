@@ -13,7 +13,7 @@ export const catalog = {
   teacher: {label: 'Teacher desk', width: 150, height: 70, seats: 0},
   board: {label: 'Whiteboard', width: 260, height: 30, seats: 0},
   shelf: {label: 'Bookshelf', width: 130, height: 45, seats: 0},
-  door: {label: 'Door', width: 140, height: 40, seats: 0},
+  door: {label: 'Door', width: 80, height: 60, seats: 0},
   printer: {label:'Printer',width:90,height:75,seats:0},
   cabinet: {label:'Filing cabinet',width:80,height:110,seats:0},
   window: {label:'Window',width:170,height:35,seats:0},

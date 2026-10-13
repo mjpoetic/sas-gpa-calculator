@@ -85,7 +85,7 @@ function renderRoom() {
     Object.assign(node.style,{left:`${it.x}px`,top:`${it.y}px`,width:`${it.width}px`,height:`${it.height}px`,transform:`rotate(${it.rotation}deg)`});
     const color=it.color || appearance().color;
     if(color) {node.style.background=color;const rgb=color.slice(1).match(/../g).map(c=>parseInt(c,16));node.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#172c3e':'#ffffff';}
-    const caption=element('span','item-caption',it.label);if(!['door','teacher','plant','laptop','keyboard','mouse','couch','chair','stool'].includes(it.type)||it.label!==catalog[it.type].label)node.append(caption);
+    const caption=element('span','item-caption',it.label);if(!['teacher','plant','laptop','keyboard','mouse','couch','chair','stool'].includes(it.type)||it.label!==catalog[it.type].label)node.append(caption);
     if(!it.seats.length){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type);art.style.transform=`scale(${it.flipX?-1:1},${it.flipY?-1:1})`;node.prepend(art);requestAnimationFrame(()=>fitCaption(caption,it));}
     node.title=it.label;
     if(it.seats.length) {
