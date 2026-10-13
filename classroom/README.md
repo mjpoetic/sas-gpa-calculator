@@ -47,3 +47,9 @@ The login form also accepts an email and password through Supabase Auth. While s
 `tests/classroom-password.browser.cjs` verifies failed and successful password login, password confirmation, updating a password, cleared fields, sign-out, recovery callbacks, and mobile overflow using a simulated auth client. No real password is created or changed by the automated test.
 
 The SAS project's Email provider now also enforces a 12-character minimum on the server, with Secure password change enabled (requires a recent sign-in or recovery session). The owner password setup form was opened in the existing signed-in Safari session; the owner completes password entry and submission privately.
+
+## Hidden logo shortcut
+
+Press and hold either site logo on the main honors calculator for **1.2 seconds** to open Classroom Studio. A normal click still triggers the existing celebration. Moving more than 12 pixels, releasing early, scrolling, losing focus, or canceling a touch stops the shortcut. Keyboard users can hold Space or Enter while the logo button is focused. The direct `/classroom/` URL remains available. The hidden gesture is a navigation shortcut, not an access-control mechanism; cloud data still requires sign-in.
+
+Run `tests/classroom-shortcut.browser.cjs` with Playwright and the local server to verify click behavior, canceled gestures, and mouse, touch, and keyboard holds.
