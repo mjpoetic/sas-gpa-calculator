@@ -109,3 +109,11 @@ Snapping includes room edges. Doors draw their leaf at the edge of the selectabl
 Classroom selects and the shared Appearance dialog use keyboard-accessible site menus with consistent styling instead of native browser menus. Common action buttons have matching SVG glyphs. Font-family edits apply on leaving the field as well as through Apply font, with an inline loading/applied/error status.
 
 Signed-in edits save to cloud after a 900 ms quiet period. Automatic saving first verifies the remote collection against the browser copy or its last synchronized baseline. If they differ, Open cloud charts or the existing explicit Save to cloud resolves which collection to keep; sign-in never silently replaces either copy. Revision checks still block concurrent-browser overwrites. Pending changes remain saved locally; network failures retry when connection returns or more edits are made, and pending cloud edits warn before leaving/reloading. Tests use a simulated backend and send no real chart data or authentication emails.
+
+## Room geometry and furniture controls
+
+Room shape and orientation provides Width/Depth (480–1600 planning units), a square preset, and a 90° rotation of the room plus every furniture item. Size changes keep furniture inside the new bounds. Room dimensions travel with cloud charts and JSON backups; legacy charts retain 960 × 680 dimensions. Undo/Redo includes room changes.
+
+Cabinets resize vertically in 30-unit drawer steps with an 80-unit fixed width. Doors keep a thin 12:1 ratio; whiteboards and smart boards keep a thinner 20:1 ratio. Office chairs are black, and bulletin boards have no labels. Double-click a furniture body to open its color control; touch users can select furniture and use the inspector color field. Group resizing keeps cabinet width fixed (cabinet groups do not shrink below their initial scale).
+
+Font-source choices now save immediately instead of reverting when other settings are edited. The chart font preview shows the current family and weight, and chart text defaults to the requested regular weight. The room/browser regression verifies actual Google Fonts loading rather than mocking the font stylesheet.

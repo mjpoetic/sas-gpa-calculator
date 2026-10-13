@@ -1,5 +1,5 @@
 import {furnitureArt} from './furniture-art.mjs';
-import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition} from './model.mjs';
+import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs';
 import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs';
 import {connectCloud} from './cloud.js';
 
@@ -47,7 +47,7 @@ for (const [type,spec] of Object.entries(catalog)) {
 }
 function addFurniture(type,preferred){if(chart().items.length>=500)return say('This chart has reached the furniture limit.');change(()=>{const item=furniture(type);const found=vacantPosition(item,chart().items,preferred);chart().items.push(item);choose(item);if(!found)say('Room is full; move the new item to make space.');},catalog[type].label+' added.');}
 function render() {
-  const c = chart();
+  const c = chart();setRoomSize(c.room);$('room-width').value=WIDTH;$('room-depth').value=HEIGHT;
   $('charts').replaceChildren(...state.charts.map(c => option(c.id,c.name)));$('charts').value = c.id;
   $('name').value = c.name;$('room-title').textContent = c.name;$('student-count').textContent = c.students.length;
   const all = seats(c), count = all.filter(s => s.student).length;
@@ -59,7 +59,7 @@ function render() {
   renderAppearance();
 }
 function renderAppearance() {
-  const a=appearance();$('chart-font-weight').value=a.weight||400;$('chart-font-source').value=a.font.source;$('chart-font').value=a.font.source==='preset'?a.font.family:'system';
+  const a=appearance();$('chart-font-preview').style.fontFamily=fontCSS(a.font);$('chart-font-preview').style.fontWeight=a.weight||400;$('chart-font-weight').value=a.weight||400;$('chart-font-source').value=a.font.source;$('chart-font').value=a.font.source==='preset'?a.font.family:'system';
   $('chart-font-family').value=a.font.source==='preset'?'':a.font.family;$('chart-font-size').value=a.fontSize;$('chart-color').value=a.color||'#e8d7bb';chartFontFields();
 }
 function chartFontFields() {const custom=$('chart-font-source').value!=='preset';$('chart-custom-font').hidden=!custom;$('chart-preset-label').hidden=custom;suggestFonts($('chart-font-family'),$('chart-font-source').value,'chart-font-suggestions');}
@@ -67,7 +67,7 @@ function chartStyle(fn,message) {change(()=>{chart().appearance=structuredClone(
 for(const [value,label] of Object.entries(fontWeights))$('chart-font-weight').append(option(value,label));
 $('chart-font-weight').onchange=()=>chartStyle(a=>{a.weight=Number($('chart-font-weight').value);});
 for(const [key,spec] of Object.entries(fontOptions)) $('chart-font').append(option(key,spec.label));
-$('chart-font-source').onchange=()=>{chartFontFields();if($('chart-font-source').value==='preset') chartStyle(a=>{a.font={source:'preset',family:$('chart-font').value};});};
+$('chart-font-source').onchange=()=>{const source=$('chart-font-source').value,family=source==='preset'?$('chart-font').value:source==='google'?'Inter':'Arial';chartStyle(a=>{a.font={source,family};});};
 $('chart-font').onchange=()=>chartStyle(a=>{a.font={source:'preset',family:$('chart-font').value};});
 $('chart-font-family').onchange=()=>{const form=$('chart-custom-font');if($('chart-font-family').value.trim())form.requestSubmit();};
 $('chart-custom-font').onsubmit=e=>{e.preventDefault();try{const font=validateFont({source:$('chart-font-source').value,family:$('chart-font-family').value.trim()});chartStyle(a=>{a.font=font;},'Chart font applied.');}catch(error){say(error.message);}};
@@ -78,22 +78,23 @@ $('chart-reset').onclick=()=>change(()=>{chart().appearance=defaultAppearance();
 $('item-color').onchange=()=>{const it=selected();if(it)change(()=>{it.color=$('item-color').value;});};
 $('item-color-reset').onclick=()=>{const it=selected();if(it)change(()=>{delete it.color;});};
 function renderRoom() {
-  const room = $('room');
+  const room = $('room');room.style.width=WIDTH+'px';room.style.height=HEIGHT+'px';
   const previous=new Map([...room.querySelectorAll('.item')].map(node=>[node.dataset.id,{x:parseFloat(node.style.left),y:parseFloat(node.style.top),width:parseFloat(node.style.width),height:parseFloat(node.style.height),rotation:Number(node.dataset.rotation||0),active:node.classList.contains('dragging')||node.classList.contains('resizing')} ]));
   room.replaceChildren();
   if(!selection)selectedIds.clear();else if(!selectedIds.has(selection.id))selectedIds=new Set([selection.id]);
-  room.style.setProperty('--chart-font-weight',appearance().weight||500);
+  room.style.setProperty('--chart-font-weight',appearance().weight||400);
   room.style.fontFamily=fontCSS(appearance().font);
   room.style.setProperty('--chart-font-size',`${appearance().fontSize}px`);
   const font=appearance().font,weight=appearance().weight||400;$('chart-font-status').textContent=font.source==='google'?'Loading '+font.family+'…':'Font applied: '+(fontOptions[font.family]?.label||font.family);void loadFont(font,weight).then(async()=>{if(document.fonts?.load)await document.fonts.load(`${weight} 14px ${fontCSS(font)}`);if(JSON.stringify(appearance().font)===JSON.stringify(font))$('chart-font-status').textContent='Font applied: '+(fontOptions[font.family]?.label||font.family);}).catch(error=>{$('chart-font-status').textContent=error.message;say(error.message);});
   for(const it of chart().items) {
     const node = element('div',`item ${it.type}${selectedIds.has(it.id) ? ' selected' : ''}`);
+    node.ondblclick=e=>{if(e.target.closest('.furniture-actions,.resize-handle'))return;e.preventDefault();e.stopPropagation();choose(it);renderInspector();$('item-color').focus();$('item-color').click();};
     node.dataset.id = it.id;node.dataset.rotation=it.rotation;node.tabIndex = 0;node.setAttribute('aria-label',`${it.label}. Drag to move, or use arrow keys.`);
     Object.assign(node.style,{left:`${it.x}px`,top:`${it.y}px`,width:`${it.width}px`,height:`${it.height}px`,transform:`rotate(${it.rotation}deg)`});
     const color=it.color || appearance().color;
-    if(color) {node.style.background=color;const rgb=color.slice(1).match(/../g).map(c=>parseInt(c,16));node.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#172c3e':'#ffffff';}
+    if(color) {node.style.background=color;node.style.setProperty('--furniture-color',color);const rgb=color.slice(1).match(/../g).map(c=>parseInt(c,16));node.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#172c3e':'#ffffff';}
     const caption=element('span','item-caption',it.label);if(it.seats.length||['rug','label'].includes(it.type))node.append(caption);
-    if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=679||f.x+f.width>=959),wallFlip=it.type==='door'&&((f.y+f.height>=679&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=959&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);requestAnimationFrame(()=>fitCaption(caption,it));}
+    if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type,it.height);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=HEIGHT-1||f.x+f.width>=WIDTH-1),wallFlip=it.type==='door'&&((f.y+f.height>=HEIGHT-1&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=WIDTH-1&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);if(color){const rects=[...art.querySelectorAll('rect')].sort((a,b)=>Number(b.getAttribute('width'))*Number(b.getAttribute('height'))-Number(a.getAttribute('width'))*Number(a.getAttribute('height')));(rects[0]||art.querySelector('circle'))?.setAttribute('fill',color);}requestAnimationFrame(()=>fitCaption(caption,it));}
     node.title=it.label;
     if(it.seats.length) {
       const grid = element('div','seat-grid');grid.style.setProperty('--columns',it.seats.length === 1 ? 1 : 2);
@@ -145,10 +146,10 @@ function renderRoom() {
         if(members.length>1){members.forEach((item,i)=>Object.assign(item,original[i]));scaleGroup(members,Math.max(.1,1+(dx+dy)/(bounds.width+bounds.height)));paintPositions();return;}
         const angle=it.rotation*Math.PI/180,step=1;
         it.width=Math.max(40,Math.min(400,Math.round((start.w+dx*Math.cos(angle)+dy*Math.sin(angle))/step)*step));
-        it.height=Math.max(30,Math.min(300,Math.round((start.h-dx*Math.sin(angle)+dy*Math.cos(angle))/step)*step));if(proportionalTypes.has(it.type))resizeFurniture(it,it.width,it.height,Math.abs(dx*Math.cos(angle)+dy*Math.sin(angle))/start.w>=Math.abs(-dx*Math.sin(angle)+dy*Math.cos(angle))/start.h?'width':'height');else constrain(it);snapResize(it);
-        Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});showGuides([it]);
+        it.height=Math.max(8,Math.min(300,Math.round((start.h-dx*Math.sin(angle)+dy*Math.cos(angle))/step)*step));if(proportionalTypes.has(it.type)||['door','board','smartboard','cabinet'].includes(it.type))resizeFurniture(it,it.width,it.height,Math.abs(dx*Math.cos(angle)+dy*Math.sin(angle))/start.w>=Math.abs(-dx*Math.sin(angle)+dy*Math.cos(angle))/start.h?'width':'height');else constrain(it);snapResize(it);
+        Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});if(it.type==='cabinet')node.querySelector('.furniture-art').innerHTML=furnitureArt(it.type,it.height);showGuides([it]);
       };
-      const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(40,Math.min(400,Math.round(it.width/10)*10));it.height=Math.max(30,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height);}save();render();}};
+      const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(40,Math.min(400,Math.round(it.width/10)*10));it.height=Math.max(8,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height);}save();render();}};
       resize.addEventListener('pointermove',move);resize.addEventListener('pointerup',end);resize.addEventListener('pointercancel',end);
     };node.append(resize);
     node.addEventListener('pointerdown', e => {
@@ -177,14 +178,14 @@ function renderRoom() {
       if(prior?.active)node.classList.add('settling');
     }
   }
-  room.style.zoom = zoom;
+  updateZoom();
 }
 function renderInspector() {
   const it = selected(),group=selectedItems().length>1;$('group-controls').hidden=!group;$('group-summary').textContent=`${selectedItems().length} objects selected. Drag any selected object to move the group; drag a resize handle to scale everything together.`;$('group-scale').value=100;$('item-controls').hidden = !it||group;$('seat-controls').hidden = group || !it || selection.seat === null;
   $('selection-title').textContent = group ? `${selectedItems().length} objects selected` : it ? catalog[it.type].label : 'Fine-tune your room';$('selection-hint').hidden = !!it;
   if(!it) return;
   for(const field of ['label','width','height','x','y']) $('item-'+field).value = it[field];
-  $('item-angle').value=it.rotation;
+  $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-height').min=['door','board','smartboard'].includes(it.type)?8:30;$('item-height').step=1;
   $('item-color').value=it.color || appearance().color || '#e8d7bb';
   if(selection.seat !== null) {
     const s = it.seats[selection.seat];$('seat-title').textContent = `Seat ${selection.seat+1}`;
@@ -238,7 +239,7 @@ $('assignment').onchange = () => {const it=selected();if(!it || selection.seat==
 };
 $('locked').onchange = () => {const it=selected();if(it && selection.seat!==null) change(() => {it.seats[selection.seat].locked=$('locked').checked;});};
 function updateZoom() {
-  zoom = $('zoom').value === 'fit' ? Math.min(1, ($('room').parentElement.clientWidth-40)/960) : Number($('zoom').value);
+  zoom = $('zoom').value === 'fit' ? Math.min(1, ($('room').parentElement.clientWidth-40)/WIDTH) : Number($('zoom').value);
   $('room').style.zoom = zoom;
 }
 $('zoom').onchange = updateZoom;
@@ -279,3 +280,7 @@ function fitCaption(el,it){
  if(el.scrollHeight>available){el.classList.remove('vertical-caption');el.classList.add('floating-caption');el.style.width=Math.max(120,it.width)+'px';}
  el.title=it.label;
 }
+
+$('apply-room').onclick=()=>{if(!$('room-width').reportValidity()||!$('room-depth').reportValidity())return;change(()=>reshapeRoom(chart(),Number($('room-width').value),Number($('room-depth').value)),'Room resized. Undo is available.');updateZoom();};
+$('square-room').onclick=()=>{change(()=>reshapeRoom(chart(),Math.max(WIDTH,HEIGHT),Math.max(WIDTH,HEIGHT)),'Square room applied.');updateZoom();};
+$('rotate-room').onclick=()=>{change(()=>rotateRoom(chart()),'Room and furniture rotated 90°.');updateZoom();};

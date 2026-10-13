@@ -28,7 +28,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(prefs));$('appearanc
 $('appearance-weight').onchange=()=>{prefs.weight=Number($('appearance-weight').value);save();};
 $('appearance-theme').onchange=()=>{prefs.theme=$('appearance-theme').value;save();};
 $('appearance-scale').onchange=()=>{prefs.scale=Number($('appearance-scale').value);save();};
-$('appearance-source').onchange=()=>{sourceFields();if($('appearance-source').value==='preset'){prefs.font={source:'preset',family:$('appearance-preset').value};save();}};
+$('appearance-source').onchange=()=>{const source=$('appearance-source').value;prefs.font={source,family:source==='preset'?$('appearance-preset').value:source==='google'?'Inter':'Arial'};sync();save();};
 $('appearance-preset').onchange=()=>{prefs.font={source:'preset',family:$('appearance-preset').value};save();};
 $('appearance-custom').onsubmit=e=>{e.preventDefault();try{prefs.font=validateFont({source:$('appearance-source').value,family:$('appearance-family').value.trim()});save();}catch(error){$('appearance-status').textContent=error.message;}};
 $('appearance-reset').onclick=()=>{prefs=defaults();sync();save();};

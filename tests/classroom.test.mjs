@@ -81,3 +81,7 @@ test('new furniture finds vacant space and snaps flush to room walls',async()=>{
  const {vacantPosition,snapGroup}=await import('../classroom/model.mjs');const a=furniture('desk',320,220),b=furniture('desk');assert.equal(vacantPosition(b,[a]),true);assert.ok(a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y);
  const door=furniture('door',4,4);snapGroup([door],[]);assert.equal(door.x,0);assert.equal(door.y,0);door.x=WIDTH-door.width-3;door.y=HEIGHT-door.height-3;snapGroup([door],[]);assert.equal(door.x+door.width,WIDTH);assert.equal(door.y+door.height,HEIGHT);
 });
+
+test('custom rooms rotate reversibly, validate, and preserve furniture',async()=>{
+ const {reshapeRoom,rotateRoom,setRoomSize,resizeFurniture}=await import('../classroom/model.mjs');const c=newChart();reshapeRoom(c,1200,800);const before=structuredClone(c);for(let i=0;i<4;i++)rotateRoom(c);for(let i=0;i<c.items.length;i++){assert.ok(Math.abs(c.items[i].x-before.items[i].x)<1e-8);assert.ok(Math.abs(c.items[i].y-before.items[i].y)<1e-8);}assert.deepEqual(c.room,before.room);assert.deepEqual(validateBackup({version:1,active:c.id,charts:[c]}).charts[0].room,c.room);const cabinet=furniture('cabinet');resizeFurniture(cabinet,200,240);assert.equal(cabinet.width,80);assert.equal(cabinet.height,240);const door=furniture('door');resizeFurniture(door,240,240);assert.equal(door.height,20);setRoomSize();
+});
