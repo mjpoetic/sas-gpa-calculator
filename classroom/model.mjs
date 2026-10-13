@@ -1,9 +1,9 @@
-import {validateFont} from '../assets/font-options.mjs';
+import {validateFont,validateWeight} from '../assets/font-options.mjs';
 export const WIDTH = 960, HEIGHT = 680;
 export const defaultAppearance = () => ({font:{source:'preset',family:'system'},fontSize:11,color:null});
 export function validateAppearance(value) {
   if(!value || !Number.isFinite(value.fontSize) || value.fontSize<9 || value.fontSize>24 || (value.color!==null && !/^#[\da-f]{6}$/i.test(value.color))) throw new Error('Invalid chart appearance.');
-  return {font:validateFont(value.font),fontSize:value.fontSize,color:value.color};
+  return {font:validateFont(value.font),fontSize:value.fontSize,color:value.color,...(value.weight!==undefined?{weight:validateWeight(value.weight)}:{})};
 }
 export const catalog = {
   desk: {label: 'Student desk', width: 100, height: 80, seats: 1},
@@ -14,6 +14,10 @@ export const catalog = {
   board: {label: 'Whiteboard', width: 260, height: 30, seats: 0},
   shelf: {label: 'Bookshelf', width: 130, height: 45, seats: 0},
   door: {label: 'Door', width: 80, height: 60, seats: 0},
+  printer: {label:'Printer',width:90,height:75,seats:0},
+  cabinet: {label:'Filing cabinet',width:80,height:110,seats:0},
+  window: {label:'Window',width:170,height:35,seats:0},
+  smartboard: {label:'Smart board',width:220,height:55,seats:0},
   rug: {label: 'Reading rug', width: 180, height: 140, seats: 0},
   label: {label: 'Room label', width: 160, height: 40, seats: 0}
 };
@@ -75,7 +79,7 @@ export function validateBackup(data) {
     const items = c.items.map(it => {
       if(it.color!==undefined && !/^#[\da-f]{6}$/i.test(it.color)) throw new Error('Invalid furniture color.');
       if (!Object.hasOwn(catalog, it.type) || !Array.isArray(it.seats) || it.seats.length !== catalog[it.type].seats || (!Number.isFinite(it.rotation) || it.rotation<0 || it.rotation>=360)) throw new Error('Invalid furniture in backup.');
-      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.color!==undefined?{color:it.color}:{}), width: num(it.width,40,400), height: num(it.height,30,300), x:num(it.x,-200,1160), y:num(it.y,-200,880), rotation:it.rotation, seats:it.seats.map(s => {
+      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.color!==undefined?{color:it.color}:{}), ...(it.flipX===true?{flipX:true}:{}), ...(it.flipY===true?{flipY:true}:{}), width: num(it.width,40,400), height: num(it.height,30,300), x:num(it.x,-200,1160), y:num(it.y,-200,880), rotation:it.rotation, seats:it.seats.map(s => {
         if (typeof s.locked !== 'boolean' || (s.student !== null && (!studentIds.has(s.student) || assigned.has(s.student)))) throw new Error('Invalid student assignment in backup.');
         if (s.student) assigned.add(s.student);
         return {student:s.student, locked:s.locked};
@@ -84,4 +88,24 @@ export function validateBackup(data) {
     return {id:id(c.id), name:str(c.name,80), students, items,...(c.appearance!==undefined?{appearance:validateAppearance(c.appearance)}:{})};
   });
   return {version:1, charts, active:charts.some(c => c.id === data.active) ? data.active : charts[0].id};
+}
+
+export function footprint(it) {
+ const a=it.rotation*Math.PI/180,w=Math.abs(Math.cos(a))*it.width+Math.abs(Math.sin(a))*it.height,h=Math.abs(Math.sin(a))*it.width+Math.abs(Math.cos(a))*it.height;
+ return {x:it.x+(it.width-w)/2,y:it.y+(it.height-h)/2,width:w,height:h};
+}
+export function groupBounds(items) {const boxes=items.map(footprint),x=Math.min(...boxes.map(b=>b.x)),y=Math.min(...boxes.map(b=>b.y));return {x,y,width:Math.max(...boxes.map(b=>b.x+b.width))-x,height:Math.max(...boxes.map(b=>b.y+b.height))-y};}
+export function moveGroup(items,dx,dy) {const b=groupBounds(items);dx=Math.max(-b.x,Math.min(WIDTH-b.x-b.width,dx));dy=Math.max(-b.y,Math.min(HEIGHT-b.y-b.height,dy));items.forEach(it=>{it.x+=dx;it.y+=dy;});}
+export function scaleGroup(items,requested) {
+ const b=groupBounds(items),min=Math.max(...items.flatMap(it=>[40/it.width,30/it.height])),max=Math.min((WIDTH-b.x)/b.width,(HEIGHT-b.y)/b.height,...items.flatMap(it=>[400/it.width,300/it.height]));
+ const scale=Math.max(min,Math.min(max,requested));
+ items.forEach(it=>{it.x=b.x+(it.x-b.x)*scale;it.y=b.y+(it.y-b.y)*scale;it.width*=scale;it.height*=scale;});return scale;
+}
+export function snapAngle(angle,enabled=true) {angle=(angle%360+360)%360;const nearest=Math.round(angle/15)*15;return enabled&&Math.abs(nearest-angle)<=4?nearest%360:angle;}
+export function snapGroup(items,others,grid=true) {
+ const b=groupBounds(items);let dx=grid?Math.round(b.x/20)*20-b.x:0,dy=grid?Math.round(b.y/20)*20-b.y:0,bestX=9,bestY=9;
+ for(const it of others){const t=footprint(it);
+ if(b.y<t.y+t.height+8&&b.y+b.height>t.y-8)for(const d of [t.x-b.x-b.width,t.x+t.width-b.x,t.x-b.x])if(Math.abs(d)<bestX){bestX=Math.abs(d);dx=d;}
+ if(b.x<t.x+t.width+8&&b.x+b.width>t.x-8)for(const d of [t.y-b.y-b.height,t.y+t.height-b.y,t.y-b.y])if(Math.abs(d)<bestY){bestY=Math.abs(d);dy=d;}
+ }moveGroup(items,dx,dy);return bestX<9||bestY<9;
 }

@@ -77,3 +77,13 @@ Appearance has a palette glyph, with its text label hidden on narrower screens a
 Furniture follows the pointer continuously during dragging and resizing. Grid snapping happens on release with a brief settling animation. Position, size, and rotation changes ease between layouts, and newly added furniture fades in. Reduced-motion preferences disable furniture animations. No new touch gestures are registered for refresh, so native scrolling and device gestures are kept.
 
 `tests/classroom-mobile-controls.browser.cjs` checks the compact glyph, refresh visibility in portrait and landscape, larger text, reload persistence, continuous dragging, snapping animations, and reduced motion. Physical iPhone web-app behavior still merits a device check.
+
+## Group arrangements and room fixtures
+
+Shift-click or Command-click furniture/seat buttons to add or remove objects from the selection. **Select multiple** provides the same behavior for touch: tap the objects, then turn it off to drag the group. Drag blank canvas to select a region. Groups move as one within the room; their resize handles and **Group size (%)** scale furniture and spacing uniformly, preserving touching edges and relative proportions. Undo restores the whole edit. Selection itself is temporary.
+
+With **Snap to grid** enabled, dragging aligns nearby furniture edges within eight canvas pixels, and rotation catches 15-degree angles within four degrees. Disable snapping for unrestricted placement. Horizontal and vertical flips mirror the furniture illustration while keeping its label readable. Flips, new fixture types, and chart font weights persist in browser/cloud saves and backups.
+
+Door swing diagrams, bookshelves with books, and teacher desks with laptop, globe, and pens replace generic shapes. Printer, filing cabinet, window, and smart board are available in the palette. Labels wrap, turn sideways on narrow tall fixtures, and shrink when necessary; labels that still cannot fit use a readable caption below the item.
+
+Site Appearance and chart customization offer weights from Thin (100) to Heavy (900). Google requests the selected weight explicitly; unavailable weights produce a retry hint. Local fonts use the nearest installed face. `tests/classroom-groups.browser.cjs` verifies selection, resizing, dragging, fixtures, flipping, adaptive labels, weight persistence, and mobile fit; model tests verify joined-edge and room-bound preservation.

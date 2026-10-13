@@ -59,3 +59,14 @@ test('chart font settings and furniture colors survive backups with validation',
   for(const modify of [d=>d.charts[0].appearance.fontSize=99,d=>d.charts[0].appearance.font.family='url(https://example.com)',d=>d.charts[0].items[3].color='red;display:none']){const copy=structuredClone(data);modify(copy);assert.throws(()=>validateBackup(copy));}
   const old=structuredClone(data);delete old.charts[0].appearance;delete old.charts[0].items[3].color;assert.deepEqual(validateBackup(old),old);
 });
+
+test('group transforms preserve touching edges, proportions, and room limits',async()=>{
+ const {moveGroup,scaleGroup,snapGroup,snapAngle,groupBounds}=await import('../classroom/model.mjs');
+ const a=furniture('desk',100,100),b=furniture('desk',200,100),items=[a,b];
+ scaleGroup(items,1.5);assert.equal(a.x+a.width,b.x);assert.equal(a.height,b.height);assert.equal(a.y,b.y);
+ moveGroup(items,10000,10000);let box=groupBounds(items);assert.ok(box.x+box.width<=WIDTH+1e-8&&box.y+box.height<=HEIGHT+1e-8);
+ const target=furniture('desk',100,100),moving=furniture('desk',205,100);snapGroup([moving],[target]);assert.equal(moving.x,target.x+target.width);assert.equal(moving.y,target.y);
+ assert.equal(snapAngle(88),90);assert.equal(snapAngle(82),82);assert.equal(snapAngle(88,false),88);
+ const c=newChart();c.items=[{...a,flipX:true,flipY:true},furniture('printer'),furniture('cabinet'),furniture('window'),furniture('smartboard')];c.appearance.weight=800;
+ const validated=validateBackup({version:1,active:c.id,charts:[c]});assert.equal(validated.charts[0].items[0].flipX,true);assert.equal(validated.charts[0].appearance.weight,800);
+});

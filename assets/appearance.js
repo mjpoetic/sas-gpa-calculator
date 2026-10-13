@@ -1,20 +1,22 @@
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts} from './font-options.mjs';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights,validateWeight} from './font-options.mjs';
 const KEY='sas-appearance-v1';
-const defaults=()=>({theme:'system',font:{source:'preset',family:'system'},scale:100});
+const defaults=()=>({theme:'system',font:{source:'preset',family:'system'},scale:100,weight:400});
 let prefs=defaults(),internalTheme=false;
-try {const p=JSON.parse(localStorage.getItem(KEY));if(p && ['system','light','dark'].includes(p.theme) && [90,100,110,125].includes(p.scale)) prefs={theme:p.theme,font:validateFont(p.font),scale:p.scale};}catch{}
+try {const p=JSON.parse(localStorage.getItem(KEY));if(p && ['system','light','dark'].includes(p.theme) && [90,100,110,125].includes(p.scale)) prefs={theme:p.theme,font:validateFont(p.font),scale:p.scale,weight:p.weight===undefined?400:validateWeight(p.weight)};}catch{}
 const media=matchMedia('(prefers-color-scheme: dark)');
 const dialog=document.createElement('dialog');dialog.className='appearance-dialog';dialog.setAttribute('aria-labelledby','appearance-title');
-dialog.innerHTML=`<form method="dialog"><div class="appearance-heading"><h2 id="appearance-title">Appearance</h2><button aria-label="Close appearance settings">×</button></div></form><p>Make this site comfortable for you.</p><label>Color scheme<select id="appearance-theme"><option value="system">Use device setting</option><option value="light">Light</option><option value="dark">Dark</option></select></label><label>Font source<select id="appearance-source"><option value="preset">Built-in fonts</option><option value="google">Google Fonts</option><option value="local">Installed on this device</option></select></label><label id="appearance-preset-label">Font<select id="appearance-preset"></select></label><form id="appearance-custom" hidden><label>Font family name<input id="appearance-family" maxlength="80" placeholder="e.g. Atkinson Hyperlegible"></label><button>Apply font</button><p>Use a Google Fonts family name or the name of a font installed on this device. Unavailable fonts use a system fallback.</p></form><label>Interface text size<select id="appearance-scale"><option value="90">Small · 90%</option><option value="100">Default · 100%</option><option value="110">Large · 110%</option><option value="125">Extra large · 125%</option></select></label><p class="appearance-sample">A comfortable space for every teacher.</p><p id="appearance-status" role="status"></p><button id="appearance-reset">Restore defaults</button>`;
+dialog.innerHTML=`<form method="dialog"><div class="appearance-heading"><h2 id="appearance-title">Appearance</h2><button aria-label="Close appearance settings">×</button></div></form><p>Make this site comfortable for you.</p><label>Color scheme<select id="appearance-theme"><option value="system">Use device setting</option><option value="light">Light</option><option value="dark">Dark</option></select></label><label>Font source<select id="appearance-source"><option value="preset">Built-in fonts</option><option value="google">Google Fonts</option><option value="local">Installed on this device</option></select></label><label id="appearance-preset-label">Font<select id="appearance-preset"></select></label><form id="appearance-custom" hidden><label>Font family name<input id="appearance-family" maxlength="80" placeholder="e.g. Atkinson Hyperlegible"></label><button>Apply font</button><p>Use a Google Fonts family name or the name of a font installed on this device. Unavailable fonts use a system fallback.</p></form><label>Font weight<select id="appearance-weight"></select></label><label>Interface text size<select id="appearance-scale"><option value="90">Small · 90%</option><option value="100">Default · 100%</option><option value="110">Large · 110%</option><option value="125">Extra large · 125%</option></select></label><p class="appearance-sample">A comfortable space for every teacher.</p><p id="appearance-status" role="status"></p><button id="appearance-reset">Restore defaults</button>`;
 document.body.append(dialog);
 const $=id=>dialog.querySelector('#'+id);
 for(const [key,value] of Object.entries(fontOptions)){const o=document.createElement('option');o.value=key;o.textContent=value.label;$('appearance-preset').append(o);}
-function sync(){ $('appearance-theme').value=prefs.theme;$('appearance-source').value=prefs.font.source;$('appearance-scale').value=prefs.scale;$('appearance-preset').value=prefs.font.source==='preset'?prefs.font.family:'system';$('appearance-family').value=prefs.font.source==='preset'?'':prefs.font.family;sourceFields();}
+for(const [value,label] of Object.entries(fontWeights)){$('appearance-weight').append(new Option(label,value));}
+function sync(){ $('appearance-weight').value=prefs.weight||400; $('appearance-theme').value=prefs.theme;$('appearance-source').value=prefs.font.source;$('appearance-scale').value=prefs.scale;$('appearance-preset').value=prefs.font.source==='preset'?prefs.font.family:'system';$('appearance-family').value=prefs.font.source==='preset'?'':prefs.font.family;sourceFields();}
 function sourceFields(){const custom=$('appearance-source').value!=='preset';$('appearance-custom').hidden=!custom;$('appearance-preset-label').hidden=custom;suggestFonts($('appearance-family'),$('appearance-source').value,'site-font-suggestions');}
 function apply(){
   const root=document.documentElement;root.style.setProperty('--font-sans',fontCSS(prefs.font));root.style.setProperty('--site-font',fontCSS(prefs.font));root.style.setProperty('--ui-text-scale',String(prefs.scale/100));
   root.style.fontSize=`${16*prefs.scale/100}px`;
-  void loadFont(prefs.font).catch(e=>{$('appearance-status').textContent=e.message;});
+  root.style.setProperty('--site-font-weight',prefs.weight||400);
+  void loadFont(prefs.font,prefs.weight||400).catch(e=>{$('appearance-status').textContent=e.message;});
   const dark=prefs.theme==='dark' || prefs.theme==='system'&&media.matches;
   const native=document.querySelector('[data-testid="button-theme-toggle"]');
   if(native && native.getAttribute('aria-label').includes('light')!==dark){internalTheme=true;native.click();internalTheme=false;}
@@ -22,6 +24,7 @@ function apply(){
   root.style.colorScheme=dark?'dark':'light';
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(prefs));$('appearance-status').textContent='Saved on this device.';}catch{$('appearance-status').textContent='Settings apply for this visit; browser storage is unavailable.';}apply();}
+$('appearance-weight').onchange=()=>{prefs.weight=Number($('appearance-weight').value);save();};
 $('appearance-theme').onchange=()=>{prefs.theme=$('appearance-theme').value;save();};
 $('appearance-scale').onchange=()=>{prefs.scale=Number($('appearance-scale').value);save();};
 $('appearance-source').onchange=()=>{sourceFields();if($('appearance-source').value==='preset'){prefs.font={source:'preset',family:$('appearance-preset').value};save();}};

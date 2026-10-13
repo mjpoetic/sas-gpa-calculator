@@ -11,14 +11,17 @@ export function validateFont(font) {
 }
 export function fontCSS(font) {return font.source==='preset' ? fontOptions[font.family].css : `"${font.family}", ${fontOptions.system.css}`;}
 const loaded=new Map();
-export function loadFont(font) {
+export function loadFont(font,weight=400) {
   validateFont(font);
   if(font.source!=='google') return Promise.resolve();
-  if(loaded.has(font.family)) return loaded.get(font.family);
+  const key=font.family+weight;if(loaded.has(key)) return loaded.get(key);
   const promise=new Promise((resolve,reject)=>{
     const link=document.createElement('link');link.rel='stylesheet';
-    const url=new URL('https://fonts.googleapis.com/css2');url.searchParams.set('family',font.family);url.searchParams.set('display','swap');link.href=url.href;
-    const timer=setTimeout(()=>{link.remove();loaded.delete(font.family);reject(new Error('Font download timed out. Using the system fallback.'));},10000);
-    link.onload=()=>{clearTimeout(timer);resolve();};link.onerror=()=>{clearTimeout(timer);link.remove();loaded.delete(font.family);reject(new Error('Google Font unavailable. Check the family name or your connection.'));};document.head.append(link);
-  });loaded.set(font.family,promise);return promise;
+    const url=new URL('https://fonts.googleapis.com/css2');url.searchParams.set('family',font.family+':wght@'+weight);url.searchParams.set('display','swap');link.href=url.href;
+    const timer=setTimeout(()=>{link.remove();loaded.delete(key);reject(new Error('Font download timed out. Using the system fallback.'));},10000);
+    link.onload=()=>{clearTimeout(timer);resolve();};link.onerror=()=>{clearTimeout(timer);link.remove();loaded.delete(key);reject(new Error('This Google Font weight is unavailable. Try Regular or another weight, and check the family name or connection.'));};document.head.append(link);
+  });loaded.set(key,promise);return promise;
 }
+
+export const fontWeights={100:'Thin',200:'Extra light',300:'Light',400:'Regular',500:'Medium',600:'Semibold',700:'Bold',800:'Extra bold',900:'Heavy'};
+export function validateWeight(value){if(!Object.hasOwn(fontWeights,value))throw new Error('Invalid font weight.');return Number(value);}
