@@ -32,3 +32,7 @@ $('undo').setAttribute('aria-label','Undo');$('redo').setAttribute('aria-label',
 document.addEventListener('sas-cloud-picker-open',()=>account.close());
 // Email/recovery callbacks still bring password setup into view.
 new MutationObserver(()=>{if(!$('cloud-password-form').hidden&&!account.open)account.showModal();}).observe($('cloud-password-form'),{attributes:true,attributeFilter:['hidden']});
+
+const zoomTools=document.createElement('div');zoomTools.className='canvas-zoom';zoomTools.setAttribute('role','group');zoomTools.setAttribute('aria-label','Classroom zoom');zoomTools.innerHTML='<button id="canvas-zoom-out" aria-label="Zoom out">−</button><button id="canvas-zoom-level" title="Fit entire room" aria-label="Fit entire room">100%</button><button id="canvas-zoom-in" aria-label="Zoom in">+</button><button id="canvas-fill" title="Enlarge to fill the view">Fill view</button><button id="canvas-pan" aria-pressed="false" title="Drag to pan instead of moving furniture">Pan</button>';document.querySelector('.room-panel').append(zoomTools);
+function zoomAction(mode){document.dispatchEvent(new CustomEvent('sas-canvas-zoom',{detail:{mode}}));}
+$('canvas-zoom-in').onclick=()=>zoomAction('in');$('canvas-zoom-out').onclick=()=>zoomAction('out');$('canvas-zoom-level').onclick=()=>zoomAction('fit');$('canvas-fill').onclick=()=>zoomAction('fill');$('canvas-pan').onclick=()=>zoomAction('pan');
