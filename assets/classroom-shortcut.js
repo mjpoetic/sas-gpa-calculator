@@ -5,12 +5,15 @@ let hold = null;
 let suppressClickUntil = 0;
 
 function cancel() {
-  if (hold) clearTimeout(hold.timer);
+  if (hold) {clearTimeout(hold.timer);hold.logo.classList.remove('logo-holding');hold.logo.querySelector('.logo-hold-cue')?.remove();}
   hold = null;
 }
 
 function start(logo, input) {
   cancel();
+  logo.classList.add('logo-holding');
+  const cue=document.createElement('span');cue.className='logo-hold-cue';cue.setAttribute('role','status');cue.textContent='Opening Classroom Studio…';
+  cue.innerHTML='<svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15"/></svg><span>Opening Classroom Studio…</span>';logo.append(cue);
   hold = {...input, logo, timer: setTimeout(() => {
     if (!logo.isConnected || document.hidden) return cancel();
     suppressClickUntil = performance.now() + 1500;

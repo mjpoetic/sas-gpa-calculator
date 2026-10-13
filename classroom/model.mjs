@@ -23,9 +23,10 @@ export function furniture(type, x = 400, y = 280) {
   return {id: uid(), type, label: spec.label, width: spec.width, height: spec.height, x, y, rotation: 0, seats: Array.from({length: spec.seats}, () => ({student: null, locked: false}))};
 }
 export function constrain(item) {
-  const rotated = item.rotation % 180 !== 0;
-  const dx = (rotated ? item.height - item.width : 0) / 2;
-  const dy = (rotated ? item.width - item.height : 0) / 2;
+  const angle=item.rotation*Math.PI/180;
+  const w=Math.abs(Math.cos(angle))*item.width+Math.abs(Math.sin(angle))*item.height;
+  const h=Math.abs(Math.sin(angle))*item.width+Math.abs(Math.cos(angle))*item.height;
+  const dx=(w-item.width)/2,dy=(h-item.height)/2;
   item.x = Math.max(dx, Math.min(WIDTH - item.width - dx, item.x));
   item.y = Math.max(dy, Math.min(HEIGHT - item.height - dy, item.y));
   return item;
@@ -73,7 +74,7 @@ export function validateBackup(data) {
     const studentIds = new Set(students.map(s => s.id)), assigned = new Set();
     const items = c.items.map(it => {
       if(it.color!==undefined && !/^#[\da-f]{6}$/i.test(it.color)) throw new Error('Invalid furniture color.');
-      if (!Object.hasOwn(catalog, it.type) || !Array.isArray(it.seats) || it.seats.length !== catalog[it.type].seats || ![0,90,180,270].includes(it.rotation)) throw new Error('Invalid furniture in backup.');
+      if (!Object.hasOwn(catalog, it.type) || !Array.isArray(it.seats) || it.seats.length !== catalog[it.type].seats || (!Number.isFinite(it.rotation) || it.rotation<0 || it.rotation>=360)) throw new Error('Invalid furniture in backup.');
       return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.color!==undefined?{color:it.color}:{}), width: num(it.width,40,400), height: num(it.height,30,300), x:num(it.x,-200,1160), y:num(it.y,-200,880), rotation:it.rotation, seats:it.seats.map(s => {
         if (typeof s.locked !== 'boolean' || (s.student !== null && (!studentIds.has(s.student) || assigned.has(s.student)))) throw new Error('Invalid student assignment in backup.');
         if (s.student) assigned.add(s.student);

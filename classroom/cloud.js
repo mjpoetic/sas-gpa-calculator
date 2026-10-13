@@ -6,6 +6,7 @@ const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
 export async function connectCloud({getState,applyState,notify}) {
   const $=id=>document.getElementById(id), status=text=>{$('cloud-status').textContent=text;};
   let client, store, busy=false, accountEpoch=0, recovery=false;
+  let passwordSetup=new URL(location.href).searchParams.has('code') || new URLSearchParams(location.hash.slice(1)).has('access_token'),callbackFailed=false;
   document.addEventListener('sas-before-refresh',event=>{if(busy){event.preventDefault();status('Wait for the current account or cloud request to finish before refreshing.');}});
   $('cloud-login-form').onsubmit=e=>e.preventDefault();
   $('cloud-password-form').onsubmit=e=>e.preventDefault();
@@ -22,12 +23,12 @@ export async function connectCloud({getState,applyState,notify}) {
   async function account(session) {
     // Auth emits SIGNED_IN again on tab focus. Keep the known cloud revision.
     if(store && session?.user?.id===store.userId) {
-      if(recovery) {$('cloud-password-form').hidden=false;status('Your reset link is verified. Choose a new password below.');}
+      if(recovery || passwordSetup) {$('cloud-password-form').hidden=false;status(recovery?'Your reset link is verified. Choose a new password below.':'You are signed in. Choose a password below for easier sign-in on any device, or select Not now to keep using email links.');$('cloud-password-cancel').textContent='Not now';}
       return;
     }
     const epoch=++accountEpoch;
     store=null;controls(false);
-    if(!session) {status('Sign in to save and open your charts across browsers.');return;}
+    if(!session) {status(callbackFailed?'This sign-in link could not be used. Request a new email link in this browser and open it here.':'Sign in with a password, or use an email link to sign in and set one up.');return;}
     status('Checking your account access…');enable(false);
     try {
       const {data:{user},error}=await client.auth.getUser();if(error) throw error;
@@ -37,7 +38,7 @@ export async function connectCloud({getState,applyState,notify}) {
       if(!data?.length) {await client.auth.signOut({scope:'local'});status('This account does not have access to the classroom preview.');return;}
       store=new CloudStore(client,user.id);controls(true);$('cloud-email-display').textContent=user.email;
       // Opening a session never uploads or replaces browser data automatically.
-      if(recovery) {$('cloud-password-form').hidden=false;status('Your reset link is verified. Choose a new password below.');}
+      if(recovery || passwordSetup) {$('cloud-password-form').hidden=false;status(recovery?'Your reset link is verified. Choose a new password below.':'You are signed in. Choose a password below for easier sign-in on any device, or select Not now to keep using email links.');$('cloud-password-cancel').textContent='Not now';}
       else status('Signed in. Save this browser’s charts to cloud, or open your cloud charts.');
     } catch {status('Could not verify account access. Check your connection and try signing in again.');}
     finally {enable(true);}
@@ -57,12 +58,13 @@ export async function connectCloud({getState,applyState,notify}) {
       if(event==='PASSWORD_RECOVERY') recovery=true;
       if(['INITIAL_SESSION','SIGNED_IN','SIGNED_OUT','PASSWORD_RECOVERY'].includes(event)) setTimeout(()=>{if(!busy) void account(session);},0);
     });
+    const initialized=await client.auth.initialize?.();if(initialized?.error)throw initialized.error;
     const {error}=await client.auth.getSession();if(error) throw error;
     // The SDK consumes the PKCE callback. Remove auth callback parameters afterward.
     const url=new URL(location.href);
     if(url.searchParams.has('code')) {url.searchParams.delete('code');history.replaceState(null,'',url);}
     enable(true);
-  } catch {status('Sign-in could not connect. Reload to try again. Browser saving still works.');return;}
+  } catch {if(!client){status('Sign-in could not connect. Reload to try again. Browser saving still works.');return;}callbackFailed=true;passwordSetup=false;const failedURL=new URL(location.href);failedURL.searchParams.delete('code');failedURL.hash='';history.replaceState(null,'',failedURL);enable(true);status('This sign-in link could not be used. Request a new email link in this browser and open it here.');}
   $('cloud-send').onclick=async()=>{
     if(busy || !$('cloud-email').reportValidity()) return;busy=true;enable(false);
     try {
@@ -87,14 +89,14 @@ export async function connectCloud({getState,applyState,notify}) {
     finally {$('cloud-password').value='';busy=false;enable(true);}
   };
   $('cloud-set-password').onclick=()=>{if(!store || busy) return;$('cloud-password-form').hidden=false;$('cloud-new-password').focus();};
-  $('cloud-password-cancel').onclick=()=>{$('cloud-password-form').reset();$('cloud-password-form').hidden=true;recovery=false;};
+  $('cloud-password-cancel').onclick=()=>{$('cloud-password-form').reset();$('cloud-password-form').hidden=true;recovery=false;passwordSetup=false;};
   $('cloud-password-form').onsubmit=async e=>{
     e.preventDefault();if(busy || !store) return;
     if($('cloud-new-password').value!==$('cloud-confirm-password').value) {status('The two passwords do not match.');return;}
     busy=true;enable(false);status('Saving your password…');
     try {
       const {error}=await client.auth.updateUser({password:$('cloud-new-password').value});if(error) throw error;
-      $('cloud-password-form').reset();$('cloud-password-form').hidden=true;recovery=false;
+      $('cloud-password-form').reset();$('cloud-password-form').hidden=true;recovery=false;passwordSetup=false;
       status('Password saved. You can now sign in with your email and password in another browser.');
     } catch(error) {status(error.code==='weak_password' ? 'Choose a stronger password with at least 12 characters.' : 'Password could not be changed. Sign in again and retry.');}
     finally {$('cloud-password-form').reset();busy=false;enable(true);}

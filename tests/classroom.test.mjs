@@ -28,6 +28,19 @@ test('rotation containment accounts for the rotated footprint', () => {
   it.x=WIDTH;it.y=HEIGHT;constrain(it);
   assert.ok(it.x+(it.width+it.height)/2<=WIDTH);assert.ok(it.y+(it.height+it.width)/2<=HEIGHT);
 });
+test('free rotation stays inside the room and survives backups', () => {
+  const c=newChart(),it=c.items[0];
+  for(const rotation of [1,37,135,281,359]) {
+    it.rotation=rotation;
+    for(const edge of [0,WIDTH]) {
+      it.x=edge;it.y=edge;constrain(it);
+      const a=rotation*Math.PI/180,w=Math.abs(Math.cos(a))*it.width+Math.abs(Math.sin(a))*it.height,h=Math.abs(Math.sin(a))*it.width+Math.abs(Math.cos(a))*it.height;
+      assert.ok(it.x+it.width/2-w/2>=-1e-9 && it.x+it.width/2+w/2<=WIDTH+1e-9);
+      assert.ok(it.y+it.height/2-h/2>=-1e-9 && it.y+it.height/2+h/2<=HEIGHT+1e-9);
+    }
+    assert.equal(validateBackup({version:1,active:c.id,charts:[c]}).charts[0].items[0].rotation,rotation);
+  }
+});
 test('backups round-trip; duplicate, foreign, and malformed assignments are rejected', () => {
   const c=newChart();c.students=[{id:uid(),name:'<script>Student</script>'}];assignUnseated(c);
   const data={version:1,active:c.id,charts:[c]};assert.deepEqual(validateBackup(data),data);

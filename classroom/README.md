@@ -40,7 +40,7 @@ Live Safari verification completed with the approved owner account: passwordless
 
 ## Email and password sign-in
 
-The login form also accepts an email and password through Supabase Auth. While signed in with the existing email link, choose **Set / change password** and enter the new password twice (at least 12 characters). The owner must enter and submit their own password. Password fields are cleared after requests and are never added to chart data, browser storage, exports, or logs.
+The login form also accepts an email and password through Supabase Auth. Following an email sign-in link automatically offers password setup, including on a new device; **Not now** keeps email-link access available. While already signed in, **Set / change password** opens the same form. Enter the new password twice (at least 12 characters). Invalid or expired callbacks leave email-link retry available. The owner must enter and submit their own password. Password fields are cleared after requests and are never added to chart data, browser storage, exports, or logs.
 
 **Forgot password?** requests a Supabase recovery email. Open that link in the same browser and origin that requested it; the verified recovery session reveals the password form. Password sign-in uses the same approved-email and ownership database policies as email-link sign-in. Public registration remains disabled. Regular password sign-in does not send an email; password recovery and email-link requests still use the email delivery quota.
 
@@ -53,6 +53,10 @@ The SAS project's Email provider now also enforces a 12-character minimum on the
 Press and hold either site logo on the main honors calculator for **1.2 seconds** to open Classroom Studio. A normal click still triggers the existing celebration. Moving more than 12 pixels, releasing early, scrolling, losing focus, or canceling a touch stops the shortcut. Keyboard users can hold Space or Enter while the logo button is focused. The direct `/classroom/` URL remains available. The hidden gesture is a navigation shortcut, not an access-control mechanism; cloud data still requires sign-in.
 
 Run `tests/classroom-shortcut.browser.cjs` with Playwright and the local server to verify click behavior, canceled gestures, and mouse, touch, and keyboard holds.
+
+The logo displays an animated progress ring and “Opening Classroom Studio…” cue during the hold. Releasing early clears both immediately. Reduced-motion preferences use a static ring.
+
+Furniture reveals delete and rotate buttons on hover, keyboard focus, or selection (tap to select on touchscreens). Drag the rotate button for any angle, tap for 90°, or enter an exact angle in the inspector. Seat text remains upright, rotated furniture stays within room bounds, and deletion supports Undo without removing students from the roster. `tests/classroom-fixes.browser.cjs` checks these controls, dark seat hover contrast, logo feedback, email-link password setup, and invalid-link retry with simulated authentication.
 
 ## Appearance and furniture customization
 

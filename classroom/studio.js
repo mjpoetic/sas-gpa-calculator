@@ -89,8 +89,10 @@ function renderRoom() {
         btn.append(text);
         new ResizeObserver(([entry], observer) => {
           const {width,height} = entry.contentRect;
-          text.style.width = `${Math.max(0,(sideways ? height : width)-6)}px`;
-          text.style.maxHeight = `${Math.max(0,(sideways ? width : height)-4)}px`;
+          const angle=it.rotation*Math.PI/180,diagonal=it.rotation%90!==0;
+          const side=Math.min(width,height)/(Math.abs(Math.cos(angle))+Math.abs(Math.sin(angle)));
+          text.style.width = `${Math.max(0,(diagonal?side:sideways ? height : width)-6)}px`;
+          text.style.maxHeight = `${Math.max(0,(diagonal?side:sideways ? width : height)-4)}px`;
           observer.disconnect();
         }).observe(btn);
         btn.setAttribute('aria-label',`${it.label}, seat ${i+1}: ${student?.name || 'unassigned'}${s.locked ? ', locked during shuffle' : ''}`);
@@ -98,6 +100,21 @@ function renderRoom() {
         grid.append(btn);
       });node.append(grid);
     }
+    const actions=element('div','furniture-actions');actions.style.transform=`rotate(${-it.rotation}deg)`;
+    const remove=element('button','furniture-delete','×');remove.type='button';remove.setAttribute('aria-label',`Delete ${it.label}`);remove.title='Delete furniture';
+    remove.onclick=e=>{e.stopPropagation();change(()=>{chart().items=chart().items.filter(item=>item.id!==it.id);selection=null;},'Furniture deleted. Undo is available.');};
+    const turn=element('button','furniture-rotate','↻');turn.type='button';turn.setAttribute('aria-label',`Rotate ${it.label}`);turn.title='Drag to rotate freely; tap for 90°';
+    let rotationDragged=false;
+    turn.onpointerdown=e=>{
+      if(e.button!==0)return;e.preventDefault();e.stopPropagation();selection={id:it.id,seat:null};renderInspector();
+      const box=node.getBoundingClientRect(),cx=box.x+box.width/2,cy=box.y+box.height/2,start=Math.atan2(e.clientY-cy,e.clientX-cx),initial=it.rotation;rotationDragged=false;turn.setPointerCapture(e.pointerId);
+      const move=ev=>{const delta=(Math.atan2(ev.clientY-cy,ev.clientX-cx)-start)*180/Math.PI;if(!rotationDragged&&Math.abs(delta)<2)return;if(!rotationDragged){checkpoint();rotationDragged=true;node.classList.add('rotating');}
+        it.rotation=(Math.round(initial+delta)%360+360)%360;node.dataset.rotation=it.rotation;constrain(it);Object.assign(node.style,{transform:`rotate(${it.rotation}deg)`,left:`${it.x}px`,top:`${it.y}px`});actions.style.transform=`rotate(${-it.rotation}deg)`;node.querySelectorAll('.seat-name').forEach(text=>text.style.transform=`rotate(${-it.rotation}deg)`);};
+      const end=()=>{turn.removeEventListener('pointermove',move);turn.removeEventListener('pointerup',end);turn.removeEventListener('pointercancel',end);if(rotationDragged){save();render();}};
+      turn.addEventListener('pointermove',move);turn.addEventListener('pointerup',end);turn.addEventListener('pointercancel',end);
+    };
+    turn.onclick=e=>{e.stopPropagation();if(rotationDragged){rotationDragged=false;return;}change(()=>{it.rotation=(it.rotation+90)%360;constrain(it);selection={id:it.id,seat:null};});};
+    actions.append(turn,remove);node.append(actions);
     const resize=element('button','resize-handle','↘');resize.setAttribute('aria-label',`Resize ${it.label}`);resize.title='Drag to resize; use Width and Depth for exact sizes';
     resize.onpointerdown=e=>{
       if(e.button!==0) return;e.preventDefault();e.stopPropagation();selection={id:it.id,seat:null};renderInspector();
@@ -152,6 +169,7 @@ function renderInspector() {
   $('selection-title').textContent = it ? catalog[it.type].label : 'Fine-tune your room';$('selection-hint').hidden = !!it;
   if(!it) return;
   for(const field of ['label','width','height','x','y']) $('item-'+field).value = it[field];
+  $('item-angle').value=it.rotation;
   $('item-color').value=it.color || appearance().color || '#e8d7bb';
   if(selection.seat !== null) {
     const s = it.seats[selection.seat];$('seat-title').textContent = `Seat ${selection.seat+1}`;
@@ -220,3 +238,5 @@ tab(false);render();if(loadError) {say(loadError);$('save-state').textContent='S
 void connectCloud({getState:()=>structuredClone(state),applyState:incoming=>change(()=>{state=incoming;selection=null;},'Cloud charts opened. Undo is available.'),notify:say});
 
 document.addEventListener('sas-before-refresh',()=>save());
+
+$('item-angle').onchange=()=>{const it=selected();if(!it)return;if(!$('item-angle').checkValidity()||!$('item-angle').value){renderInspector();return;}change(()=>{it.rotation=Number($('item-angle').value);constrain(it);});};
