@@ -63,13 +63,15 @@ $('chart-reset').onclick=()=>change(()=>{chart().appearance=defaultAppearance();
 $('item-color').onchange=()=>{const it=selected();if(it)change(()=>{it.color=$('item-color').value;});};
 $('item-color-reset').onclick=()=>{const it=selected();if(it)change(()=>{delete it.color;});};
 function renderRoom() {
-  const room = $('room');room.replaceChildren();
+  const room = $('room');
+  const previous=new Map([...room.children].map(node=>[node.dataset.id,{x:parseFloat(node.style.left),y:parseFloat(node.style.top),width:parseFloat(node.style.width),height:parseFloat(node.style.height),rotation:Number(node.dataset.rotation||0),active:node.classList.contains('dragging')||node.classList.contains('resizing')} ]));
+  room.replaceChildren();
   room.style.fontFamily=fontCSS(appearance().font);
   room.style.setProperty('--chart-font-size',`${appearance().fontSize}px`);
   void loadFont(appearance().font).catch(error=>say(error.message));
   for(const it of chart().items) {
     const node = element('div',`item ${it.type}${selection?.id === it.id ? ' selected' : ''}`);
-    node.dataset.id = it.id;node.tabIndex = 0;node.setAttribute('aria-label',`${it.label}. Drag to move, or use arrow keys.`);
+    node.dataset.id = it.id;node.dataset.rotation=it.rotation;node.tabIndex = 0;node.setAttribute('aria-label',`${it.label}. Drag to move, or use arrow keys.`);
     Object.assign(node.style,{left:`${it.x}px`,top:`${it.y}px`,width:`${it.width}px`,height:`${it.height}px`,transform:`rotate(${it.rotation}deg)`});
     const color=it.color || appearance().color;
     if(color) {node.style.background=color;const rgb=color.slice(1).match(/../g).map(c=>parseInt(c,16));node.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#172c3e':'#ffffff';}
@@ -102,13 +104,13 @@ function renderRoom() {
       const start={x:e.clientX,y:e.clientY,w:it.width,h:it.height};let moved=false;resize.setPointerCapture(e.pointerId);
       const move=ev=>{
         const dx=(ev.clientX-start.x)/zoom,dy=(ev.clientY-start.y)/zoom;if(!moved&&Math.hypot(dx,dy)<3)return;
-        if(!moved){checkpoint();moved=true;}
-        const angle=it.rotation*Math.PI/180,step=$('snap').checked?10:1;
+        if(!moved){checkpoint();moved=true;node.classList.add('resizing');}
+        const angle=it.rotation*Math.PI/180,step=1;
         it.width=Math.max(40,Math.min(400,Math.round((start.w+dx*Math.cos(angle)+dy*Math.sin(angle))/step)*step));
         it.height=Math.max(30,Math.min(300,Math.round((start.h-dx*Math.sin(angle)+dy*Math.cos(angle))/step)*step));constrain(it);
         Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});
       };
-      const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){save();render();}};
+      const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if($('snap').checked){it.width=Math.max(40,Math.min(400,Math.round(it.width/10)*10));it.height=Math.max(30,Math.min(300,Math.round(it.height/10)*10));constrain(it);}save();render();}};
       resize.addEventListener('pointermove',move);resize.addEventListener('pointerup',end);resize.addEventListener('pointercancel',end);
     };node.append(resize);
     node.addEventListener('pointerdown', e => {
@@ -121,11 +123,11 @@ function renderRoom() {
         const dx = (ev.clientX-start.x)/zoom, dy = (ev.clientY-start.y)/zoom;
         if(!moved && Math.hypot(dx,dy)<3) return;
         if(!moved) {checkpoint();moved = true;node.classList.add('dragging');}
-        const step = $('snap').checked ? 20 : 1;
+        const step = 1;
         it.x = Math.round((start.ix+dx)/step)*step;it.y = Math.round((start.iy+dy)/step)*step;constrain(it);
         node.style.left = `${it.x}px`;node.style.top = `${it.y}px`;
       };
-      const end = () => {node.removeEventListener('pointermove',move);node.removeEventListener('pointerup',end);node.removeEventListener('pointercancel',end);if(moved) {save();render();}};
+      const end = () => {node.removeEventListener('pointermove',move);node.removeEventListener('pointerup',end);node.removeEventListener('pointercancel',end);if(moved) {if($('snap').checked){it.x=Math.round(it.x/20)*20;it.y=Math.round(it.y/20)*20;constrain(it);}save();render();}};
       node.addEventListener('pointermove',move);node.addEventListener('pointerup',end);node.addEventListener('pointercancel',end);
     });
     node.addEventListener('keydown',e => {
@@ -136,6 +138,12 @@ function renderRoom() {
       change(() => {selection = {id:it.id,seat:null};it.x += delta[0]*(e.shiftKey?1:20);it.y += delta[1]*(e.shiftKey?1:20);constrain(it);});
       [...room.children].find(n => n.dataset.id === it.id)?.focus();
     });room.append(node);
+    const prior=previous.get(it.id);
+    if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+      if(prior && (prior.x!==it.x||prior.y!==it.y||prior.width!==it.width||prior.height!==it.height||prior.rotation!==it.rotation)) node.animate([{transform:`translate(${prior.x-it.x}px,${prior.y-it.y}px) rotate(${prior.rotation}deg)`,width:`${prior.width}px`,height:`${prior.height}px`},{transform:`rotate(${prior.rotation+((it.rotation-prior.rotation+540)%360-180)}deg)`,width:`${it.width}px`,height:`${it.height}px`}],{duration:180,easing:'cubic-bezier(.22,1,.36,1)'});
+      else if(!prior)node.animate([{opacity:0},{opacity:1}],{duration:160});
+      if(prior?.active)node.classList.add('settling');
+    }
   }
   room.style.zoom = zoom;
 }
@@ -210,3 +218,5 @@ $('import-file').onchange = async () => {const file=$('import-file').files[0];if
 $('print').onclick = () => window.print();
 tab(false);render();if(loadError) {say(loadError);$('save-state').textContent='Saved data could not be loaded';}
 void connectCloud({getState:()=>structuredClone(state),applyState:incoming=>change(()=>{state=incoming;selection=null;},'Cloud charts opened. Undo is available.'),notify:say});
+
+document.addEventListener('sas-before-refresh',()=>save());

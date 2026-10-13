@@ -6,6 +6,7 @@ const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
 export async function connectCloud({getState,applyState,notify}) {
   const $=id=>document.getElementById(id), status=text=>{$('cloud-status').textContent=text;};
   let client, store, busy=false, accountEpoch=0, recovery=false;
+  document.addEventListener('sas-before-refresh',event=>{if(busy){event.preventDefault();status('Wait for the current account or cloud request to finish before refreshing.');}});
   $('cloud-login-form').onsubmit=e=>e.preventDefault();
   $('cloud-password-form').onsubmit=e=>e.preventDefault();
   const configured=!!cloudConfig.url && !!cloudConfig.publishableKey;

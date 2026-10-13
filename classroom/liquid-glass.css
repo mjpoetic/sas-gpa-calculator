@@ -103,3 +103,5 @@
   :root #room,:root.dark #room {box-shadow:none;border-radius:0}
   .item::after {display:none}
 }
+/* Furniture follows the pointer immediately, then eases into its grid position. */
+.item{transition:box-shadow .16s,outline-color .16s}.item.dragging,.item.resizing{box-shadow:0 12px 28px rgba(17,42,64,.25),inset 0 1px 0 rgba(255,255,255,.55);z-index:4}.item.settling{animation:studio-drop .2s ease-out}@keyframes studio-drop{from{box-shadow:0 12px 28px rgba(17,42,64,.25)}to{box-shadow:0 3px 0 rgba(184,158,125,.33)}}@media(prefers-reduced-motion:reduce){.item{transition:none!important;animation:none!important}}@media print{.item{transition:none!important;animation:none!important}}

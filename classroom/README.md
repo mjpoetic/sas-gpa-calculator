@@ -65,3 +65,11 @@ The **Appearance** button on the honors calculator and Classroom Studio offers L
 ## Liquid Glass styling
 
 `liquid-glass.css` applies frosted surfaces, reflective borders, layered shadows, rounded controls, and segmented tabs throughout both themes. The floor plan stays opaque for readable names, while furniture highlights preserve custom colors. Reduced-transparency and higher-contrast preferences use solid surfaces; unsupported blur falls back to opaque panels. Reduced motion disables control transitions, and printing removes glass effects. `tests/classroom-glass.browser.cjs` checks both themes, higher contrast, reduced motion, print, and mobile overflow.
+
+## Mobile controls and motion
+
+Appearance has a palette glyph, with its text label hidden on narrower screens and touch devices. Both pages include a labeled Refresh page button on narrow screens, touch devices, and installed web apps. Refresh asks for confirmation because unsubmitted entries and calculator work can be lost; saved classroom charts remain. Account/cloud operations in progress block refresh until finished.
+
+Furniture follows the pointer continuously during dragging and resizing. Grid snapping happens on release with a brief settling animation. Position, size, and rotation changes ease between layouts, and newly added furniture fades in. Reduced-motion preferences disable furniture animations. No new touch gestures are registered for refresh, so native scrolling and device gestures are kept.
+
+`tests/classroom-mobile-controls.browser.cjs` checks the compact glyph, refresh visibility in portrait and landscape, larger text, reload persistence, continuous dragging, snapping animations, and reduced motion. Physical iPhone web-app behavior still merits a device check.
