@@ -95,3 +95,5 @@ Doors use a simple wooden leaf and metal handle; teacher desks use overhead moni
 **⌘Z** undoes and **⌘⇧Z** redoes chart changes (Ctrl equivalents also work). Visible Undo/Redo buttons support touch. Shortcuts leave native text-field undo untouched. A new edit clears the redo stack; both stacks are bounded to 40 changes and reset on reload. `tests/classroom-decor.browser.cjs` covers these behaviors and the illustrated palette.
 
 The door silhouette has been restored to the original pale, dashed rounded-corner design, with its label and 80 × 60 default size. Existing doors retain their saved dimensions. Flipping mirrors the silhouette while keeping the label readable; other overhead illustrations remain unchanged.
+
+Doors now use a thin wooden rectangle and metal handle, without visible labels (including custom labels). Names remain available in the inspector and accessibility descriptions. New doors default to 140 × 40; existing doors retain saved dimensions.
