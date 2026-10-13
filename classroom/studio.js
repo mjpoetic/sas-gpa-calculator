@@ -1,5 +1,5 @@
 import {furnitureArt} from './furniture-art.mjs';
-import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint} from './model.mjs';
+import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes} from './model.mjs';
 import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs';
 import {connectCloud} from './cloud.js';
 
@@ -85,8 +85,8 @@ function renderRoom() {
     Object.assign(node.style,{left:`${it.x}px`,top:`${it.y}px`,width:`${it.width}px`,height:`${it.height}px`,transform:`rotate(${it.rotation}deg)`});
     const color=it.color || appearance().color;
     if(color) {node.style.background=color;const rgb=color.slice(1).match(/../g).map(c=>parseInt(c,16));node.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#172c3e':'#ffffff';}
-    const caption=element('span','item-caption',it.label);if(it.type!=='door'&&(!['teacher','plant','laptop','keyboard','mouse','couch','chair','stool'].includes(it.type)||it.label!==catalog[it.type].label))node.append(caption);
-    if(!it.seats.length){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type);art.style.transform=`scale(${it.flipX?-1:1},${it.flipY?-1:1})`;node.prepend(art);requestAnimationFrame(()=>fitCaption(caption,it));}
+    const caption=element('span','item-caption',it.label);if(it.seats.length||['board','rug','label'].includes(it.type))node.append(caption);
+    if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type);art.style.transform=`scale(${it.flipX?-1:1},${it.flipY?-1:1})`;node.prepend(art);requestAnimationFrame(()=>fitCaption(caption,it));}
     node.title=it.label;
     if(it.seats.length) {
       const grid = element('div','seat-grid');grid.style.setProperty('--columns',it.seats.length === 1 ? 1 : 2);
@@ -138,10 +138,10 @@ function renderRoom() {
         if(members.length>1){members.forEach((item,i)=>Object.assign(item,original[i]));scaleGroup(members,Math.max(.1,1+(dx+dy)/(bounds.width+bounds.height)));paintPositions();return;}
         const angle=it.rotation*Math.PI/180,step=1;
         it.width=Math.max(40,Math.min(400,Math.round((start.w+dx*Math.cos(angle)+dy*Math.sin(angle))/step)*step));
-        it.height=Math.max(30,Math.min(300,Math.round((start.h-dx*Math.sin(angle)+dy*Math.cos(angle))/step)*step));constrain(it);
+        it.height=Math.max(30,Math.min(300,Math.round((start.h-dx*Math.sin(angle)+dy*Math.cos(angle))/step)*step));if(proportionalTypes.has(it.type))resizeFurniture(it,it.width,it.height,Math.abs(dx*Math.cos(angle)+dy*Math.sin(angle))/start.w>=Math.abs(-dx*Math.sin(angle)+dy*Math.cos(angle))/start.h?'width':'height');else constrain(it);
         Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});
       };
-      const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(40,Math.min(400,Math.round(it.width/10)*10));it.height=Math.max(30,Math.min(300,Math.round(it.height/10)*10));constrain(it);}save();render();}};
+      const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(40,Math.min(400,Math.round(it.width/10)*10));it.height=Math.max(30,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height);}save();render();}};
       resize.addEventListener('pointermove',move);resize.addEventListener('pointerup',end);resize.addEventListener('pointercancel',end);
     };node.append(resize);
     node.addEventListener('pointerdown', e => {
@@ -219,7 +219,7 @@ document.addEventListener('keydown',e=>{if(!(e.metaKey||e.ctrlKey)||e.altKey||e.
 for(const field of ['label','width','height','x','y']) $('item-'+field).onchange = () => {
   const it=selected();if(!it) return;const input=$('item-'+field);
   if(field !== 'label' && !input.checkValidity()) {renderInspector();return;}
-  change(() => {it[field] = field==='label' ? input.value.trim() || catalog[it.type].label : Number(input.value);constrain(it);});
+  change(() => {if(field==='width'||field==='height')resizeFurniture(it,field==='width'?Number(input.value):it.width,field==='height'?Number(input.value):it.height,field);else {it[field]=field==='label'?input.value.trim()||catalog[it.type].label:Number(input.value);constrain(it);}});
 };
 $('rotate').onclick = () => {const it=selected();if(it) change(() => {it.rotation=(it.rotation+90)%360;constrain(it);});};
 $('duplicate-item').onclick = () => {const it=selected();if(!it || chart().items.length>=500) return;change(() => {const copy=structuredClone(it);copy.id=uid();copy.x+=30;copy.y+=30;copy.seats.forEach(s => {s.student=null;s.locked=false;});constrain(copy);chart().items.push(copy);selection={id:copy.id,seat:null};},'Furniture duplicated with empty seats.');};

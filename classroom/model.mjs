@@ -116,3 +116,13 @@ export function snapGroup(items,others,grid=true) {
  if(b.x<t.x+t.width+8&&b.x+b.width>t.x-8)for(const d of [t.y-b.y-b.height,t.y+t.height-b.y,t.y-b.y])if(Math.abs(d)<bestY){bestY=Math.abs(d);dy=d;}
  }moveGroup(items,dx,dy);return bestX<9||bestY<9;
 }
+
+export const proportionalTypes=new Set(['round','plant','laptop','keyboard','mouse','chair','stool','printer','cabinet','couch','window','smartboard']);
+export function resizeFurniture(it,width,height,axis='width') {
+ if(proportionalTypes.has(it.type)){
+  const spec=catalog[it.type],ratio=spec.width/spec.height;
+  let w=axis==='height'?height*ratio:width;
+  w=Math.max(40,30*ratio,Math.min(400,300*ratio,w));it.width=w;it.height=w/ratio;
+ }else{it.width=Math.max(40,Math.min(400,width));it.height=Math.max(30,Math.min(300,height));}
+ constrain(it);
+}
