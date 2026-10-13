@@ -1,4 +1,10 @@
+import {validateFont} from '../assets/font-options.mjs';
 export const WIDTH = 960, HEIGHT = 680;
+export const defaultAppearance = () => ({font:{source:'preset',family:'system'},fontSize:11,color:null});
+export function validateAppearance(value) {
+  if(!value || !Number.isFinite(value.fontSize) || value.fontSize<9 || value.fontSize>24 || (value.color!==null && !/^#[\da-f]{6}$/i.test(value.color))) throw new Error('Invalid chart appearance.');
+  return {font:validateFont(value.font),fontSize:value.fontSize,color:value.color};
+}
 export const catalog = {
   desk: {label: 'Student desk', width: 100, height: 80, seats: 1},
   pair: {label: 'Double desk', width: 180, height: 80, seats: 2},
@@ -36,7 +42,7 @@ export function layout(kind) {
   }
   return items;
 }
-export function newChart(name = 'My classroom') {return {id: uid(), name, students: [], items: layout('rows')};}
+export function newChart(name = 'My classroom') {return {id: uid(), name, students: [], items: layout('rows'),appearance:defaultAppearance()};}
 export function seats(chart) {return chart.items.flatMap(item => item.seats);}
 export function assignUnseated(chart) {
   const assigned = new Set(seats(chart).map(s => s.student).filter(Boolean));
@@ -66,14 +72,15 @@ export function validateBackup(data) {
     const students = c.students.map(s => ({id: id(s.id), name: str(s.name, 80)}));
     const studentIds = new Set(students.map(s => s.id)), assigned = new Set();
     const items = c.items.map(it => {
+      if(it.color!==undefined && !/^#[\da-f]{6}$/i.test(it.color)) throw new Error('Invalid furniture color.');
       if (!Object.hasOwn(catalog, it.type) || !Array.isArray(it.seats) || it.seats.length !== catalog[it.type].seats || ![0,90,180,270].includes(it.rotation)) throw new Error('Invalid furniture in backup.');
-      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), width: num(it.width,40,400), height: num(it.height,30,300), x:num(it.x,-200,1160), y:num(it.y,-200,880), rotation:it.rotation, seats:it.seats.map(s => {
+      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.color!==undefined?{color:it.color}:{}), width: num(it.width,40,400), height: num(it.height,30,300), x:num(it.x,-200,1160), y:num(it.y,-200,880), rotation:it.rotation, seats:it.seats.map(s => {
         if (typeof s.locked !== 'boolean' || (s.student !== null && (!studentIds.has(s.student) || assigned.has(s.student)))) throw new Error('Invalid student assignment in backup.');
         if (s.student) assigned.add(s.student);
         return {student:s.student, locked:s.locked};
       })});
     });
-    return {id:id(c.id), name:str(c.name,80), students, items};
+    return {id:id(c.id), name:str(c.name,80), students, items,...(c.appearance!==undefined?{appearance:validateAppearance(c.appearance)}:{})};
   });
   return {version:1, charts, active:charts.some(c => c.id === data.active) ? data.active : charts[0].id};
 }

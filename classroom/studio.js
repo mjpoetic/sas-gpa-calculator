@@ -1,4 +1,5 @@
-import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup} from './model.mjs';
+import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance} from './model.mjs';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts} from '../assets/font-options.mjs';
 import {connectCloud} from './cloud.js';
 
 const $ = id => document.getElementById(id);
@@ -11,6 +12,7 @@ try {
 if (!state) {const c = newChart(); state = {version:1, active:c.id, charts:[c]};}
 const chart = () => state.charts.find(c => c.id === state.active);
 const selected = () => chart().items.find(it => it.id === selection?.id);
+const appearance = () => chart().appearance || defaultAppearance();
 const say = text => {$('message').textContent = text;};
 function save() {
   try {localStorage.setItem(KEY, JSON.stringify(state)); $('save-state').textContent = '✓ Saved in this browser';}
@@ -42,13 +44,35 @@ function render() {
   $('roster-summary').textContent = `${c.students.length} students · ${c.students.length-count} unassigned`;
   $('undo').disabled = !history.length;$('delete-chart').disabled = state.charts.length === 1;
   renderRoom();renderInspector();renderRoster();
+  renderAppearance();
 }
+function renderAppearance() {
+  const a=appearance();$('chart-font-source').value=a.font.source;$('chart-font').value=a.font.source==='preset'?a.font.family:'system';
+  $('chart-font-family').value=a.font.source==='preset'?'':a.font.family;$('chart-font-size').value=a.fontSize;$('chart-color').value=a.color||'#e8d7bb';chartFontFields();
+}
+function chartFontFields() {const custom=$('chart-font-source').value!=='preset';$('chart-custom-font').hidden=!custom;$('chart-preset-label').hidden=custom;suggestFonts($('chart-font-family'),$('chart-font-source').value,'chart-font-suggestions');}
+function chartStyle(fn,message) {change(()=>{chart().appearance=structuredClone(appearance());fn(chart().appearance);},message);}
+for(const [key,spec] of Object.entries(fontOptions)) $('chart-font').append(option(key,spec.label));
+$('chart-font-source').onchange=()=>{chartFontFields();if($('chart-font-source').value==='preset') chartStyle(a=>{a.font={source:'preset',family:$('chart-font').value};});};
+$('chart-font').onchange=()=>chartStyle(a=>{a.font={source:'preset',family:$('chart-font').value};});
+$('chart-custom-font').onsubmit=e=>{e.preventDefault();try{const font=validateFont({source:$('chart-font-source').value,family:$('chart-font-family').value.trim()});chartStyle(a=>{a.font=font;},'Chart font applied.');}catch(error){say(error.message);}};
+$('chart-font-size').onchange=()=>{if(!$('chart-font-size').checkValidity() || !$('chart-font-size').value){renderAppearance();return;}chartStyle(a=>{a.fontSize=Number($('chart-font-size').value);});};
+$('chart-color').onchange=()=>chartStyle(a=>{a.color=$('chart-color').value;});
+$('chart-natural').onclick=()=>chartStyle(a=>{a.color=null;},'Natural colors restored. Individual furniture colors are kept.');
+$('chart-reset').onclick=()=>change(()=>{chart().appearance=defaultAppearance();chart().items.forEach(it=>delete it.color);},'Chart fonts and colors reset. Room arrangement and students are kept.');
+$('item-color').onchange=()=>{const it=selected();if(it)change(()=>{it.color=$('item-color').value;});};
+$('item-color-reset').onclick=()=>{const it=selected();if(it)change(()=>{delete it.color;});};
 function renderRoom() {
   const room = $('room');room.replaceChildren();
+  room.style.fontFamily=fontCSS(appearance().font);
+  room.style.setProperty('--chart-font-size',`${appearance().fontSize}px`);
+  void loadFont(appearance().font).catch(error=>say(error.message));
   for(const it of chart().items) {
     const node = element('div',`item ${it.type}${selection?.id === it.id ? ' selected' : ''}`);
     node.dataset.id = it.id;node.tabIndex = 0;node.setAttribute('aria-label',`${it.label}. Drag to move, or use arrow keys.`);
     Object.assign(node.style,{left:`${it.x}px`,top:`${it.y}px`,width:`${it.width}px`,height:`${it.height}px`,transform:`rotate(${it.rotation}deg)`});
+    const color=it.color || appearance().color;
+    if(color) {node.style.background=color;const rgb=color.slice(1).match(/../g).map(c=>parseInt(c,16));node.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#172c3e':'#ffffff';}
     node.append(element('span','item-caption',it.label));
     if(it.seats.length) {
       const grid = element('div','seat-grid');grid.style.setProperty('--columns',it.seats.length === 1 ? 1 : 2);
@@ -72,6 +96,21 @@ function renderRoom() {
         grid.append(btn);
       });node.append(grid);
     }
+    const resize=element('button','resize-handle','↘');resize.setAttribute('aria-label',`Resize ${it.label}`);resize.title='Drag to resize; use Width and Depth for exact sizes';
+    resize.onpointerdown=e=>{
+      if(e.button!==0) return;e.preventDefault();e.stopPropagation();selection={id:it.id,seat:null};renderInspector();
+      const start={x:e.clientX,y:e.clientY,w:it.width,h:it.height};let moved=false;resize.setPointerCapture(e.pointerId);
+      const move=ev=>{
+        const dx=(ev.clientX-start.x)/zoom,dy=(ev.clientY-start.y)/zoom;if(!moved&&Math.hypot(dx,dy)<3)return;
+        if(!moved){checkpoint();moved=true;}
+        const angle=it.rotation*Math.PI/180,step=$('snap').checked?10:1;
+        it.width=Math.max(40,Math.min(400,Math.round((start.w+dx*Math.cos(angle)+dy*Math.sin(angle))/step)*step));
+        it.height=Math.max(30,Math.min(300,Math.round((start.h-dx*Math.sin(angle)+dy*Math.cos(angle))/step)*step));constrain(it);
+        Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});
+      };
+      const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){save();render();}};
+      resize.addEventListener('pointermove',move);resize.addEventListener('pointerup',end);resize.addEventListener('pointercancel',end);
+    };node.append(resize);
     node.addEventListener('pointerdown', e => {
       if(e.button !== 0 || e.target.closest('button')) return;
       selection = {id:it.id,seat:null};
@@ -105,6 +144,7 @@ function renderInspector() {
   $('selection-title').textContent = it ? catalog[it.type].label : 'Fine-tune your room';$('selection-hint').hidden = !!it;
   if(!it) return;
   for(const field of ['label','width','height','x','y']) $('item-'+field).value = it[field];
+  $('item-color').value=it.color || appearance().color || '#e8d7bb';
   if(selection.seat !== null) {
     const s = it.seats[selection.seat];$('seat-title').textContent = `Seat ${selection.seat+1}`;
     $('assignment').replaceChildren(option('','Unassigned'), ...chart().students.map(st => option(st.id,st.name)));

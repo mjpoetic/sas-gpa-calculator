@@ -39,3 +39,10 @@ test('backups round-trip; duplicate, foreign, and malformed assignments are reje
     d => {d.charts[0].items[0].seats.push({student:null,locked:false});}
   ]) {const copy=structuredClone(data);mutate(copy);assert.throws(() => validateBackup(copy));}
 });
+
+test('chart font settings and furniture colors survive backups with validation', () => {
+  const c=newChart();c.appearance={font:{source:'google',family:'Atkinson Hyperlegible'},fontSize:14,color:'#526d82'};c.items[3].color='#e8cfa8';
+  const data={version:1,active:c.id,charts:[c]};assert.deepEqual(validateBackup(data),data);
+  for(const modify of [d=>d.charts[0].appearance.fontSize=99,d=>d.charts[0].appearance.font.family='url(https://example.com)',d=>d.charts[0].items[3].color='red;display:none']){const copy=structuredClone(data);modify(copy);assert.throws(()=>validateBackup(copy));}
+  const old=structuredClone(data);delete old.charts[0].appearance;delete old.charts[0].items[3].color;assert.deepEqual(validateBackup(old),old);
+});
