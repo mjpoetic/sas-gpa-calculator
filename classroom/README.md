@@ -37,3 +37,13 @@ The preview is standalone HTML/CSS/JavaScript; it does not modify the generated 
 Browser regression checks are `tests/classroom-rotation.browser.cjs` and `tests/classroom-cloud.browser.cjs`. They require Playwright available through Node module resolution (or `NODE_PATH`) and the installed Google Chrome executable. Start the local preview server first. The cloud browser test uses an isolated simulated backend and sends no invitation or roster data to Supabase. Live SQL isolation checks were run separately against the SAS project with test data rolled back.
 
 Live Safari verification completed with the approved owner account: passwordless sign-in, first cloud save, and opening the cloud copy of the empty starter chart. The saved collection contains no student names. Supabase's built-in email service is limited to two authentication emails per hour; requests beyond that receive an actionable rate-limit message. Configure custom SMTP before broader use or if more frequent sign-in is needed. See https://supabase.com/docs/guides/auth/rate-limits.
+
+## Email and password sign-in
+
+The login form also accepts an email and password through Supabase Auth. While signed in with the existing email link, choose **Set / change password** and enter the new password twice (at least 12 characters). The owner must enter and submit their own password. Password fields are cleared after requests and are never added to chart data, browser storage, exports, or logs.
+
+**Forgot password?** requests a Supabase recovery email. Open that link in the same browser and origin that requested it; the verified recovery session reveals the password form. Password sign-in uses the same approved-email and ownership database policies as email-link sign-in. Public registration remains disabled. Regular password sign-in does not send an email; password recovery and email-link requests still use the email delivery quota.
+
+`tests/classroom-password.browser.cjs` verifies failed and successful password login, password confirmation, updating a password, cleared fields, sign-out, recovery callbacks, and mobile overflow using a simulated auth client. No real password is created or changed by the automated test.
+
+The SAS project's Email provider now also enforces a 12-character minimum on the server, with Secure password change enabled (requires a recent sign-in or recovery session). The owner password setup form was opened in the existing signed-in Safari session; the owner completes password entry and submission privately.

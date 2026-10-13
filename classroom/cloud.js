@@ -5,20 +5,25 @@ import {CloudStore} from './cloud-store.mjs';
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
 export async function connectCloud({getState,applyState,notify}) {
   const $=id=>document.getElementById(id), status=text=>{$('cloud-status').textContent=text;};
-  let client, store, busy=false, accountEpoch=0;
+  let client, store, busy=false, accountEpoch=0, recovery=false;
   $('cloud-login-form').onsubmit=e=>e.preventDefault();
+  $('cloud-password-form').onsubmit=e=>e.preventDefault();
   const configured=!!cloudConfig.url && !!cloudConfig.publishableKey;
   $('cloud-login-form').hidden=!configured;
   if(!configured) {status('Cloud sign-in is awaiting backend setup. Browser saving and backups are available.');return;}
   status('Connecting to sign-in…');
   function controls(signedIn) {
     $('cloud-login-form').hidden=signedIn;$('cloud-account').hidden=!signedIn;
+    if(!signedIn) {$('cloud-password-form').hidden=true;$('cloud-new-password').value='';$('cloud-confirm-password').value='';}
   }
-  function enable(enabled) {for(const id of ['cloud-upload','cloud-download','cloud-signout','cloud-send']) $(id).disabled=!enabled;}
+  function enable(enabled) {for(const id of ['cloud-upload','cloud-download','cloud-signout','cloud-send','cloud-password-signin','cloud-forgot','cloud-set-password','cloud-password-save','cloud-password-cancel']) $(id).disabled=!enabled;}
   enable(false);
   async function account(session) {
     // Auth emits SIGNED_IN again on tab focus. Keep the known cloud revision.
-    if(store && session?.user?.id===store.userId) return;
+    if(store && session?.user?.id===store.userId) {
+      if(recovery) {$('cloud-password-form').hidden=false;status('Your reset link is verified. Choose a new password below.');}
+      return;
+    }
     const epoch=++accountEpoch;
     store=null;controls(false);
     if(!session) {status('Sign in to save and open your charts across browsers.');return;}
@@ -31,7 +36,8 @@ export async function connectCloud({getState,applyState,notify}) {
       if(!data?.length) {await client.auth.signOut({scope:'local'});status('This account does not have access to the classroom preview.');return;}
       store=new CloudStore(client,user.id);controls(true);$('cloud-email-display').textContent=user.email;
       // Opening a session never uploads or replaces browser data automatically.
-      status('Signed in. Save this browser’s charts to cloud, or open your cloud charts.');
+      if(recovery) {$('cloud-password-form').hidden=false;status('Your reset link is verified. Choose a new password below.');}
+      else status('Signed in. Save this browser’s charts to cloud, or open your cloud charts.');
     } catch {status('Could not verify account access. Check your connection and try signing in again.');}
     finally {enable(true);}
   }
@@ -47,7 +53,8 @@ export async function connectCloud({getState,applyState,notify}) {
     client=createClient(cloudConfig.url,cloudConfig.publishableKey,{auth:{flowType:'pkce',storage:authStorage,storageKey:'sas-classroom-auth',persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     client.auth.onAuthStateChange((event,session)=>{
       // Run outside the SDK auth callback lock.
-      if(['INITIAL_SESSION','SIGNED_IN','SIGNED_OUT'].includes(event)) setTimeout(()=>{if(!busy) void account(session);},0);
+      if(event==='PASSWORD_RECOVERY') recovery=true;
+      if(['INITIAL_SESSION','SIGNED_IN','SIGNED_OUT','PASSWORD_RECOVERY'].includes(event)) setTimeout(()=>{if(!busy) void account(session);},0);
     });
     const {error}=await client.auth.getSession();if(error) throw error;
     // The SDK consumes the PKCE callback. Remove auth callback parameters afterward.
@@ -55,8 +62,8 @@ export async function connectCloud({getState,applyState,notify}) {
     if(url.searchParams.has('code')) {url.searchParams.delete('code');history.replaceState(null,'',url);}
     enable(true);
   } catch {status('Sign-in could not connect. Reload to try again. Browser saving still works.');return;}
-  $('cloud-login-form').onsubmit=async e=>{
-    e.preventDefault();if(busy) return;busy=true;enable(false);
+  $('cloud-send').onclick=async()=>{
+    if(busy || !$('cloud-email').reportValidity()) return;busy=true;enable(false);
     try {
       const redirect=new URL('./',location.href);redirect.search='';redirect.hash='';
       const {error}=await client.auth.signInWithOtp({email:$('cloud-email').value.trim(),options:{shouldCreateUser:false,emailRedirectTo:redirect.href}});
@@ -67,6 +74,37 @@ export async function connectCloud({getState,applyState,notify}) {
       else if(error.code==='email_address_not_authorized') status('Email delivery needs to be configured for this account. Your browser charts are still available.');
       else status('Could not send the sign-in link. Check your email address or try again later.');
     }
+    finally {busy=false;enable(true);}
+  };
+  $('cloud-login-form').onsubmit=async e=>{
+    e.preventDefault();if(busy) return;busy=true;enable(false);status('Signing in…');
+    try {
+      const {data,error}=await client.auth.signInWithPassword({email:$('cloud-email').value.trim(),password:$('cloud-password').value});
+      if(error) throw error;
+      $('cloud-password').value='';await account(data.session);
+    } catch(error) {status(error.status===429 ? 'Too many sign-in attempts. Wait before trying again.' : 'Sign-in failed. Check your email and password. If you have not set a password yet, use an email link first.');}
+    finally {$('cloud-password').value='';busy=false;enable(true);}
+  };
+  $('cloud-set-password').onclick=()=>{if(!store || busy) return;$('cloud-password-form').hidden=false;$('cloud-new-password').focus();};
+  $('cloud-password-cancel').onclick=()=>{$('cloud-password-form').reset();$('cloud-password-form').hidden=true;recovery=false;};
+  $('cloud-password-form').onsubmit=async e=>{
+    e.preventDefault();if(busy || !store) return;
+    if($('cloud-new-password').value!==$('cloud-confirm-password').value) {status('The two passwords do not match.');return;}
+    busy=true;enable(false);status('Saving your password…');
+    try {
+      const {error}=await client.auth.updateUser({password:$('cloud-new-password').value});if(error) throw error;
+      $('cloud-password-form').reset();$('cloud-password-form').hidden=true;recovery=false;
+      status('Password saved. You can now sign in with your email and password in another browser.');
+    } catch(error) {status(error.code==='weak_password' ? 'Choose a stronger password with at least 12 characters.' : 'Password could not be changed. Sign in again and retry.');}
+    finally {$('cloud-password-form').reset();busy=false;enable(true);}
+  };
+  $('cloud-forgot').onclick=async()=>{
+    if(busy || !$('cloud-email').reportValidity()) return;busy=true;enable(false);
+    try {
+      const redirect=new URL('./',location.href);redirect.search='';redirect.hash='';
+      const {error}=await client.auth.resetPasswordForEmail($('cloud-email').value.trim(),{redirectTo:redirect.href});if(error) throw error;
+      status('If your account is approved, a password reset link is on its way. Open it in this browser.');
+    } catch(error) {status(error.status===429 ? 'The email limit has been reached. Wait before requesting another reset link.' : 'Could not request a password reset. Try again later.');}
     finally {busy=false;enable(true);}
   };
   $('cloud-upload').onclick=async()=>{
