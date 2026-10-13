@@ -1,10 +1,11 @@
+import {furnitureArt} from './furniture-art.mjs';
 import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint} from './model.mjs';
 import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs';
 import {connectCloud} from './cloud.js';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
-let state, loadError = '', selection = null, history = [], zoom = 1;
+let state, loadError = '', selection = null, history = [], redoHistory = [], zoom = 1;
 try {
   const saved = localStorage.getItem(KEY);
   state = saved ? validateBackup(JSON.parse(saved)) : null;
@@ -22,7 +23,7 @@ function save() {
   try {localStorage.setItem(KEY, JSON.stringify(state)); $('save-state').textContent = '✓ Saved in this browser';}
   catch {$('save-state').textContent = 'Save unavailable — export a backup'; say('Browser storage is unavailable or full. Export a backup to preserve your work.');}
 }
-function checkpoint() {history.push(JSON.stringify(state)); if(history.length > 40) history.shift();}
+function checkpoint() {redoHistory=[];history.push(JSON.stringify(state)); if(history.length > 40) history.shift();}
 function change(fn, message) {checkpoint();fn();save();render();if(message) say(message);}
 function element(tag, className, text) {const el = document.createElement(tag);if(className) el.className = className;if(text !== undefined) el.textContent = text;return el;}
 function option(value, text) {const el = element('option','',text);el.value = value;return el;}
@@ -32,7 +33,7 @@ function tab(students) {
   $('students-tab').tabIndex = students ? 0 : -1; $('furniture-tab').tabIndex = students ? -1 : 0;
 }
 for (const [type,spec] of Object.entries(catalog)) {
-  const btn = element('button');btn.append(element('span',`mini ${type}`),element('span','',spec.label));
+  const btn = element('button'),mini=element('span',`mini ${type}`);if(furnitureArt(type))mini.innerHTML=furnitureArt(type);btn.append(mini,element('span','',spec.label));
   btn.onclick = () => {
     if(chart().items.length >= 500) return say('This chart has reached the 500 furniture limit.');
     change(() => {const shift = chart().items.length % 8 * 20;const item = furniture(type,320+shift,220+shift);chart().items.push(item);selection = {id:item.id, seat:null};},`${spec.label} added. Drag it into place.`);
@@ -46,7 +47,7 @@ function render() {
   const all = seats(c), count = all.filter(s => s.student).length;
   $('seat-summary').textContent = `${count} seated · ${all.length} seats · ${c.students.length-count} unassigned`;
   $('roster-summary').textContent = `${c.students.length} students · ${c.students.length-count} unassigned`;
-  $('undo').disabled = !history.length;$('delete-chart').disabled = state.charts.length === 1;
+  $('undo').disabled = !history.length;$('redo').disabled=!redoHistory.length;$('delete-chart').disabled = state.charts.length === 1;
   if(!selection)selectedIds.clear();else if(!selectedIds.has(selection.id))selectedIds=new Set([selection.id]);
   renderRoom();renderInspector();renderRoster();
   renderAppearance();
@@ -84,7 +85,7 @@ function renderRoom() {
     Object.assign(node.style,{left:`${it.x}px`,top:`${it.y}px`,width:`${it.width}px`,height:`${it.height}px`,transform:`rotate(${it.rotation}deg)`});
     const color=it.color || appearance().color;
     if(color) {node.style.background=color;const rgb=color.slice(1).match(/../g).map(c=>parseInt(c,16));node.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#172c3e':'#ffffff';}
-    const caption=element('span','item-caption',it.label);node.append(caption);
+    const caption=element('span','item-caption',it.label);if(!['door','teacher','plant','laptop','keyboard','mouse','couch','chair','stool'].includes(it.type)||it.label!==catalog[it.type].label)node.append(caption);
     if(!it.seats.length){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type);art.style.transform=`scale(${it.flipX?-1:1},${it.flipY?-1:1})`;node.prepend(art);requestAnimationFrame(()=>fitCaption(caption,it));}
     node.title=it.label;
     if(it.seats.length) {
@@ -211,7 +212,10 @@ $('shuffle').onclick = () => {
   const movable = seats(chart()).filter(s => s.student && !s.locked).length;
   change(() => shuffle(chart()),movable>=2 ? 'Students shuffled. Furniture and locked seats stayed in place.' : 'Unassigned students seated where possible. At least two unlocked, seated students are needed to swap seats.');
 };
-$('undo').onclick = () => {if(!history.length) return;state=JSON.parse(history.pop());selection=null;save();render();say('Previous change restored.');};
+function restoreEdit(from,to,message){if(!from.length)return;to.push(JSON.stringify(state));if(to.length>40)to.shift();state=JSON.parse(from.pop());selection=null;selectedIds.clear();save();render();say(message);}
+$('undo').onclick=()=>restoreEdit(history,redoHistory,'Previous change restored.');
+$('redo').onclick=()=>restoreEdit(redoHistory,history,'Change reapplied.');
+document.addEventListener('keydown',e=>{if(!(e.metaKey||e.ctrlKey)||e.altKey||e.key.toLowerCase()!=='z'||e.target.closest?.('input,textarea,select,[contenteditable]'))return;e.preventDefault();(e.shiftKey?$('redo'):$('undo')).click();});
 for(const field of ['label','width','height','x','y']) $('item-'+field).onchange = () => {
   const it=selected();if(!it) return;const input=$('item-'+field);
   if(field !== 'label' && !input.checkValidity()) {renderInspector();return;}
@@ -267,7 +271,4 @@ function fitCaption(el,it){
  const available=el.classList.contains('vertical-caption')?it.width-6:it.height-6;let size=appearance().fontSize;while(el.scrollHeight>available&&size>8){size--;el.style.fontSize=size+'px';}
  if(el.scrollHeight>available){el.classList.remove('vertical-caption');el.classList.add('floating-caption');el.style.width=Math.max(120,it.width)+'px';}
  el.title=it.label;
-}
-function furnitureArt(type){
- const shapes={door:'<path d="M8 92V8h76" stroke="#896240" stroke-width="6"/><path d="M8 8v84h76" fill="none" stroke="#b59669" stroke-dasharray="4 3"/><path d="M8 8A84 84 0 0 1 92 92" fill="none" stroke="#896240" stroke-dasharray="3 3"/><path d="M8 8l60 60" stroke="#b59669" stroke-width="7"/><circle cx="58" cy="55" r="3" fill="#f3c65d"/>',shelf:'<rect x="3" y="10" width="94" height="80" rx="3" fill="#9b7956"/><path d="M8 48h84" stroke="#634e3a" stroke-width="5"/><path d="M14 18v24m14-24v24m14-24v24m14-24v24m14-24v24m14-24v24M14 57v25m14-25v25m14-25v25m14-25v25m14-25v25m14-25v25" stroke="#477a85" stroke-width="9"/><path d="M28 18v24m28-24v24M14 57v25m42-25v25" stroke="#d79c6c" stroke-width="9"/>',teacher:'<rect x="18" y="35" width="38" height="35" rx="3" fill="#314858"/><rect x="22" y="39" width="30" height="23" fill="#b7e1ef"/><path d="M14 74h46" stroke="#d4dfe6" stroke-width="6"/><circle cx="77" cy="45" r="13" fill="#a7dce4"/><path d="M67 38l9 5 7-4-2 13-9-3" fill="#74a37d"/><path d="M77 58v12m-10 2h20" stroke="#534a3d" stroke-width="3"/><rect x="5" y="38" width="9" height="24" fill="#eee4c9"/><path d="M7 38V25m4 13V23" stroke="#43576d" stroke-width="2"/>',printer:'<rect x="24" y="8" width="52" height="30" fill="#fff" stroke="#758999"/><rect x="10" y="30" width="80" height="46" rx="8" fill="#708697"/><rect x="24" y="60" width="52" height="32" fill="#f4f7f7" stroke="#a3b2b9"/><path d="M34 70h32m-32 8h32" stroke="#97a8b4"/><circle cx="78" cy="42" r="4" fill="#87d7ad"/>',cabinet:'<rect x="12" y="5" width="76" height="90" rx="5" fill="#8299a8"/><path d="M15 35h70m-70 30h70" stroke="#41596c" stroke-width="2"/><path d="M40 19h20m-20 31h20m-20 30h20" stroke="#e3edf1" stroke-width="5"/>',window:'<rect x="4" y="8" width="92" height="84" fill="#cbe9f3" stroke="#7196a5" stroke-width="6"/><path d="M50 10v80M6 50h88" stroke="#f8fcfc" stroke-width="5"/><path d="M15 40l20-20m30 55 20-20" stroke="#fff" stroke-width="3"/>',smartboard:'<rect x="4" y="10" width="92" height="75" rx="4" fill="#314c5c"/><rect x="9" y="16" width="82" height="60" fill="#c5e0dd"/><path d="M22 58l14-18 16 9 22-22" fill="none" stroke="#598eaf" stroke-width="4"/><circle cx="50" cy="81" r="2" fill="#fff"/>'};return shapes[type]?`<svg viewBox="0 0 100 100" preserveAspectRatio="none">${shapes[type]}</svg>`:'';
 }

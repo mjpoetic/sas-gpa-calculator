@@ -87,3 +87,9 @@ With **Snap to grid** enabled, dragging aligns nearby furniture edges within eig
 Door swing diagrams, bookshelves with books, and teacher desks with laptop, globe, and pens replace generic shapes. Printer, filing cabinet, window, and smart board are available in the palette. Labels wrap, turn sideways on narrow tall fixtures, and shrink when necessary; labels that still cannot fit use a readable caption below the item.
 
 Site Appearance and chart customization offer weights from Thin (100) to Heavy (900). Google requests the selected weight explicitly; unavailable weights produce a retry hint. Local fonts use the nearest installed face. `tests/classroom-groups.browser.cjs` verifies selection, resizing, dragging, fixtures, flipping, adaptive labels, weight persistence, and mobile fit; model tests verify joined-edge and room-bound preservation.
+
+## Overhead accessories and redo
+
+Doors use a simple wooden leaf and metal handle; teacher desks use overhead monitor, keyboard, mouse, mug, and pen details. Their default labels are omitted, while custom labels remain available. The palette includes plant, laptop, keyboard, mouse, couch, chair, and stool as independent decorative objects. These objects support the same selection, rotation, flipping, resizing, and saved-chart behavior as other furniture.
+
+**⌘Z** undoes and **⌘⇧Z** redoes chart changes (Ctrl equivalents also work). Visible Undo/Redo buttons support touch. Shortcuts leave native text-field undo untouched. A new edit clears the redo stack; both stacks are bounded to 40 changes and reset on reload. `tests/classroom-decor.browser.cjs` covers these behaviors and the illustrated palette.
