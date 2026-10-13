@@ -117,3 +117,13 @@ Room shape and orientation provides Width/Depth (480–1600 planning units), a s
 Cabinets resize vertically in 30-unit drawer steps with an 80-unit fixed width. Doors keep a thin 12:1 ratio; whiteboards and smart boards keep a thinner 20:1 ratio. Office chairs are black, and bulletin boards have no labels. Double-click a furniture body to open its color control; touch users can select furniture and use the inspector color field. Group resizing keeps cabinet width fixed (cabinet groups do not shrink below their initial scale).
 
 Font-source choices now save immediately instead of reverting when other settings are edited. The chart font preview shows the current family and weight, and chart text defaults to the requested regular weight. The room/browser regression verifies actual Google Fonts loading rather than mocking the font stylesheet.
+
+## Menu and cloud compatibility fixes
+
+Appearance dropdowns now use top-layer popovers within their modal, with fixed 14 px menu text and keyboard navigation. Native select surfaces are hidden so Safari and Chromium use the same site menu. Related JS modules and styles share a release query version to avoid mixing cached editor and validator releases.
+
+Size validation repairs finite legacy/generated dimensions into supported limits, including floating-point overshoots, while preserving furniture IDs, seat assignments, and rosters; malformed/nonfinite dimensions still fail. Group resize bounds now prioritize maximum allowed scale to prevent oversized output.
+
+Open cloud charts loads a modal listing chart names and counts. Choosing a chart opens that chart and retains the account collection; local changes remain recoverable through Undo. Canceling the picker leaves the current chart and revision unchanged. Tests cover modal menu interactions and a two-browser simulated cloud chart collection, including dimension repair and picker cancellation.
+
+Cloud baseline comparisons use canonical property order, so equivalent chart data does not become a false conflict after reloading. Selecting a different active chart in the picker is also saved automatically.

@@ -85,3 +85,8 @@ test('new furniture finds vacant space and snaps flush to room walls',async()=>{
 test('custom rooms rotate reversibly, validate, and preserve furniture',async()=>{
  const {reshapeRoom,rotateRoom,setRoomSize,resizeFurniture}=await import('../classroom/model.mjs');const c=newChart();reshapeRoom(c,1200,800);const before=structuredClone(c);for(let i=0;i<4;i++)rotateRoom(c);for(let i=0;i<c.items.length;i++){assert.ok(Math.abs(c.items[i].x-before.items[i].x)<1e-8);assert.ok(Math.abs(c.items[i].y-before.items[i].y)<1e-8);}assert.deepEqual(c.room,before.room);assert.deepEqual(validateBackup({version:1,active:c.id,charts:[c]}).charts[0].room,c.room);const cabinet=furniture('cabinet');resizeFurniture(cabinet,200,240);assert.equal(cabinet.width,80);assert.equal(cabinet.height,240);const door=furniture('door');resizeFurniture(door,240,240);assert.equal(door.height,20);setRoomSize();
 });
+
+test('generated size overshoots recover without losing furniture or students',()=>{
+ const c=newChart();c.students=[{id:uid(),name:'Student'}];assignUnseated(c);c.items[3].width=400.00000000003;c.items[3].height=7.99999999999;c.items[4].width=450;
+ const copy=validateBackup({version:1,active:c.id,charts:[c]}).charts[0];assert.equal(copy.items[3].width,400);assert.equal(copy.items[3].height,8);assert.equal(copy.items[4].width,400);assert.equal(copy.items.length,c.items.length);assert.deepEqual(copy.students,c.students);assert.equal(copy.items[3].seats[0].student,c.students[0].id);
+});

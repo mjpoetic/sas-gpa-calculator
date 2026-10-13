@@ -1,17 +1,18 @@
-import {cloudConfig} from './cloud-config.js';
-import {CloudStore} from './cloud-store.mjs';
+import {cloudConfig} from './cloud-config.js?v=20261013-sync2';
+import {CloudStore} from './cloud-store.mjs?v=20261013-sync2';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
 export async function connectCloud({getState,applyState,notify}) {
   const $=id=>document.getElementById(id), status=text=>{$('cloud-status').textContent=text;};
-  let autoReady=false,dirty=false,autoTimer,editVersion=0;
+  let autoReady=false,dirty=false,autoTimer,editVersion=0,picker;
   let client, store, busy=false, accountEpoch=0, recovery=false;
   let passwordSetup=new URL(location.href).searchParams.has('code') || new URLSearchParams(location.hash.slice(1)).has('access_token'),callbackFailed=false;
+  const fingerprint=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
   const markerKey=id=>'sas-cloud-baseline-'+id;
   function remember(document){try{localStorage.setItem(markerKey(store.userId),JSON.stringify(document));}catch{}}
   function schedule(){clearTimeout(autoTimer);if(store&&autoReady&&dirty)autoTimer=setTimeout(flush,900);}
-  async function flush(){if(!store||!autoReady||!dirty)return;if(busy){schedule();return;}const current=store,version=editVersion,document=getState();busy=true;enable(false);status('Saving changes to cloud…');try{await current.save(document);if(store!==current)return;remember(document);dirty=version!==editVersion;status(dirty?'More changes waiting to save…':'✓ All changes saved to cloud.');}catch(error){if(store!==current)return;if(error.message?.includes('Another browser'))autoReady=false;status((error.message||'Cloud save failed. Reconnect to retry.')+' Your browser copy is saved.');}finally{busy=false;enable(true);if(dirty&&autoReady&&version!==editVersion)schedule();}}
+  async function flush(){if(!store||!autoReady||!dirty||picker?.open)return;if(busy){schedule();return;}const current=store,version=editVersion,document=getState();busy=true;enable(false);status('Saving changes to cloud…');try{await current.save(document);if(store!==current)return;remember(document);dirty=version!==editVersion;status(dirty?'More changes waiting to save…':'✓ All changes saved to cloud.');}catch(error){if(store!==current)return;if(error.message?.includes('Another browser'))autoReady=false;status((error.message||'Cloud save failed. Reconnect to retry.')+' Your browser copy is saved.');}finally{busy=false;enable(true);if(dirty&&autoReady&&version!==editVersion)schedule();}}
   document.addEventListener('sas-chart-edited',()=>{dirty=true;editVersion++;if(store&&autoReady)status('Changes saved in this browser. Cloud save pending…');schedule();});
   window.addEventListener('online',schedule);
   window.addEventListener('beforeunload',event=>{if(store&&dirty&&autoReady){event.preventDefault();event.returnValue='';}});
@@ -46,7 +47,7 @@ export async function connectCloud({getState,applyState,notify}) {
       if(!data?.length) {await client.auth.signOut({scope:'local'});status('This account does not have access to the classroom preview.');return;}
       store=new CloudStore(client,user.id);controls(true);$('cloud-email-display').textContent=user.email;
       // Adopt a remote revision only after verifying the local baseline.
-      try{const remote=await store.load();if(epoch!==accountEpoch)return;const local=JSON.stringify(getState());const baseline=localStorage.getItem(markerKey(user.id));autoReady=!remote||JSON.stringify(remote)===local||JSON.stringify(remote)===baseline;if(autoReady){dirty=!remote||JSON.stringify(remote)!==local;schedule();}else status('Your account has different charts. Open cloud charts to continue automatic saving, or use Save to cloud to keep this browser’s version.');}catch{autoReady=false;status('Could not connect cloud saving. Use Open cloud charts to retry.');}
+      try{const remote=await store.load();if(epoch!==accountEpoch)return;const local=fingerprint(getState());let baseline;try{const saved=localStorage.getItem(markerKey(user.id));baseline=saved?fingerprint(JSON.parse(saved)):null;}catch{}autoReady=!remote||fingerprint(remote)===local||fingerprint(remote)===baseline;if(autoReady){dirty=!remote||fingerprint(remote)!==local;schedule();}else status('Your account has different charts. Open cloud charts to continue automatic saving, or use Save to cloud to keep this browser’s version.');}catch{autoReady=false;status('Could not connect cloud saving. Use Open cloud charts to retry.');}
       if(recovery || passwordSetup) {$('cloud-password-form').hidden=false;status(recovery?'Your reset link is verified. Choose a new password below.':'You are signed in. Choose a password below for easier sign-in on any device, or select Not now to keep using email links.');$('cloud-password-cancel').textContent='Not now';}
       else if(autoReady)status('Signed in. Changes save automatically to cloud.');
     } catch {status('Could not verify account access. Check your connection and try signing in again.');}
@@ -128,13 +129,18 @@ export async function connectCloud({getState,applyState,notify}) {
     } catch(error) {status(error.message || 'Cloud save failed. Your browser copy is still available.');}
     finally {busy=false;enable(true);}
   };
+  picker=document.createElement('dialog');picker.addEventListener('close',schedule);picker.className='cloud-picker';picker.setAttribute('aria-labelledby','cloud-picker-title');picker.innerHTML='<form method="dialog"><h2 id="cloud-picker-title">Open a cloud classroom</h2><button aria-label="Close cloud chart picker">×</button></form><p>Choose a chart to open. Your account’s other charts stay available. The current browser collection is kept in Undo.</p><div class="cloud-chart-list"></div>';document.body.append(picker);
   $('cloud-download').onclick=async()=>{
-    if(busy || !store) return;
-    if(!confirm('Open the charts saved to your account? This replaces the charts in this browser. Export a backup first if you want to keep local changes. Undo will restore them.')) return;
-    busy=true;enable(false);status('Opening cloud charts…');
-    try {const remote=await store.load();if(remote) {autoReady=false;applyState(remote);remember(remote);dirty=false;autoReady=true;status('✓ Cloud charts opened. Changes now save automatically.');}else {autoReady=true;dirty=true;schedule();status('No cloud charts yet. Saving this browser’s charts automatically…');}}
-    catch {status('Could not open cloud charts. Your browser copy has not changed.');}
-    finally {busy=false;enable(true);}
+    if(busy || !store)return;busy=true;enable(false);status('Loading your cloud chart list…');
+    const current=store,reader=new CloudStore(client,current.userId);
+    try{const remote=await reader.load();if(store!==current)return;
+      if(!remote){status('No cloud charts yet. Your browser charts are still available.');return;}
+      const list=picker.querySelector('.cloud-chart-list');list.replaceChildren();
+      for(const chart of remote.charts){const button=document.createElement('button');button.type='button';const title=document.createElement('strong');title.textContent=chart.name;const detail=document.createElement('span');detail.textContent=`${chart.students.length} students · ${chart.items.length} furniture items · ${chart.room?.width||960} × ${chart.room?.height||680}`;button.append(title,detail);
+        button.onclick=()=>{if(store!==current){picker.close();return;}if(!confirm('Open this chart and your account’s collection in this browser? Local changes remain available in Undo; export a backup first if needed.'))return;const baselineRemote=structuredClone(remote);remote.active=chart.id;autoReady=false;clearTimeout(autoTimer);store=reader;applyState(remote);remember(baselineRemote);dirty=fingerprint(remote)!==fingerprint(baselineRemote);autoReady=true;schedule();picker.close();status('✓ Cloud charts opened. Changes now save automatically.');};list.append(button);}
+      picker.showModal();status('Choose a classroom from your cloud charts.');
+    }catch(error){status((error.message||'Could not open cloud charts.')+' Your browser copy has not changed.');}
+    finally{busy=false;enable(true);}
   };
   $('cloud-signout').onclick=async()=>{
     if(busy) return;busy=true;enable(false);
