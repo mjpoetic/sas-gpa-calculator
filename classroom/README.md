@@ -232,3 +232,5 @@ Manage classrooms includes Sort A–Z (natural numeric ordering) and Move up/Mov
 Chart view controls provide Full screen (with viewport fallback), Exit full screen/Escape, and remembered Hide tools/Show tools. Presentation hides header and sidebars while retaining zoom and exit controls.
 
 Selected furniture groups support batch colors and resetting to defaults. Seat properties provide separate background and name text colors for one or multiple selected seats; text colors persist in cloud documents and backups, with automatic contrast available as a reset.
+
+Multiple selected seats and furniture support built-in, Google and device font families and weights. Size and position starts collapsed, then remembers explicit disclosure choices. Classroom letter shortcuts: F fullscreen, H toolbars, S save, E edit, D furniture, U students, P print. These ignore typing, dialogs, open menus and modifier combinations; browser/system shortcuts remain unchanged.
