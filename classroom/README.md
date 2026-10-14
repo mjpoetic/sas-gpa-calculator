@@ -228,3 +228,5 @@ The Students drawer shows a compact, collapsible list of unseated students. Empt
 Snap and Guides starts off; wall fixtures still align automatically when dragged near room edges. Color controls use a consistent compact preset palette, with More colors exposing hex entry and the device’s detailed color picker.
 
 Manage classrooms includes Sort A–Z (natural numeric ordering) and Move up/Move down controls. The header menu and classroom selector use this saved order; cloud documents and backups retain it.
+
+Chart view controls provide Full screen (with viewport fallback), Exit full screen/Escape, and remembered Hide tools/Show tools. Presentation hides header and sidebars while retaining zoom and exit controls.
