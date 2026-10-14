@@ -1,25 +1,27 @@
-import {cloudConfig} from './cloud-config.js?v=20261014-release4';
-import {CloudStore} from './cloud-store.mjs?v=20261014-release4';
+import {mergeDocuments} from './sync-merge.mjs?v=20261014-release5';
+import {cloudConfig} from './cloud-config.js?v=20261014-release5';
+import {CloudStore} from './cloud-store.mjs?v=20261014-release5';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
 export async function connectCloud({getState,applyState,notify}) {
   const $=id=>document.getElementById(id), status=text=>{$('cloud-status').textContent=text;};
+  let baseline=null,applyingRemote=false,pulling=false,conflictOpen=false,deferredRevision=null,interacting=false;
   let autoReady=false,dirty=false,autoTimer,editVersion=0,picker,pendingPicker=false,pickerTimer;
   let client, store, busy=false, accountEpoch=0, recovery=false;
   let passwordSetup=new URL(location.href).searchParams.has('code') || new URLSearchParams(location.hash.slice(1)).has('access_token'),callbackFailed=false;
   const fingerprint=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
   const markerKey=id=>'sas-cloud-baseline-'+id;
-  function remember(document){try{localStorage.setItem(markerKey(store.userId),JSON.stringify(document));}catch{}}
+  function remember(document){baseline=structuredClone(document);try{localStorage.setItem(markerKey(store.userId),JSON.stringify(document));}catch{}}
   function offerCharts(){clearTimeout(pickerTimer);if(!pendingPicker)return;if(recovery||passwordSetup)return;if(busy||!picker||$('cloud-download').disabled){pickerTimer=setTimeout(offerCharts,250);return;}pendingPicker=false;$('cloud-download').click();}
   function schedule(){clearTimeout(autoTimer);if(store&&autoReady&&dirty)autoTimer=setTimeout(flush,900);}
-  async function flush(){if(!store||!autoReady||!dirty||picker?.open)return;if(busy){schedule();return;}const current=store,version=editVersion,document=getState();busy=true;enable(false);status('Saving changes to cloud…');try{await current.save(document);if(store!==current)return;remember(document);dirty=version!==editVersion;status(dirty?'More changes waiting to save…':'✓ All changes saved to cloud.');}catch(error){if(store!==current)return;if(error.message?.includes('Another browser'))autoReady=false;status((error.message||'Cloud save failed. Reconnect to retry.')+' Your browser copy is saved.');}finally{busy=false;enable(true);if(dirty&&autoReady&&version!==editVersion)schedule();}}
-  document.addEventListener('sas-chart-edited',()=>{dirty=true;editVersion++;if(store&&autoReady)status('Changes saved in this browser. Cloud save pending…');schedule();});
+  async function flush(){if(!store||!autoReady||!dirty||picker?.open)return;if(busy||pulling){schedule();return;}const current=store,version=editVersion,document=getState();busy=true;enable(false);status('Saving changes to cloud…');try{await current.save(document);if(store!==current)return;remember(document);dirty=version!==editVersion;status(dirty?'More changes waiting to save…':'✓ All changes saved to cloud.');}catch(error){if(store!==current)return;if(error.message?.includes('Another browser')){autoReady=false;setTimeout(pullRemote,0);}status((error.message||'Cloud save failed. Reconnect to retry.')+' Your browser copy is saved.');}finally{busy=false;enable(true);if(dirty&&autoReady&&version!==editVersion)schedule();}}
+  document.addEventListener('sas-chart-edited',()=>{if(applyingRemote)return;dirty=true;editVersion++;if(store&&autoReady)status('Changes saved in this browser. Cloud save pending…');schedule();});
   window.addEventListener('online',schedule);
   window.addEventListener('beforeunload',event=>{if(store&&dirty&&autoReady){event.preventDefault();event.returnValue='';}});
   document.addEventListener('sas-before-refresh',event=>{
     if(!event.detail?.waitUntil){if(busy||(store&&autoReady&&dirty))event.preventDefault();return;}
-    event.detail.waitUntil((async()=>{await Promise.resolve();clearTimeout(autoTimer);const deadline=Date.now()+15000;while(busy&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,100));if(busy){status('Refresh paused: the current request is still running.');return false;}if(!store)return true;if(dirty&&!autoReady){status('Refresh paused: resolve cloud synchronization before reloading.');return false;}if(picker?.open&&dirty){status('Choose your cloud classroom before refreshing.');return false;}while(dirty&&autoReady&&Date.now()<deadline){await flush();if(dirty){status('Refresh paused: cloud saving did not finish. Your browser copy is saved.');return false;}}return !dirty;})());
+    event.detail.waitUntil((async()=>{await Promise.resolve();clearTimeout(autoTimer);const deadline=Date.now()+15000;while((busy||pulling)&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,100));if(busy||pulling){status('Refresh paused: the current request is still running.');return false;}if(!store)return true;if(dirty&&!autoReady){status('Refresh paused: resolve cloud synchronization before reloading.');return false;}if(picker?.open&&dirty){status('Choose your cloud classroom before refreshing.');return false;}while(dirty&&autoReady&&Date.now()<deadline){await flush();if(dirty){status('Refresh paused: cloud saving did not finish. Your browser copy is saved.');return false;}}return !dirty;})());
   });
   $('cloud-login-form').onsubmit=e=>{e.preventDefault();status('Sign-in is connecting. Wait for the Sign in button to become available.');};
   $('cloud-password-form').onsubmit=e=>e.preventDefault();
@@ -40,7 +42,7 @@ export async function connectCloud({getState,applyState,notify}) {
       return;
     }
     const epoch=++accountEpoch;
-    store=null;autoReady=false;pendingPicker=false;clearTimeout(pickerTimer);clearTimeout(autoTimer);controls(false);
+    store=null;baseline=null;deferredRevision=null;autoReady=false;pendingPicker=false;clearTimeout(pickerTimer);clearTimeout(autoTimer);controls(false);
     if(!session) {status(callbackFailed?'This sign-in link could not be used. Request a new email link in this browser and open it here.':'Sign in with a password, or use an email link to sign in and set one up.');return;}
     status('Checking your account access…');enable(false);
     try {
@@ -51,7 +53,7 @@ export async function connectCloud({getState,applyState,notify}) {
       if(!data?.length) {await client.auth.signOut({scope:'local'});status('This account does not have access to the classroom preview.');return;}
       store=new CloudStore(client,user.id);controls(true);$('cloud-email-display').textContent=user.email;
       // Adopt a remote revision only after verifying the local baseline.
-      try{const remote=await store.load();if(epoch!==accountEpoch)return;const local=fingerprint(getState());let baseline;try{const saved=localStorage.getItem(markerKey(user.id));baseline=saved?fingerprint(JSON.parse(saved)):null;}catch{}autoReady=!remote||fingerprint(remote)===local||fingerprint(remote)===baseline;pendingPicker=!!remote&&!autoReady;if(pendingPicker)offerCharts();if(autoReady){dirty=!remote||fingerprint(remote)!==local;schedule();}else status('Your account has different charts. Open cloud charts to continue automatic saving, or use Save to cloud to keep this browser’s version.');}catch{autoReady=false;status('Could not connect cloud saving. Use Open cloud charts to retry.');}
+      try{const remote=await store.load();if(epoch!==accountEpoch)return;const local=fingerprint(getState());let baseline;try{const saved=localStorage.getItem(markerKey(user.id));baseline=saved?fingerprint(JSON.parse(saved)):null;}catch{}autoReady=!remote||fingerprint(remote)===local||fingerprint(remote)===baseline;pendingPicker=!!remote&&!autoReady;if(pendingPicker)offerCharts();if(autoReady){if(remote)remember(remote);dirty=!remote||fingerprint(remote)!==local;schedule();}else status('Your account has different charts. Open cloud charts to continue automatic saving, or use Save to cloud to keep this browser’s version.');}catch{autoReady=false;status('Could not connect cloud saving. Use Open cloud charts to retry.');}
       if(recovery || passwordSetup) {$('cloud-password-form').hidden=false;status(recovery?'Your reset link is verified. Choose a new password below.':'You are signed in. Choose a password below for easier sign-in on any device, or select Not now to keep using email links.');$('cloud-password-cancel').textContent='Not now';}
       else if(autoReady)status('Signed in. Changes save automatically to cloud.');
     } catch {status('Could not verify account access. Check your connection and try signing in again.');}
@@ -105,7 +107,7 @@ export async function connectCloud({getState,applyState,notify}) {
   $('cloud-set-password').onclick=()=>{if(!store || busy) return;$('cloud-password-form').hidden=false;$('cloud-new-password').focus();};
   $('cloud-password-cancel').onclick=()=>{$('cloud-password-form').reset();$('cloud-password-form').hidden=true;recovery=false;passwordSetup=false;offerCharts();};
   $('cloud-password-form').onsubmit=async e=>{
-    e.preventDefault();if(busy || !store) return;
+    e.preventDefault();if(busy || pulling || !store) return;
     if($('cloud-new-password').value!==$('cloud-confirm-password').value) {status('The two passwords do not match.');return;}
     busy=true;enable(false);status('Saving your password…');
     try {
@@ -125,7 +127,7 @@ export async function connectCloud({getState,applyState,notify}) {
     finally {busy=false;enable(true);}
   };
   $('cloud-upload').onclick=async()=>{
-    if(busy || !store) return;
+    if(busy || pulling || !store) return;
     if(!confirm('Save all charts from this browser to your account? This replaces your cloud chart collection.')) return;
     busy=true;enable(false);status('Saving to cloud…');
     try {if(store.revision===null) {const remote=await store.load();if(remote && !confirm('Your account already has saved charts. Replace them with this browser’s charts?')) {status('Cloud charts kept.');return;}}
@@ -135,7 +137,7 @@ export async function connectCloud({getState,applyState,notify}) {
   };
   picker=document.createElement('dialog');picker.addEventListener('close',schedule);picker.className='cloud-picker';picker.setAttribute('aria-labelledby','cloud-picker-title');picker.innerHTML='<form method="dialog"><h2 id="cloud-picker-title">Open a cloud classroom</h2><button aria-label="Close cloud chart picker">×</button></form><p>Choose a chart to open. Your account’s other charts stay available. The current browser collection is kept in Undo.</p><div class="cloud-chart-list"></div>';document.body.append(picker);
   $('cloud-download').onclick=async()=>{
-    if(busy || !store)return;busy=true;enable(false);status('Loading your cloud chart list…');
+    if(busy || pulling || !store)return;busy=true;enable(false);status('Loading your cloud chart list…');
     const current=store,reader=new CloudStore(client,current.userId);
     try{const remote=await reader.load();if(store!==current)return;
       if(!remote){status('No cloud charts yet. Your browser charts are still available.');return;}
@@ -146,9 +148,13 @@ export async function connectCloud({getState,applyState,notify}) {
     }catch(error){status((error.message||'Could not open cloud charts.')+' Your browser copy has not changed.');}
     finally{busy=false;enable(true);}
   };
+  function adopt(document){applyingRemote=true;try{applyState(document);}finally{applyingRemote=false;}}
+  function resolveConflict(remote,reader){if(conflictOpen)return;conflictOpen=true;autoReady=false;let resolved=false;const local=structuredClone(getState()),d=document.createElement('dialog');d.className='workspace-dialog sync-conflict-dialog';d.setAttribute('aria-label','Resolve simultaneous edits');d.innerHTML='<h2>Two devices changed the same classroom setting</h2><p>Your local changes are kept. Choose which version to continue with, or close this window and export a backup first. Both versions are saved in this browser for recovery.</p>';try{localStorage.setItem('sas-sync-conflict-backup',JSON.stringify({local,remote,savedAt:new Date().toISOString()}));}catch{d.querySelector('p').textContent='Browser storage is unavailable. Export your local charts before choosing a version; both versions remain in memory while this dialog is open.';}for(const [label,chosenDocument] of [['Keep this device’s version',local],['Use the other device’s version',remote]]){const b=document.createElement('button');b.textContent=label;b.onclick=()=>{resolved=true;deferredRevision=null;store=reader;remember(remote);adopt(chosenDocument);dirty=fingerprint(chosenDocument)!==fingerprint(remote);autoReady=true;d.close();schedule();status(dirty?'Resolved. Saving your chosen version…':'Resolved. Other device’s changes loaded.');};d.append(b);}const close=document.createElement('button');close.textContent='Review later';close.onclick=()=>d.close();d.append(close);for(const [copyLabel,copyDoc] of [['Download this device’s backup',local],['Download other device’s backup',remote]]){const download=document.createElement('button');download.textContent=copyLabel;download.onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(copyDoc,null,2)],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download=copyLabel.includes('this')?'classrooms-local-backup.json':'classrooms-other-device-backup.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};d.append(download);}d.onclose=()=>{if(!resolved){deferredRevision=reader.revision;status('Sync conflict waiting for review. Your local changes are kept; use Open cloud charts when ready.');}conflictOpen=false;d.remove();};document.body.append(d);d.showModal();}
+  async function pullRemote(){if(!store||busy||pulling||conflictOpen||picker?.open||document.hidden||!navigator.onLine||interacting||document.activeElement?.matches('input,textarea,select,[contenteditable="true"]'))return;pulling=true;const current=store,reader=new CloudStore(client,current.userId);try{const remote=await reader.load();if(store!==current||busy||!remote||interacting||document.activeElement?.matches('input,textarea,select,[contenteditable="true"]'))return;if(reader.revision===deferredRevision)return;if(!baseline){if(dirty)resolveConflict(remote,reader);return;}if(fingerprint(remote)===fingerprint(baseline)){if(dirty&&autoReady)schedule();return;}const local=getState(),result=mergeDocuments(baseline,local,remote);if(result.conflicts.length){resolveConflict(remote,reader);return;}const merged=result.document;merged.active=merged.charts.some(c=>c.id===local.active)?local.active:merged.active;store=reader;remember(remote);if(fingerprint(merged)!==fingerprint(local))adopt(merged);dirty=fingerprint(merged)!==fingerprint(remote);autoReady=true;schedule();status(dirty?'Changes from both devices combined. Saving…':'✓ Changes synchronized from your other device.');}catch(error){status('Sync is waiting for a connection. Your browser changes are saved.');}finally{pulling=false;}}
+  setInterval(pullRemote,5000);window.addEventListener('online',pullRemote);document.addEventListener('visibilitychange',()=>{if(!document.hidden)void pullRemote();});document.addEventListener('pointerdown',()=>{interacting=true;},true);for(const name of ['pointerup','pointercancel'])document.addEventListener(name,()=>{interacting=false;},true);
   $('cloud-signout').onclick=async()=>{
     if(busy) return;busy=true;enable(false);
-    try {const {error}=await client.auth.signOut({scope:'local'});if(error) throw error;++accountEpoch;store=null;autoReady=false;pendingPicker=false;clearTimeout(pickerTimer);clearTimeout(autoTimer);controls(false);status('Signed out. Your charts remain in this browser; clear them before leaving a shared computer.');}
+    try {const {error}=await client.auth.signOut({scope:'local'});if(error) throw error;++accountEpoch;store=null;baseline=null;deferredRevision=null;autoReady=false;pendingPicker=false;clearTimeout(pickerTimer);clearTimeout(autoTimer);controls(false);status('Signed out. Your charts remain in this browser; clear them before leaving a shared computer.');}
     catch {notify('Sign-out failed. Try again while connected.');}
     finally {busy=false;enable(true);}
   };

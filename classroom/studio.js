@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release4';
-import {furnitureArt} from './furniture-art.mjs?v=20261014-release4';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release4';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release4';
-import {connectCloud} from './cloud.js?v=20261014-release4';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release5';
+import {furnitureArt} from './furniture-art.mjs?v=20261014-release5';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release5';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release5';
+import {connectCloud} from './cloud.js?v=20261014-release5';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -96,7 +96,7 @@ function renderRoom() {
   for(const it of chart().items) {
     const node = element('div',`item ${it.type}${!selectedSeatKeys.size&&selectedIds.has(it.id) ? ' selected' : ''}`);
     node.ondblclick=e=>{if(it.type==='label'||e.target.closest('.seat'))return;if(e.target.closest('.furniture-actions,.resize-handle'))return;e.preventDefault();e.stopPropagation();choose(it);renderInspector();$('item-color').focus();$('item-color').click();};
-    node.style.zIndex=layers.get(it.id);node.dataset.id = it.id;node.dataset.rotation=it.rotation;node.tabIndex = 0;node.setAttribute('aria-label',`${it.label}. Drag to move, or use arrow keys.`);
+    node.dataset.baseLayer=layers.get(it.id);node.style.zIndex=layers.get(it.id);node.dataset.id = it.id;node.dataset.rotation=it.rotation;node.tabIndex = 0;node.setAttribute('aria-label',`${it.label}. Drag to move, or use arrow keys.`);
     Object.assign(node.style,{left:`${it.x}px`,top:`${it.y}px`,width:`${it.width}px`,height:`${it.height}px`,transform:`rotate(${it.rotation}deg)`});
     const color=it.color || appearance().color;
     if(color) {node.style.background=color;node.style.setProperty('--furniture-color',color);const rgb=color.slice(1).match(/../g).map(c=>parseInt(c,16));node.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#172c3e':'#ffffff';}
@@ -329,7 +329,7 @@ function updateObjectControls(){
  for(const panel of document.querySelectorAll('.library:not([hidden]),.inspector:not([hidden])')){if(getComputedStyle(panel).position!=='fixed')continue;const p=panel.getBoundingClientRect();if(p.width>=b.width*.8&&p.top>b.top)bounds.bottom=Math.min(bounds.bottom,p.top-5);else if(p.right>=b.right-20&&p.left>b.left)bounds.right=Math.min(bounds.right,p.left-5);}
  const zoomBox=document.querySelector('.canvas-zoom')?.getBoundingClientRect();
  let active=false;const touch=matchMedia('(pointer:coarse)').matches,base=touch?44:32,size=Math.max(touch?36:24,base/Math.sqrt(Math.max(1,zoom)));
- for(const {node,actions,resize} of controlEntries){if(!node.isConnected)continue;if(!(node.classList.contains('group-selection')||node.dataset.id===hoverOwner||(!hoverOwner&&(node.classList.contains('selected')||node.matches(':focus-within'))))){node.classList.remove('controls-visible');continue;}const box=node.getBoundingClientRect(),visible=box.right>bounds.left&&box.left<bounds.right&&box.bottom>bounds.top&&box.top<bounds.bottom;
+ for(const {node,actions,resize} of controlEntries){if(!node.isConnected)continue;const spotlight=node.dataset.id===hoverOwner;node.classList.toggle('hover-spotlight',spotlight);if(node.dataset.baseLayer)node.style.zIndex=spotlight?'2000':node.dataset.baseLayer;if(!(node.classList.contains('group-selection')||node.dataset.id===hoverOwner||(!hoverOwner&&(node.classList.contains('selected')||node.matches(':focus-within'))))){node.classList.remove('controls-visible');continue;}const box=node.getBoundingClientRect(),visible=box.right>bounds.left&&box.left<bounds.right&&box.bottom>bounds.top&&box.top<bounds.bottom;
  const showing=visible;node.classList.toggle('controls-visible',showing);if(!showing)continue;active=true;
  const angle=Number(node.dataset.rotation||0),r=angle*Math.PI/180,w=parseFloat(node.style.width),h=parseFloat(node.style.height),cx=box.x+box.width/2,cy=box.y+box.height/2;
  function place(el,x,y,factor){const ew=el.offsetWidth*zoom*factor,eh=el.offsetHeight*zoom*factor;if(zoomBox&&x+ew/2>zoomBox.left&&x-ew/2<zoomBox.right&&y+eh/2>zoomBox.top&&y-eh/2<zoomBox.bottom)y=Math.max(bounds.top+eh/2,zoomBox.top-eh/2-5);const dx=x-cx,dy=y-cy;el.style.left=(w/2+(dx*Math.cos(r)+dy*Math.sin(r))/zoom)+'px';el.style.top=(h/2+(-dx*Math.sin(r)+dy*Math.cos(r))/zoom)+'px';el.style.right='auto';el.style.bottom='auto';el.style.transform=`translate(-50%,-50%) rotate(${-angle}deg) scale(${factor})`;}
@@ -373,7 +373,7 @@ function renderGroupControls(){
 // Hover never changes furniture stacking: smaller objects remain above their surfaces.
 $('room').addEventListener('pointermove',e=>{
  if(e.pointerType==='touch')return;
- const target=e.target.closest('.item'),previous=controlEntries.find(entry=>entry.node.dataset.id===hoverOwner);
+ const control=e.target.closest('.furniture-actions,.resize-handle');let target=e.target.closest('.item');if(!control){for(const entry of controlEntries)if(entry.node.dataset.baseLayer)entry.node.style.zIndex=entry.node.dataset.baseLayer;target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.item');for(const entry of controlEntries)if(entry.node.dataset.id===hoverOwner)entry.node.style.zIndex='2000';}const previous=controlEntries.find(entry=>entry.node.dataset.id===hoverOwner);
  if(previous&&target!==previous.node&&!e.target.closest('.furniture-actions,.resize-handle')){const a=previous.actions.getBoundingClientRect(),n=previous.node.getBoundingClientRect();const corridor=e.clientX>=Math.min(a.left,n.left)-4&&e.clientX<=Math.max(a.right,n.right)+4&&e.clientY>=Math.min(a.top,n.top)-4&&e.clientY<=Math.max(n.top,a.bottom)+6;if(corridor)return;}
  const owner=target?.dataset.id||null;if(owner!==hoverOwner){hoverOwner=owner;updateObjectControls();}
 });
@@ -411,5 +411,5 @@ $('multi-seat-clear').onclick=()=>{selectedSeatKeys.clear();selectedIds.clear();
 
 $('label-font-size').onchange=()=>{const it=selected(),value=Number($('label-font-size').value);if(it?.type==='label'&&Number.isFinite(value)&&value>=8&&value<=200)change(()=>{it.labelFontSize=value;},'Room label font size updated.');};
 $('label-font-size-auto').onclick=()=>{const it=selected();if(it?.type==='label')change(()=>{delete it.labelFontSize;},'Room label text fits automatically.');};
-function preparePrint(){document.getElementById('chart-print-sheet')?.remove();const sheet=element('section','');sheet.id='chart-print-sheet';const title=element('h1','',chart().name),frame=element('div','print-frame'),copy=$('room').cloneNode(true);copy.removeAttribute('id');copy.className='print-room';copy.style.setProperty('--print-scale',Math.min(248*96/25.4/WIDTH,168*96/25.4/HEIGHT));copy.style.zoom='1';copy.style.margin='0';copy.querySelectorAll('.furniture-actions,.resize-handle,.group-selection,.selection-marquee,.alignment-guide').forEach(n=>n.remove());copy.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));for(const it of chart().items.filter(it=>it.type==='label'&&!it.labelStyle))copy.querySelector(`[data-id="${it.id}"]`)?.style.setProperty('color','#20354e');copy.querySelectorAll('.selected,.selected-seat').forEach(n=>n.classList.remove('selected','selected-seat'));frame.append(copy);sheet.append(title,frame);document.body.append(sheet);}
+function preparePrint(){document.getElementById('chart-print-sheet')?.remove();const sheet=element('section','');sheet.id='chart-print-sheet';const title=element('h1','',chart().name),frame=element('div','print-frame'),copy=$('room').cloneNode(true);copy.removeAttribute('id');copy.querySelectorAll('.item').forEach(node=>{if(node.dataset.baseLayer)node.style.zIndex=node.dataset.baseLayer;node.classList.remove('hover-spotlight');});copy.className='print-room';copy.style.setProperty('--print-scale',Math.min(248*96/25.4/WIDTH,168*96/25.4/HEIGHT));copy.style.zoom='1';copy.style.margin='0';copy.querySelectorAll('.furniture-actions,.resize-handle,.group-selection,.selection-marquee,.alignment-guide').forEach(n=>n.remove());copy.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));for(const it of chart().items.filter(it=>it.type==='label'&&!it.labelStyle))copy.querySelector(`[data-id="${it.id}"]`)?.style.setProperty('color','#20354e');copy.querySelectorAll('.selected,.selected-seat').forEach(n=>n.classList.remove('selected','selected-seat'));frame.append(copy);sheet.append(title,frame);document.body.append(sheet);}
 window.addEventListener('beforeprint',preparePrint);window.addEventListener('afterprint',()=>document.getElementById('chart-print-sheet')?.remove());
