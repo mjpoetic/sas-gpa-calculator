@@ -1,5 +1,5 @@
-import {normalizeStudentName} from './student-names.mjs?v=20261013-release3';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261013-release3';
+import {normalizeStudentName} from './student-names.mjs?v=20261013-release4';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261013-release4';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -66,6 +66,7 @@ export function assignUnseated(chart) {
   const assigned = new Set(seats(chart).map(s => s.student).filter(Boolean));
   const available = seats(chart).filter(s => !s.student && !s.locked);
   chart.students.filter(s => !assigned.has(s.id)).forEach((student, i) => {if (available[i]) available[i].student = student.id;});
+  improveSeparation(chart);
 }
 // Shuffle only assignments. Locked seats and every furniture property stay intact.
 // A random cyclic shift guarantees a different seat for each movable seated student.
@@ -89,22 +90,24 @@ export function validateBackup(data) {
   const charts = data.charts.map(c => {
     if (!Array.isArray(c.students) || c.students.length > 500 || !Array.isArray(c.items) || c.items.length > 500) throw new Error('Backup exceeds classroom limits.');
     const room=c.room===undefined?{width:960,height:680}:validateRoom(c.room);
-    const students = c.students.map(s => ({id: id(s.id), name: normalizeStudentName(str(s.name,80))}));
+    const students = c.students.map(s => ({id: id(s.id), name: normalizeStudentName(str(s.name,80)),...(s.avoid!==undefined?{avoid:s.avoid}: {})}));
     const studentIds = new Set(students.map(s => s.id)), assigned = new Set();
+    for(const student of students)if(student.avoid!==undefined&&(!Array.isArray(student.avoid)||student.avoid.length>500||student.avoid.some(ref=>typeof ref!=='string'||ref===student.id||!studentIds.has(ref))))throw new Error('Invalid student separation preferences.');
     const items = c.items.map(it => {
       if(it.color!==undefined && !/^#[\da-f]{6}$/i.test(it.color)) throw new Error('Invalid furniture color.');
       if (!Object.hasOwn(catalog, it.type) || !Array.isArray(it.seats) || it.seats.length !== catalog[it.type].seats || (!Number.isFinite(it.rotation) || it.rotation<0 || it.rotation>=360)) throw new Error('Invalid furniture in backup.');
-      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.color!==undefined?{color:it.color}:{}), ...(it.flipX===true?{flipX:true}:{}), ...(it.flipY===true?{flipY:true}:{}), width: dimension(it.width,40,400), height: dimension(it.height,8,300), x:num(it.x,-300,1900), y:num(it.y,-300,1900), rotation:it.rotation, seats:it.seats.map(s => {
+      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.color!==undefined?{color:it.color}:{}), ...(it.labelFont!==undefined?{labelFont:validateFont(it.labelFont)}:{}), ...(it.flipX===true?{flipX:true}:{}), ...(it.flipY===true?{flipY:true}:{}), width: dimension(it.width,40,400), height: dimension(it.height,8,300), x:num(it.x,-300,1900), y:num(it.y,-300,1900), rotation:it.rotation, seats:it.seats.map(s => {
         if (typeof s.locked !== 'boolean' || (s.student !== null && (!studentIds.has(s.student) || assigned.has(s.student)))) throw new Error('Invalid student assignment in backup.');
         if (s.student) assigned.add(s.student);
-        return {student:s.student, locked:s.locked};
+        if(s.color!==undefined&&!/^#[\da-f]{6}$/i.test(s.color))throw new Error('Invalid seat color.');
+        return {student:s.student, locked:s.locked,...(s.color!==undefined?{color:s.color}:{})};
       })},room);
     });
     return {id:id(c.id), name:str(c.name,80), students, items,...(c.room!==undefined?{room}:{}),...(c.appearance!==undefined?{appearance:validateAppearance(c.appearance)}:{})};
   });
   const studentLists=(data.studentLists||[]);
   if(!Array.isArray(studentLists)||studentLists.length>100)throw new Error('Invalid saved student lists.');
-  const lists=studentLists.map(list=>{if(!Array.isArray(list.names)||list.names.length>500)throw new Error('Invalid saved student list.');return {id:id(list.id),name:str(list.name,80),names:list.names.map(n=>normalizeStudentName(str(n,80)))};});
+  const lists=studentLists.map(list=>{if(!Array.isArray(list.names)||list.names.length>500)throw new Error('Invalid saved student list.');return {id:id(list.id),name:str(list.name,80),names:list.names.map(n=>normalizeStudentName(str(n,80))),...(list.avoid!==undefined?{avoid:validateListAvoid(list.avoid,list.names.length)}:{})};});
   return {version:1, ...(lists.length?{studentLists:lists}:{}), charts, active:charts.some(c => c.id === data.active) ? data.active : charts[0].id};
 }
 
@@ -152,3 +155,15 @@ export function reshapeRoom(chart,width,height){
  chart.items.forEach(it=>{it.x*=width/old.width;it.y*=height/old.height;it.width=Math.max(40,it.width*scale);it.height=Math.max(8,it.height*scale);constrain(it,room);});chart.room=room;setRoomSize(room);
 }
 export function rotateRoom(chart){const old=chart.room||{width:960,height:680},room={width:old.height,height:old.width};chart.items.forEach(it=>{const cx=it.x+it.width/2,cy=it.y+it.height/2;it.x=old.height-cy-it.width/2;it.y=cx-it.height/2;it.rotation=(it.rotation+90)%360;constrain(it,room);});chart.room=room;setRoomSize(room);}
+
+function validateListAvoid(value,count){if(!Array.isArray(value)||value.length!==count||value.some((refs,i)=>!Array.isArray(refs)||refs.length>count||refs.some(n=>!Number.isInteger(n)||n<0||n>=count||n===i)))throw new Error('Invalid saved student separation preferences.');return value;}
+function seatLocations(chart){return chart.items.flatMap(item=>item.seats.map((seat,index)=>{const columns=item.seats.length===1?1:2,rows=Math.ceil(item.seats.length/columns),a=item.rotation*Math.PI/180,dx=((index%columns+.5)/columns-.5)*item.width,dy=((Math.floor(index/columns)+.5)/rows-.5)*item.height;return {seat,item,x:item.x+item.width/2+dx*Math.cos(a)-dy*Math.sin(a),y:item.y+item.height/2+dx*Math.sin(a)+dy*Math.cos(a)};}));}
+function separationEdges(chart){const places=seatLocations(chart),students=new Map(chart.students.map(s=>[s.id,s]));return places.flatMap((a,i)=>places.slice(i+1).filter(b=>a.item===b.item||Math.hypot(a.x-b.x,a.y-b.y)<120).map(b=>[a.seat,b.seat])).map(pair=>({pair,students}));}
+function edgeConflict({pair:[a,b],students}){return !!(a.student&&b.student&&(students.get(a.student)?.avoid?.includes(b.student)||students.get(b.student)?.avoid?.includes(a.student)));}
+export function separationConflicts(chart){return separationEdges(chart).filter(edgeConflict).length;}
+export function improveSeparation(chart){
+ const edges=separationEdges(chart);if(!chart.students.some(s=>s.avoid?.length))return 0;
+ const movable=seats(chart).filter(s=>!s.locked),links=new Map(movable.map(s=>[s,edges.filter(e=>e.pair.includes(s))]));
+ for(let pass=0;pass<20;pass++){let improved=false;for(const a of movable){if(!links.get(a).some(edgeConflict))continue;for(const b of movable){if(a===b||a.student===b.student)continue;const affected=[...new Set([...links.get(a),...links.get(b)])],before=affected.filter(edgeConflict).length;[a.student,b.student]=[b.student,a.student];if(affected.filter(edgeConflict).length<before){improved=true;break;}[a.student,b.student]=[b.student,a.student];}}if(!improved)break;}
+ return edges.filter(edgeConflict).length;
+}

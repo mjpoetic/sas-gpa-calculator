@@ -164,3 +164,10 @@ Rotate, Duplicate, Delete, and Resize controls stay within the visible chart-scr
 The release manifest is `/site-version.json`. For each published iteration, update its date-based version (`YYYY.MM.DD.iteration`), UTC preparation time, and matching `site-version` / `site-updated` metadata in both HTML entry points. The displayed time uses the viewer’s timezone. Open tabs check after ten seconds, every five minutes while visible, and on returning to the tab or reconnecting. A newer version offers Refresh or Later; classroom saves can prevent a refresh while cloud changes are pending.
 
 Saved student lists are available in Students. They travel with the existing cloud document and JSON backup, with no database schema change. Loading replaces the classroom roster and clears seat assignments while retaining furniture; Undo restores the previous roster. Print is in the header, and Rotate room is in the toolbar beneath the grid.
+
+### Seats, separation, labels, and update reminders
+Select a seat and use Edit → Seat color to set or reset its color. Colors belong to the seat and stay in place when students shuffle. In Students, use the separation button or double-click a student name to choose students to keep apart. Seating and shuffle improve these preferences without moving furniture or changing locked seats; the status reports unresolved conflicts. All seats at the same table, and seat centers within 120 room units, count as nearby. Preferences are saved with cloud charts, backups, and reusable lists.
+
+Click a Room label to edit its text inline; Enter saves and Escape cancels. Drag its border to move it. Edit includes an independent label font using built-in (`system`, `serif`, `rounded`, `mono`), Google, or device fonts. Hover controls sit outside the label where space permits and hide during text editing.
+
+Drag the update notice by its message to reposition it; browser storage remembers the relative screen position. Later folds it into a dot on Refresh. Click Refresh to reopen the notice and choose when to reload.

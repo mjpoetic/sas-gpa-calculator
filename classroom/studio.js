@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release3';
-import {furnitureArt} from './furniture-art.mjs?v=20261013-release3';
-import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release3';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release3';
-import {connectCloud} from './cloud.js?v=20261013-release3';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release4';
+import {furnitureArt} from './furniture-art.mjs?v=20261013-release4';
+import {separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release4';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release4';
+import {connectCloud} from './cloud.js?v=20261013-release4';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -91,12 +91,14 @@ function renderRoom() {
   const font=appearance().font,weight=appearance().weight||400;$('chart-font-status').textContent=font.source==='google'?'Loading '+font.family+'…':'Font applied: '+(fontOptions[font.family]?.label||font.family);void loadFont(font,weight).then(async()=>{if(document.fonts?.load)await document.fonts.load(`${weight} 14px ${fontCSS(font)}`);if(JSON.stringify(appearance().font)===JSON.stringify(font))$('chart-font-status').textContent='Font applied: '+(fontOptions[font.family]?.label||font.family);}).catch(error=>{$('chart-font-status').textContent=error.message;say(error.message);});
   for(const it of chart().items) {
     const node = element('div',`item ${it.type}${selectedIds.has(it.id) ? ' selected' : ''}`);
-    node.ondblclick=e=>{if(e.target.closest('.furniture-actions,.resize-handle'))return;e.preventDefault();e.stopPropagation();choose(it);renderInspector();$('item-color').focus();$('item-color').click();};
+    node.ondblclick=e=>{if(it.type==='label')return;if(e.target.closest('.furniture-actions,.resize-handle'))return;e.preventDefault();e.stopPropagation();choose(it);renderInspector();$('item-color').focus();$('item-color').click();};
     node.dataset.id = it.id;node.dataset.rotation=it.rotation;node.tabIndex = 0;node.setAttribute('aria-label',`${it.label}. Drag to move, or use arrow keys.`);
     Object.assign(node.style,{left:`${it.x}px`,top:`${it.y}px`,width:`${it.width}px`,height:`${it.height}px`,transform:`rotate(${it.rotation}deg)`});
     const color=it.color || appearance().color;
     if(color) {node.style.background=color;node.style.setProperty('--furniture-color',color);const rgb=color.slice(1).match(/../g).map(c=>parseInt(c,16));node.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#172c3e':'#ffffff';}
     const caption=element('span','item-caption',it.label);if(it.seats.length||['rug','label'].includes(it.type))node.append(caption);
+    if(it.type==='label'){caption.classList.add('editable-room-label');caption.tabIndex=0;caption.setAttribute('role','textbox');caption.setAttribute('aria-label','Room label; click to rename');caption.title='Click to rename; drag the border to move';if(it.labelFont){caption.style.fontFamily=fontCSS(it.labelFont);void loadFont(it.labelFont).catch(e=>say(e.message));}caption.onpointerdown=e=>e.stopPropagation();caption.onclick=e=>{e.stopPropagation();choose(it);room.querySelectorAll('.item').forEach(n=>n.classList.toggle('selected',n===node));renderInspector();caption.contentEditable='true';caption.focus();};caption.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();caption.blur();}if(e.key==='Escape'){caption.textContent=it.label;caption.blur();}};caption.onblur=()=>{caption.contentEditable='false';const value=caption.textContent.trim().slice(0,60)||'Room label';if(value!==it.label)change(()=>{it.label=value;},'Room label updated.');};}
+
     if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type,it.height);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=HEIGHT-1||f.x+f.width>=WIDTH-1),wallFlip=it.type==='door'&&((f.y+f.height>=HEIGHT-1&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=WIDTH-1&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);if(color){const rects=[...art.querySelectorAll('rect')].sort((a,b)=>Number(b.getAttribute('width'))*Number(b.getAttribute('height'))-Number(a.getAttribute('width'))*Number(a.getAttribute('height')));(rects[0]||art.querySelector('circle'))?.setAttribute('fill',color);}requestAnimationFrame(()=>fitCaption(caption,it));}
     node.title=it.label;
     if(it.seats.length) {
@@ -109,7 +111,7 @@ function renderRoom() {
         text.style.transform = `rotate(${-it.rotation}deg)`;
         const sideways = it.rotation % 180 !== 0;
         text.style.width = sideways ? 'calc(100% - 8px)' : 'calc(100% - 6px)';
-        btn.append(text);
+        if(s.color){btn.style.setProperty('--seat-custom-color',s.color);const rgb=s.color.slice(1).match(/../g).map(c=>parseInt(c,16));btn.style.setProperty('--seat-custom-ink',rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#172c3e':'#ffffff');}btn.append(text);
         new ResizeObserver(([entry], observer) => {
           const {width,height} = entry.contentRect;
           const angle=it.rotation*Math.PI/180,diagonal=it.rotation%90!==0;
@@ -190,11 +192,12 @@ function renderInspector() {
   if(!it) return;
   for(const field of ['label','width','height','x','y']) $('item-'+field).value = it[field];
   $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-height').min=['door','board','smartboard'].includes(it.type)?8:30;$('item-height').step=1;
+  $('label-font-controls').hidden=it.type!=='label';$('label-font-source').value=it.labelFont?.source||'preset';$('label-font-family').value=it.labelFont?.family||'system';
   $('item-color').value=it.color || appearance().color || '#e8d7bb';
   if(selection.seat !== null) {
     const s = it.seats[selection.seat];$('seat-title').textContent = `Seat ${selection.seat+1}`;
     $('assignment').replaceChildren(option('','Unassigned'), ...chart().students.map(st => option(st.id,rosterName(st))));
-    $('assignment').value = s.student || '';$('locked').checked = s.locked;
+    $('seat-color').value=s.color||'#f4eee3';$('assignment').value = s.student || '';$('locked').checked = s.locked;
   }
 }
 function renderRoster() {
@@ -208,8 +211,8 @@ function renderRoster() {
     input.onblur=()=>{if(!editing)return;editing=false;const name=normalizeStudentName(input.value);if(name&&name!==st.name)change(()=>{st.name=name;},'Student name updated.');else{input.readOnly=true;input.value=rosterName(st);}};
     input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();input.blur();}if(e.key==='Escape'){editing=false;input.readOnly=true;input.value=rosterName(st);}};
     const remove = element('button','','×');remove.setAttribute('aria-label',`Remove ${rosterName(st)}`);
-    remove.onclick = () => change(() => {chart().students = chart().students.filter(s => s.id !== st.id);seats(chart()).forEach(s => {if(s.student === st.id) {s.student=null;s.locked=false;}});},'Student removed. Undo is available.');
-    row.append(input,element('small','',assigned.has(st.id)?'Seated':'Waiting'),edit,remove);$('roster').append(row);
+    remove.onclick = () => change(() => {chart().students = chart().students.filter(s => s.id !== st.id);chart().students.forEach(s=>{if(s.avoid)s.avoid=s.avoid.filter(id=>id!==st.id);});seats(chart()).forEach(s => {if(s.student === st.id) {s.student=null;s.locked=false;}});},'Student removed. Undo is available.');
+    const avoid=element('button','student-avoid','↔');avoid.title='Choose students to seat apart';avoid.setAttribute('aria-label','Separation preferences for '+rosterName(st));avoid.onclick=()=>editSeparation(st);input.ondblclick=()=>editSeparation(st);row.append(avoid,input,element('small','',assigned.has(st.id)?'Seated':'Waiting'),edit,remove);$('roster').append(row);
   });
 }
 $('furniture-tab').onclick = () => tab(false);$('students-tab').onclick = () => tab(true);
@@ -224,10 +227,10 @@ $('copy-chart').onclick = () => {if(state.charts.length >= 100) return say('You 
 $('delete-chart').onclick = () => {if(state.charts.length<2 || !confirm(`Delete “${chart().name}”? Undo will restore it.`)) return;change(() => {state.charts=state.charts.filter(c => c.id !== state.active);state.active=state.charts[0].id;selection=null;},'Chart deleted. Undo is available.');};
 $('apply-preset').onclick = () => {if(!confirm('Replace the room furniture with this layout? Your student list stays. Undo will restore the previous room.')) return;change(() => {chart().items=layout($('preset').value);assignUnseated(chart());selection=null;},'Layout applied. Students seated in roster order.');};
 $('add-students').onsubmit = e => {e.preventDefault();const names = $('student-names').value.split(/\r?\n/).map(normalizeStudentName).filter(Boolean);if(!names.length) return;if(names.some(n => n.length>80) || chart().students.length+names.length>500) return say('Use names up to 80 characters and no more than 500 students per chart.');change(() => {chart().students.push(...names.map(name => ({id:uid(),name})));$('student-names').value='';},`${names.length} students added. Use “Seat unassigned students” to place them.`);};
-$('assign-all').onclick = () => change(() => assignUnseated(chart()),'Students placed in empty, unlocked seats. Any remaining students are marked Waiting.');
+$('assign-all').onclick = () => {change(() => assignUnseated(chart()));say('Students placed. '+separationMessage());};
 $('shuffle').onclick = () => {
   const movable = seats(chart()).filter(s => s.student && !s.locked).length;
-  change(() => shuffle(chart()),movable>=2 ? 'Students shuffled. Furniture and locked seats stayed in place.' : 'Unassigned students seated where possible. At least two unlocked, seated students are needed to swap seats.');
+  change(() => shuffle(chart()));say((movable>=2?'Students shuffled. ':'Unassigned students seated where possible. ')+separationMessage());
 };
 function restoreEdit(from,to,message){if(!from.length)return;to.push(JSON.stringify(state));if(to.length>40)to.shift();state=JSON.parse(from.pop());selection=null;selectedIds.clear();save();render();say(message);}
 $('undo').onclick=()=>restoreEdit(history,redoHistory,'Previous change restored.');
@@ -319,13 +322,22 @@ function updateObjectControls(){
  const angle=Number(node.dataset.rotation||0),r=angle*Math.PI/180,w=parseFloat(node.style.width),h=parseFloat(node.style.height),cx=box.x+box.width/2,cy=box.y+box.height/2;
  function place(el,x,y,factor){const ew=el.offsetWidth*zoom*factor,eh=el.offsetHeight*zoom*factor;if(zoomBox&&x+ew/2>zoomBox.left&&x-ew/2<zoomBox.right&&y+eh/2>zoomBox.top&&y-eh/2<zoomBox.bottom)y=Math.max(bounds.top+eh/2,zoomBox.top-eh/2-5);const dx=x-cx,dy=y-cy;el.style.left=(w/2+(dx*Math.cos(r)+dy*Math.sin(r))/zoom)+'px';el.style.top=(h/2+(-dx*Math.sin(r)+dy*Math.cos(r))/zoom)+'px';el.style.right='auto';el.style.bottom='auto';el.style.transform=`translate(-50%,-50%) rotate(${-angle}deg) scale(${factor})`;}
  const factor=size/((actions.firstElementChild.offsetWidth||base)*zoom),aw=actions.offsetWidth*zoom*factor,ah=actions.offsetHeight*zoom*factor;
- place(actions,Math.max(bounds.left+aw/2,Math.min(bounds.right-aw/2,box.right-aw/2)),Math.max(bounds.top+ah/2,Math.min(bounds.bottom-ah/2,box.top-ah/2-5)),factor);
+ place(actions,Math.max(bounds.left+aw/2,Math.min(bounds.right-aw/2,box.right-aw/2)),Math.max(bounds.top+ah/2,Math.min(bounds.bottom-ah/2,(node.classList.contains('label')&&box.top-ah<bounds.top?box.bottom+ah/2+5:box.top-ah/2-5))),factor);
  const rs=touch?36:Math.max(22,26/Math.sqrt(Math.max(1,zoom)));place(resize,Math.max(bounds.left+rs/2,Math.min(bounds.right-rs/2,box.right)),Math.max(bounds.top+rs/2,Math.min(bounds.bottom-rs/2,box.bottom)),rs/(resize.offsetWidth*zoom||24*zoom));
  }if(active)controlFrame=requestAnimationFrame(updateObjectControls);
 }
 $('room').parentElement.addEventListener('scroll',updateObjectControls,{passive:true});window.addEventListener('resize',updateObjectControls);
 
 $('saved-rosters').onchange=()=>{$('load-roster').disabled=$('delete-roster').disabled=!$('saved-rosters').value;};
-$('save-roster').onclick=()=>{const name=$('roster-name').value.trim();if(!name||!chart().students.length)return say('Enter a list name and add students first.');if((state.studentLists||[]).length>=100)return say('You can save up to 100 student lists.');change(()=>{(state.studentLists||= []).push({id:uid(),name,names:chart().students.map(s=>s.name)});$('roster-name').value='';},'Student list saved for other classrooms.');};
-$('load-roster').onclick=()=>{const list=state.studentLists?.find(l=>l.id===$('saved-rosters').value);if(!list)return;if(chart().students.length&&!confirm('Replace the current students with '+list.name+'? Furniture stays in place. Undo is available.'))return;change(()=>{chart().students=list.names.map(name=>({id:uid(),name}));seats(chart()).forEach(s=>{s.student=null;s.locked=false;});},'Student list loaded. Use Seat unassigned students when ready.');};
+$('save-roster').onclick=()=>{const name=$('roster-name').value.trim();if(!name||!chart().students.length)return say('Enter a list name and add students first.');if((state.studentLists||[]).length>=100)return say('You can save up to 100 student lists.');change(()=>{(state.studentLists||= []).push({id:uid(),name,names:chart().students.map(s=>s.name),avoid:chart().students.map(s=>(s.avoid||[]).map(id=>chart().students.findIndex(st=>st.id===id)).filter(i=>i>=0))});$('roster-name').value='';},'Student list saved for other classrooms.');};
+$('load-roster').onclick=()=>{const list=state.studentLists?.find(l=>l.id===$('saved-rosters').value);if(!list)return;if(chart().students.length&&!confirm('Replace the current students with '+list.name+'? Furniture stays in place. Undo is available.'))return;change(()=>{chart().students=list.names.map(name=>({id:uid(),name}));chart().students.forEach((s,i)=>{s.avoid=(list.avoid?.[i]||[]).map(n=>chart().students[n].id);});seats(chart()).forEach(s=>{s.student=null;s.locked=false;});},'Student list loaded. Use Seat unassigned students when ready.');};
 $('delete-roster').onclick=()=>{const id=$('saved-rosters').value;if(id)change(()=>{state.studentLists=state.studentLists.filter(l=>l.id!==id);},'Saved list deleted. Classroom students are unchanged.');};
+
+function separationMessage(){const count=separationConflicts(chart());return count?`${count} separation preference(s) could not be met. Check neighboring seats; locked seats stay fixed.`:'Separation preferences checked; locked seats stay fixed.';}
+function editSeparation(student){const d=element('dialog','workspace-dialog separation-dialog');const form=element('form');form.method='dialog';form.append(element('h2','',`Seat ${rosterName(student)} apart from…`));const close=element('button','','×');close.setAttribute('aria-label','Close separation preferences');form.append(close);d.append(form,element('p','hint','We try to keep these students apart during seating and shuffle. Nearby seats and seats at the same desk count as neighbors; locked seats stay fixed.'));
+const choices=[];for(const other of chart().students.filter(s=>s.id!==student.id)){const label=element('label','check');const box=element('input');box.type='checkbox';box.checked=student.avoid?.includes(other.id)||other.avoid?.includes(student.id)||false;choices.push({box,id:other.id});label.append(box,document.createTextNode(rosterName(other)));d.append(label);}const saveButton=element('button','primary','Save preferences');saveButton.onclick=()=>{change(()=>{student.avoid=choices.filter(c=>c.box.checked).map(c=>c.id);for(const c of choices){const other=chart().students.find(s=>s.id===c.id);other.avoid=(other.avoid||[]).filter(id=>id!==student.id);if(c.box.checked)other.avoid.push(student.id);}},'Separation preferences saved. Use Shuffle students to apply them.');d.close();};d.append(saveButton);d.onclose=()=>d.remove();document.body.append(d);d.showModal();}
+$('seat-color').onchange=()=>{const it=selected();if(it&&selection.seat!==null)change(()=>{it.seats[selection.seat].color=$('seat-color').value;});};
+$('seat-color-reset').onclick=()=>{const it=selected();if(it&&selection.seat!==null)change(()=>{delete it.seats[selection.seat].color;});};
+$('label-font-apply').onclick=async()=>{const it=selected();if(it?.type!=='label')return;try{const font=validateFont({source:$('label-font-source').value,family:$('label-font-family').value.trim()});await loadFont(font);change(()=>{it.labelFont=font;},'Label font applied.');}catch(e){say(e.message);}};
+
+$('label-font-source').onchange=()=>{const source=$('label-font-source').value;suggestFonts($('label-font-family'),source,'label-font-suggestions');if(source==='preset')$('label-font-family').value='system';};
