@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release8';
-import {furnitureArt} from './furniture-art.mjs?v=20261013-release8';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release8';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release8';
-import {connectCloud} from './cloud.js?v=20261013-release8';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release9';
+import {furnitureArt} from './furniture-art.mjs?v=20261013-release9';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release9';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release9';
+import {connectCloud} from './cloud.js?v=20261013-release9';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';

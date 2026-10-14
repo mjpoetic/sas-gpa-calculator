@@ -187,3 +187,6 @@ Press Shift + / (`?`) to open Keyboard shortcuts, or use the button in Account. 
 
 ### Small accessories and label backgrounds
 Mugs resize down to 16 room units wide, preserving their proportions through group sizing, room changes, backups, and cloud validation. Room-label Edit controls offer independent background and outline toggles plus background, outline, and text colors. Unstyled labels remain transparent. The accessory artwork uses crumpled paper and a discarded bottle inside the trash can, a translucent bottle shoulder with a blue water-marked cap, and a rounded sharpener housing with yellow pencils.
+
+### Portrait sign-in layout
+At portrait widths up to 600px, Account sign-in and password setup use a single-column grid: full-width email/password fields precede full-width actions. Inputs use 16px text and 48px minimum targets. The extra inner frame and duplicate introductory help are removed on phones, and backups use two equal-width buttons. Hidden form states are retained. Browser checks cover 320, 390, and 440px with dark mode, bold weight, and 125% interface text; actual phone autofill and authentication are separate from these layout checks.

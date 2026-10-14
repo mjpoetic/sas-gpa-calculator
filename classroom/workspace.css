@@ -41,3 +41,20 @@
 @media(pointer:coarse){.group-selection .furniture-actions button{width:44px;height:44px;min-height:44px}}@media print{.group-selection{display:none!important}#room .item.selected{outline:none}}
 .group-selection{z-index:1000}#room .item:not(.controls-visible) .furniture-actions,#room .item:not(.controls-visible) .resize-handle{pointer-events:none!important}
 #room .item:is(.trash,.sidetable,.clock,.globe,.mug,.bottle,.sharpener,.calendar){background:transparent!important;border:0!important}.item:is(.trash,.sidetable,.clock,.globe,.mug,.bottle,.sharpener,.calendar) .furniture-art{inset:0}.mini:is(.trash,.clock,.globe,.bottle){width:32px;height:32px}.mini.mug{width:38px;height:32px}.mini.sharpener{width:38px;height:32px}.mini.calendar{width:32px;height:36px}.mini.sidetable{width:36px;height:36px}.mini.bulletin{height:10px}.item.bulletin .furniture-art{inset:0}
+/* Phone sign-in: fields must never share a compressed flex row with actions. */
+@media(max-width:600px) and (orientation:portrait){
+ :root #account-dialog{padding:16px;width:calc(100vw - 24px);max-height:calc(100dvh - 24px);box-sizing:border-box}
+ :root #account-dialog>.cloud-panel{padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+ :root #account-dialog #cloud-login-form,:root #account-dialog #cloud-password-form{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;width:100%;min-width:0;align-items:stretch}
+ :root #account-dialog #cloud-login-form[hidden],:root #account-dialog #cloud-password-form[hidden]{display:none!important}
+ :root #account-dialog .cloud-panel form>label{display:block;flex:none;width:100%;min-width:0;max-width:100%;margin:0;font-size:13px;line-height:1.4}
+ :root #account-dialog .cloud-panel form input{width:100%;max-width:100%;min-width:0;min-height:48px;margin-top:6px;padding:12px;font-size:16px!important;line-height:1.4;box-sizing:border-box}
+ :root #account-dialog .cloud-panel form>button{width:100%;min-width:0;min-height:48px;margin:0;justify-content:center}
+ :root #account-dialog .cloud-panel form>p{margin:0;min-width:0}
+ :root #account-dialog .cloud-signin-help{display:none!important}
+ :root #account-dialog .cloud-panel h2{font-size:16px;line-height:1.4}
+ :root #account-dialog .cloud-panel .hint{font-size:13px;line-height:1.5}
+ :root #account-dialog .file-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ :root #account-dialog .file-actions button{width:100%;min-width:0;margin:0;padding:10px!important}
+ :root #account-dialog .account-files{margin-top:18px;padding-top:14px}
+}
