@@ -193,3 +193,6 @@ At portrait widths up to 600px, Account sign-in and password setup use a single-
 
 ### Student-list action buttons
 Student separation, name editing, and removal use proportional SVG glyphs in matching circular glass buttons. Actions occupy a separate row beneath each name so the name field remains readable in the narrow library. Button and icon proportions remain independent of the selected interface font and text scale.
+
+### Save before refreshing
+Both the refresh button and update notice share `assets/refresh.js`. Classroom refresh commits the active editor, saves locally, then waits for pending cloud writes before reloading. A failed local save, cloud conflict, active chart picker, or failed/timed-out write keeps the page open with an explanation. Signed-out charts can refresh after a local save. The main calculator retains its warning because classroom cloud saving does not cover calculator entries. Browser tests use delayed and failed mock writes without changing live account data.

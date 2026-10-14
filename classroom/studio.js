@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release11';
-import {furnitureArt} from './furniture-art.mjs?v=20261013-release11';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release11';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release11';
-import {connectCloud} from './cloud.js?v=20261013-release11';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release12';
+import {furnitureArt} from './furniture-art.mjs?v=20261013-release12';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release12';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release12';
+import {connectCloud} from './cloud.js?v=20261013-release12';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -24,8 +24,8 @@ const selected = () => chart().items.find(it => it.id === selection?.id);
 const appearance = () => chart().appearance || defaultAppearance();
 const say = text => {$('message').textContent = text;};
 function save() {
-  try {localStorage.setItem(KEY, JSON.stringify(state)); $('save-state').textContent = '✓ Saved in this browser';document.dispatchEvent(new Event('sas-chart-edited'));}
-  catch {$('save-state').textContent = 'Save unavailable — export a backup'; say('Browser storage is unavailable or full. Export a backup to preserve your work.');}
+  try {localStorage.setItem(KEY, JSON.stringify(state)); $('save-state').textContent = '✓ Saved in this browser';document.dispatchEvent(new Event('sas-chart-edited'));return true;}
+  catch {$('save-state').textContent = 'Save unavailable — export a backup'; say('Browser storage is unavailable or full. Export a backup to preserve your work.');return false;}
 }
 function checkpoint() {redoHistory=[];history.push(JSON.stringify(state)); if(history.length > 40) history.shift();}
 function change(fn, message) {checkpoint();fn();save();render();if(message) say(message);}
@@ -275,7 +275,7 @@ $('print').onclick = () => window.print();
 tab(false);render();if(loadError) {say(loadError);$('save-state').textContent='Saved data could not be loaded';}
 void connectCloud({getState:()=>structuredClone(state),applyState:incoming=>change(()=>{state=incoming;selection=null;},'Cloud charts opened. Undo is available.'),notify:say});
 
-document.addEventListener('sas-before-refresh',()=>save());
+document.addEventListener('sas-before-refresh',event=>{if(!save())event.preventDefault();});
 
 $('item-angle').onchange=()=>{const it=selected();if(!it)return;if(!$('item-angle').checkValidity()||!$('item-angle').value){renderInspector();return;}change(()=>{it.rotation=Number($('item-angle').value);constrain(it);});};
 

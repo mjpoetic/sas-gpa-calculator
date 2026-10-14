@@ -1,5 +1,5 @@
-import {cloudConfig} from './cloud-config.js?v=20261013-release11';
-import {CloudStore} from './cloud-store.mjs?v=20261013-release11';
+import {cloudConfig} from './cloud-config.js?v=20261013-release12';
+import {CloudStore} from './cloud-store.mjs?v=20261013-release12';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
@@ -17,7 +17,10 @@ export async function connectCloud({getState,applyState,notify}) {
   document.addEventListener('sas-chart-edited',()=>{dirty=true;editVersion++;if(store&&autoReady)status('Changes saved in this browser. Cloud save pending…');schedule();});
   window.addEventListener('online',schedule);
   window.addEventListener('beforeunload',event=>{if(store&&dirty&&autoReady){event.preventDefault();event.returnValue='';}});
-  document.addEventListener('sas-before-refresh',event=>{if(busy||(store&&autoReady&&dirty)){event.preventDefault();schedule();status('Wait for the current account or cloud request to finish before refreshing.');}});
+  document.addEventListener('sas-before-refresh',event=>{
+    if(!event.detail?.waitUntil){if(busy||(store&&autoReady&&dirty))event.preventDefault();return;}
+    event.detail.waitUntil((async()=>{await Promise.resolve();clearTimeout(autoTimer);const deadline=Date.now()+15000;while(busy&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,100));if(busy){status('Refresh paused: the current request is still running.');return false;}if(!store)return true;if(dirty&&!autoReady){status('Refresh paused: resolve cloud synchronization before reloading.');return false;}if(picker?.open&&dirty){status('Choose your cloud classroom before refreshing.');return false;}while(dirty&&autoReady&&Date.now()<deadline){await flush();if(dirty){status('Refresh paused: cloud saving did not finish. Your browser copy is saved.');return false;}}return !dirty;})());
+  });
   $('cloud-login-form').onsubmit=e=>{e.preventDefault();status('Sign-in is connecting. Wait for the Sign in button to become available.');};
   $('cloud-password-form').onsubmit=e=>e.preventDefault();
   const configured=!!cloudConfig.url && !!cloudConfig.publishableKey;
