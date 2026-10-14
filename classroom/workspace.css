@@ -84,3 +84,5 @@
 
 /* Keep one positioning model for fit and manual zoom. */
 .chart-first .room-scroll{display:block!important;place-items:normal}.chart-first #room{margin-right:0;margin-bottom:0}
+
+.quick-classrooms .manage-classrooms{border-top:1px solid var(--studio-glass-edge);margin-top:6px;padding-top:12px}.quick-classrooms [aria-checked=true]{background:#3986b833;color:inherit;font-weight:700}.seat-name{line-height:1.4;padding-block:.15em;overflow:visible}
