@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release9';
-import {furnitureArt} from './furniture-art.mjs?v=20261014-release9';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release9';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release9';
-import {connectCloud} from './cloud.js?v=20261014-release9';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release10';
+import {furnitureArt} from './furniture-art.mjs?v=20261014-release10';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release10';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release10';
+import {connectCloud} from './cloud.js?v=20261014-release10';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -20,7 +20,7 @@ const selectedSeats=()=>chart().items.flatMap(it=>it.seats.map((seat,index)=>({i
 const selectedItems=()=>chart().items.filter(it=>selectedIds.has(it.id));
 function choose(it,add=false){if(selectedSeatKeys.size)selectedIds.clear();selectedSeatKeys.clear();if(add){if(selectedIds.has(it.id))selectedIds.delete(it.id);else selectedIds.add(it.id);}else selectedIds=new Set([it.id]);selection=selectedIds.size?{id:[...selectedIds].at(-1),seat:null}:null;}
 function snapResize(it){if(!$('snap').checked)return;for(const other of chart().items){if(other.id===it.id)continue;if(Math.abs(it.width-other.width)<8)resizeFurniture(it,other.width,it.height,'width');if(!['door','board','smartboard','bulletin','window'].includes(it.type)&&Math.abs(it.height-other.height)<8)resizeFurniture(it,it.width,other.height,'height');}}
-function showGuides(items){const room=$('room');room.querySelectorAll('.alignment-guide').forEach(n=>n.remove());const b=groupBounds(items);for(const target of chart().items.filter(x=>!items.some(i=>i.id===x.id))){const t=footprint(target);for(const [axis,values,other] of [['x',[b.x,b.x+b.width/2,b.x+b.width],[t.x,t.x+t.width/2,t.x+t.width]],['y',[b.y,b.y+b.height/2,b.y+b.height],[t.y,t.y+t.height/2,t.y+t.height]]])for(const value of values)if(other.some(v=>Math.abs(v-value)<4)){const line=element('div','alignment-guide '+axis);line.style[axis==='x'?'left':'top']=value+'px';room.append(line);}}}
+function showGuides(items){const room=$('room');room.querySelectorAll('.alignment-guide').forEach(n=>n.remove());if(!$('snap').checked)return;const b=groupBounds(items);for(const target of chart().items.filter(x=>!items.some(i=>i.id===x.id))){const t=footprint(target);for(const [axis,values,other] of [['x',[b.x,b.x+b.width/2,b.x+b.width],[t.x,t.x+t.width/2,t.x+t.width]],['y',[b.y,b.y+b.height/2,b.y+b.height],[t.y,t.y+t.height/2,t.y+t.height]]])for(const value of values)if(other.some(v=>Math.abs(v-value)<4)){const line=element('div','alignment-guide '+axis);line.style[axis==='x'?'left':'top']=value+'px';room.append(line);}}}
 function paintPositions(){positionGroupOverlay();showGuides(selectedItems());for(const it of selectedItems()){const n=$('room').querySelector(`[data-id="${it.id}"]`);if(n){Object.assign(n.style,{left:it.x+'px',top:it.y+'px',width:it.width+'px',height:it.height+'px',transform:`rotate(${it.rotation}deg)`});n.dataset.rotation=it.rotation;n.querySelectorAll('.seat-name').forEach(t=>t.style.transform=`rotate(${-it.rotation}deg)`);}}}
 const selected = () => chart().items.find(it => it.id === selection?.id);
 const appearance = () => chart().appearance || defaultAppearance();
@@ -49,7 +49,7 @@ for (const [type,spec] of Object.entries(catalog)) {
   };
   $('palette').append(btn);
 }
-function addFurniture(type,preferred){if(chart().items.length>=500)return say('This chart has reached the furniture limit.');change(()=>{const item=furniture(type);const found=vacantPosition(item,chart().items,preferred);if($('snap').checked)snapToWall(item);chart().items.push(item);choose(item);if(!found)say('Room is full; move the new item to make space.');},catalog[type].label+' added.');}
+function addFurniture(type,preferred){if(chart().items.length>=500)return say('This chart has reached the furniture limit.');change(()=>{const item=furniture(type);const found=vacantPosition(item,chart().items,preferred);snapToWall(item);chart().items.push(item);choose(item);if(!found)say('Room is full; move the new item to make space.');},catalog[type].label+' added.');}
 function render() {
   const c = chart();$('chart-seat-font-size').value=appearance().seatFontSize||appearance().fontSize;setRoomSize(c.room);$('room-width').value=WIDTH;$('room-depth').value=HEIGHT;
   $('charts').replaceChildren(...state.charts.map(c => option(c.id,c.name)));$('charts').value = c.id;
@@ -95,7 +95,7 @@ function renderRoom() {
   const layers=new Map([...chart().items].sort((a,b)=>b.width*b.height-a.width*a.height).map((it,i)=>[it.id,i+1]));
   for(const it of chart().items) {
     const node = element('div',`item ${it.type}${!selectedSeatKeys.size&&selectedIds.has(it.id) ? ' selected' : ''}`);
-    node.ondblclick=e=>{if(it.type==='label'||e.target.closest('.seat'))return;if(e.target.closest('.furniture-actions,.resize-handle'))return;e.preventDefault();e.stopPropagation();choose(it);renderInspector();$('item-color').focus();$('item-color').click();};
+    node.ondblclick=e=>{if(it.type==='label'||e.target.closest('.seat'))return;if(e.target.closest('.furniture-actions,.resize-handle'))return;e.preventDefault();e.stopPropagation();choose(it);renderInspector();document.dispatchEvent(new Event('sas-furniture-details'));$('item-color').focus();$('item-color').click();};
     node.dataset.baseLayer=layers.get(it.id);node.style.zIndex=layers.get(it.id);node.dataset.id = it.id;node.dataset.rotation=it.rotation;node.tabIndex = 0;node.setAttribute('aria-label',`${it.label}. Drag to move, or use arrow keys.`);
     Object.assign(node.style,{left:`${it.x}px`,top:`${it.y}px`,width:`${it.width}px`,height:`${it.height}px`,transform:`rotate(${it.rotation}deg)`});
     const color=it.color || appearance().color;
@@ -172,7 +172,7 @@ function renderRoom() {
       selection={id:it.id,seat:null};room.querySelectorAll('.item').forEach(n=>n.classList.toggle('selected',selectedIds.has(n.dataset.id)));renderInspector();
       const members=selectedItems(),original=structuredClone(members),start={x:e.clientX,y:e.clientY};let moved=false;
       node.setPointerCapture(e.pointerId);
-      const move=ev=>{const dx=(ev.clientX-start.x)/zoom,dy=(ev.clientY-start.y)/zoom;if(!moved&&Math.hypot(dx,dy)<3)return;if(!moved){checkpoint();moved=true;node.classList.add('dragging');}members.forEach((item,i)=>Object.assign(item,original[i]));moveGroup(members,dx,dy);if($('snap').checked)snapGroup(members,chart().items.filter(x=>!selectedIds.has(x.id)));if(members.length===1&&$('snap').checked)snapToWall(members[0]);paintPositions();};
+      const move=ev=>{const dx=(ev.clientX-start.x)/zoom,dy=(ev.clientY-start.y)/zoom;if(!moved&&Math.hypot(dx,dy)<3)return;if(!moved){checkpoint();moved=true;node.classList.add('dragging');}members.forEach((item,i)=>Object.assign(item,original[i]));moveGroup(members,dx,dy);if($('snap').checked)snapGroup(members,chart().items.filter(x=>!selectedIds.has(x.id)));if(members.length===1)snapToWall(members[0]);paintPositions();};
       const end=()=>{node.removeEventListener('pointermove',move);node.removeEventListener('pointerup',end);node.removeEventListener('pointercancel',end);if(moved){save();render();}};
       node.addEventListener('pointermove',move);node.addEventListener('pointerup',end);node.addEventListener('pointercancel',end);
     });
@@ -411,7 +411,7 @@ function attachStudentDrag(handle,student){
 }
 
 function controlGlyph(button,path){button.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${path}"/></svg>`;}
-function attachFurnitureMove(button,item){button.onpointerdown=e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();if(!selectedIds.has(item.id))choose(item);const members=selectedItems(),original=structuredClone(members),start={x:e.clientX,y:e.clientY};let moved=false;button.setPointerCapture(e.pointerId);const move=ev=>{const dx=(ev.clientX-start.x)/zoom,dy=(ev.clientY-start.y)/zoom;if(!moved&&Math.hypot(dx,dy)<2)return;if(!moved){checkpoint();moved=true;}members.forEach((it,i)=>Object.assign(it,original[i]));moveGroup(members,dx,dy);if($('snap').checked){snapGroup(members,chart().items.filter(it=>!selectedIds.has(it.id)));if(members.length===1)snapToWall(members[0]);}paintPositions();};const end=()=>{button.removeEventListener('pointermove',move);button.removeEventListener('pointerup',end);button.removeEventListener('pointercancel',end);if(moved){selection={id:item.id,seat:null};save();render();}};button.addEventListener('pointermove',move);button.addEventListener('pointerup',end);button.addEventListener('pointercancel',end);};button.onclick=e=>e.stopPropagation();}
+function attachFurnitureMove(button,item){button.onpointerdown=e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();if(!selectedIds.has(item.id))choose(item);const members=selectedItems(),original=structuredClone(members),start={x:e.clientX,y:e.clientY};let moved=false;button.setPointerCapture(e.pointerId);const move=ev=>{const dx=(ev.clientX-start.x)/zoom,dy=(ev.clientY-start.y)/zoom;if(!moved&&Math.hypot(dx,dy)<2)return;if(!moved){checkpoint();moved=true;}members.forEach((it,i)=>Object.assign(it,original[i]));moveGroup(members,dx,dy);if($('snap').checked)snapGroup(members,chart().items.filter(it=>!selectedIds.has(it.id)));if(members.length===1)snapToWall(members[0]);paintPositions();};const end=()=>{button.removeEventListener('pointermove',move);button.removeEventListener('pointerup',end);button.removeEventListener('pointercancel',end);if(moved){selection={id:item.id,seat:null};save();render();}};button.addEventListener('pointermove',move);button.addEventListener('pointerup',end);button.addEventListener('pointercancel',end);};button.onclick=e=>e.stopPropagation();}
 $('chart-seat-font-size').onchange=()=>{if(!$('chart-seat-font-size').checkValidity())return;change(()=>{chart().appearance||=defaultAppearance();chart().appearance.seatFontSize=Number($('chart-seat-font-size').value);});};
 $('seat-name-size').onchange=()=>{const it=selected();if(it&&selection.seat!==null&&$('seat-name-size').checkValidity())change(()=>{it.seats[selection.seat].fontSize=Number($('seat-name-size').value);});};
 $('seat-name-size-reset').onclick=()=>{const it=selected();if(it&&selection.seat!==null)change(()=>{delete it.seats[selection.seat].fontSize;});};

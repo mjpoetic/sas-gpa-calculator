@@ -61,3 +61,5 @@ $('roster-add-open').onclick=()=>{rosterEntry.showModal();$('student-names').foc
 document.addEventListener('sas-students-added',()=>rosterEntry.close());
 
 document.addEventListener('sas-student-drag-start',()=>{if(innerWidth<1100)setPanel(null);});
+
+document.addEventListener('sas-furniture-details',()=>setPanel('details'));
