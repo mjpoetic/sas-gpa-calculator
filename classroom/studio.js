@@ -1,8 +1,9 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release14';
-import {furnitureArt} from './furniture-art.mjs?v=20261014-release14';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release14';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release14';
-import {connectCloud} from './cloud.js?v=20261014-release14';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261014-release15';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release15';
+import {furnitureArt} from './furniture-art.mjs?v=20261014-release15';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release15';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release15';
+import {connectCloud} from './cloud.js?v=20261014-release15';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -344,15 +345,15 @@ function updateObjectControls(){
  cancelAnimationFrame(controlFrame);const s=$('room').parentElement,b=s.getBoundingClientRect(),v=window.visualViewport;
  const bounds={left:Math.max(b.left,v?.offsetLeft||0)+5,top:Math.max(b.top,v?.offsetTop||0)+5,right:Math.min(b.right,(v?.offsetLeft||0)+(v?.width||innerWidth))-5,bottom:Math.min(b.bottom,(v?.offsetTop||0)+(v?.height||innerHeight))-5};
  for(const panel of document.querySelectorAll('.library:not([hidden]),.inspector:not([hidden])')){if(getComputedStyle(panel).position!=='fixed')continue;const p=panel.getBoundingClientRect();if(p.width>=b.width*.8&&p.top>b.top)bounds.bottom=Math.min(bounds.bottom,p.top-5);else if(p.right>=b.right-20&&p.left>b.left)bounds.right=Math.min(bounds.right,p.left-5);}
- const zoomBox=document.querySelector('.canvas-zoom')?.getBoundingClientRect();
- let active=false;const touch=matchMedia('(pointer:coarse)').matches,base=touch?44:32,size=Math.max(touch?36:24,base/Math.sqrt(Math.max(1,zoom)));
+ const obstacles=[...document.querySelectorAll('.canvas-zoom,.room-view-tools')].filter(n=>n.getClientRects().length).map(n=>n.getBoundingClientRect());
+ let active=false;const touch=matchMedia('(pointer:coarse)').matches,base=touch?44:32;
  for(const {node,actions,resize} of controlEntries){if(!node.isConnected)continue;const spotlight=node.dataset.id===hoverOwner;node.classList.toggle('hover-spotlight',spotlight);if(node.dataset.baseLayer)node.style.zIndex=spotlight?'2000':node.dataset.baseLayer;if(!(node.classList.contains('group-selection')||node.dataset.id===hoverOwner||(!hoverOwner&&(node.classList.contains('selected')||node.matches(':focus-within'))))){node.classList.remove('controls-visible');continue;}const box=node.getBoundingClientRect(),visible=box.right>bounds.left&&box.left<bounds.right&&box.bottom>bounds.top&&box.top<bounds.bottom;
  const showing=visible;node.classList.toggle('controls-visible',showing);if(!showing)continue;active=true;
  const angle=Number(node.dataset.rotation||0),r=angle*Math.PI/180,w=parseFloat(node.style.width),h=parseFloat(node.style.height),cx=box.x+box.width/2,cy=box.y+box.height/2;
- function place(el,x,y,factor){const ew=el.offsetWidth*zoom*factor,eh=el.offsetHeight*zoom*factor;if(zoomBox&&x+ew/2>zoomBox.left&&x-ew/2<zoomBox.right&&y+eh/2>zoomBox.top&&y-eh/2<zoomBox.bottom)y=Math.max(bounds.top+eh/2,zoomBox.top-eh/2-5);const dx=x-cx,dy=y-cy;el.style.left=(w/2+(dx*Math.cos(r)+dy*Math.sin(r))/zoom)+'px';el.style.top=(h/2+(-dx*Math.sin(r)+dy*Math.cos(r))/zoom)+'px';el.style.right='auto';el.style.bottom='auto';el.style.transform=`translate(-50%,-50%) rotate(${-angle}deg) scale(${factor})`;}
- const factor=size/((actions.firstElementChild.offsetWidth||base)*zoom),aw=actions.offsetWidth*zoom*factor,ah=actions.offsetHeight*zoom*factor;
- place(actions,Math.max(bounds.left+aw/2,Math.min(bounds.right-aw/2,box.right-aw/2)),Math.max(bounds.top+ah/2,Math.min(bounds.bottom-ah/2,(node.classList.contains('label')&&box.top-ah<bounds.top?box.bottom+ah/2+5:box.top-ah/2-5))),factor);
- const rs=touch?36:Math.max(22,26/Math.sqrt(Math.max(1,zoom)));place(resize,Math.max(bounds.left+rs/2,Math.min(bounds.right-rs/2,box.right)),Math.max(bounds.top+rs/2,Math.min(bounds.bottom-rs/2,box.bottom)),rs/(resize.offsetWidth*zoom||24*zoom));
+ function place(el,x,y,factor){const dx=x-cx,dy=y-cy;el.style.left=(w/2+(dx*Math.cos(r)+dy*Math.sin(r))/zoom)+'px';el.style.top=(h/2+(-dx*Math.sin(r)+dy*Math.cos(r))/zoom)+'px';el.style.right='auto';el.style.bottom='auto';el.style.transform=`translate(-50%,-50%) rotate(${-angle}deg) scale(${factor})`;}
+ const size=controlSize(box,zoom,touch),factor=size/((actions.firstElementChild.offsetWidth||base)*zoom),aw=actions.offsetWidth*zoom*factor,ah=actions.offsetHeight*zoom*factor;
+ const position=placeControls(box,aw,ah,bounds,obstacles);place(actions,position.x,position.y,factor);
+ const rs=touch?32:Math.min(24,size),handle=placeControls(box,rs,rs,bounds,[...obstacles,{left:position.x-aw/2,right:position.x+aw/2,top:position.y-ah/2,bottom:position.y+ah/2}],true);place(resize,handle.x,handle.y,rs/(resize.offsetWidth*zoom||24*zoom));
  }if(active)controlFrame=requestAnimationFrame(updateObjectControls);
 }
 $('room').parentElement.addEventListener('scroll',updateObjectControls,{passive:true});window.addEventListener('resize',updateObjectControls);

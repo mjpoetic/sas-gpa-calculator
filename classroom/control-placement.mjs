@@ -1,0 +1,6 @@
+const overlap=(a,b)=>Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
+export function controlSize(box,zoom,touch=false){const min=touch?32:20,max=touch?44:32;return Math.max(min,Math.min(max/Math.sqrt(Math.max(1,zoom)),Math.min(box.width,box.height)*.65));}
+export function placeControls(box,width,height,bounds,obstacles=[],corner=false){const gap=6,cx=(box.left+box.right)/2,cy=(box.top+box.bottom)/2;
+ const candidates=corner?[[box.right+gap+width/2,box.bottom-height/2],[box.right-width/2,box.bottom+gap+height/2],[box.right-width/2,box.top-gap-height/2],[box.left-gap-width/2,box.bottom-height/2]]:[[cx,box.top-gap-height/2],[cx,box.bottom+gap+height/2],[box.right+gap+width/2,cy],[box.left-gap-width/2,cy]];
+ let best;for(const [i,[x,y]] of candidates.entries()){const px=Math.max(bounds.left+width/2,Math.min(bounds.right-width/2,x)),py=Math.max(bounds.top+height/2,Math.min(bounds.bottom-height/2,y)),rect={left:px-width/2,right:px+width/2,top:py-height/2,bottom:py+height/2};const score=overlap(rect,box)*100+obstacles.reduce((n,o)=>n+overlap(rect,o)*200,0)+Math.abs(px-x)+Math.abs(py-y)+i*.01;if(!best||score<best.score)best={x:px,y:py,score};}return best;
+}
