@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {newChart,validateBackup} from '../classroom/model.mjs';
+test('seat text colors survive backups and reject malformed values',()=>{const c=newChart();c.items.find(i=>i.seats.length).seats[0].textColor='#ffffff';const d={version:1,active:c.id,charts:[c]};assert.equal(validateBackup(d).charts[0].items.find(i=>i.seats.length).seats[0].textColor,'#ffffff');c.items.find(i=>i.seats.length).seats[0].textColor='bad';assert.throws(()=>validateBackup(d),/seat text color/);});

@@ -230,3 +230,5 @@ Snap and Guides starts off; wall fixtures still align automatically when dragged
 Manage classrooms includes Sort A–Z (natural numeric ordering) and Move up/Move down controls. The header menu and classroom selector use this saved order; cloud documents and backups retain it.
 
 Chart view controls provide Full screen (with viewport fallback), Exit full screen/Escape, and remembered Hide tools/Show tools. Presentation hides header and sidebars while retaining zoom and exit controls.
+
+Selected furniture groups support batch colors and resetting to defaults. Seat properties provide separate background and name text colors for one or multiple selected seats; text colors persist in cloud documents and backups, with automatic contrast available as a reset.
