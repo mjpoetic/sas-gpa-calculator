@@ -202,3 +202,8 @@ Students shows the roster first, with Add students and Saved lists opening dedic
 
 ### Drop spotlight and blank seats
 Student drags from the roster or grid spotlight the destination with a bright fill and glow while other seats dim. Locked targets use an amber spotlight. The source gets a subtle dashed treatment, and all temporary styling clears on drop or cancellation. Empty seats have no visible text; their accessible seat descriptions and inspector numbering remain available.
+
+### Name sizing and furniture handles
+Clicking an assigned seat focuses its student-name editor; Enter saves and Escape cancels. Chart settings include an independent Seat name size, and the seat editor offers a per-seat Name label size override plus reset. These settings change text without resizing furniture and survive backups/cloud validation.
+
+Thin fixture resize handles stretch only the local length axis, preserving the slim ratio. Height matching to nearby furniture is skipped for these fixtures. The old invisible hover bridge no longer intercepts resize clicks. Resize uses diagonal outward arrows; a separate cardinal-arrow Move handle is available on individual and shared group toolbars, with grid/wall snapping and Undo.

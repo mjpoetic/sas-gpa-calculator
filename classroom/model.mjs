@@ -1,12 +1,12 @@
-import {normalizeStudentName} from './student-names.mjs?v=20261014-release1';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261014-release1';
+import {normalizeStudentName} from './student-names.mjs?v=20261014-release2';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261014-release2';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
 export const defaultAppearance = () => ({font:{source:'preset',family:'system'},fontSize:11,color:null});
 export function validateAppearance(value) {
   if(!value || !Number.isFinite(value.fontSize) || value.fontSize<9 || value.fontSize>24 || (value.color!==null && !/^#[\da-f]{6}$/i.test(value.color))) throw new Error('Invalid chart appearance.');
-  return {font:validateFont(value.font),fontSize:value.fontSize,color:value.color,...(value.weight!==undefined?{weight:validateWeight(value.weight)}:{})};
+  return {font:validateFont(value.font),fontSize:value.fontSize,color:value.color,...(value.weight!==undefined?{weight:validateWeight(value.weight)}:{}),...(value.seatFontSize!==undefined?{seatFontSize:validateSeatFontSize(value.seatFontSize)}:{})};
 }
 export const catalog = {
   desk: {label: 'Student desk', width: 100, height: 80, seats: 1},
@@ -109,7 +109,7 @@ export function validateBackup(data) {
         if (typeof s.locked !== 'boolean' || (s.student !== null && (!studentIds.has(s.student) || assigned.has(s.student)))) throw new Error('Invalid student assignment in backup.');
         if (s.student) assigned.add(s.student);
         if(s.color!==undefined&&!/^#[\da-f]{6}$/i.test(s.color))throw new Error('Invalid seat color.');
-        return {student:s.student, locked:s.locked,...(s.color!==undefined?{color:s.color}:{})};
+        return {student:s.student, locked:s.locked,...(s.fontSize!==undefined?{fontSize:validateSeatFontSize(s.fontSize)}:{}),...(s.color!==undefined?{color:s.color}:{})};
       })},room);
     });
     return {id:id(c.id), name:str(c.name,80), students, items,...(c.room!==undefined?{room}:{}),...(c.appearance!==undefined?{appearance:validateAppearance(c.appearance)}:{})};
@@ -192,3 +192,5 @@ export function snapToWall(item,threshold=24){
 }
 
 export function validateLabelStyle(value){if(!value||typeof value.background!=='boolean'||typeof value.outline!=='boolean'||['fill','border','text'].some(key=>!/^#[\da-f]{6}$/i.test(value[key])))throw new Error('Invalid room label style.');return {background:value.background,outline:value.outline,fill:value.fill,border:value.border,text:value.text};}
+
+export function validateSeatFontSize(value){if(!Number.isFinite(value)||value<8||value>36)throw new Error('Seat name size must be between 8 and 36.');return value;}

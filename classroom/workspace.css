@@ -66,3 +66,6 @@
 :root .student-dragging #room .seat.seat-drop-target{opacity:1;background:#d8fff0!important;color:#124d3c!important;border-color:#35ac83!important;outline:3px solid #4bd8a5!important;box-shadow:0 0 0 7px #4bd8a533,0 0 24px 6px #4bd8a566,inset 0 1px 0 #ffffffaa!important}
 :root .student-dragging #room .seat.seat-drop-locked{opacity:1;background:#ffe8dc!important;color:#6c321b!important;border-color:#d88156!important;box-shadow:0 0 0 6px #f0936233,0 0 20px #f0936255!important}
 @media(prefers-reduced-motion:reduce){.student-dragging #room .seat{transition:none}}
+.furniture-actions .furniture-move svg,.resize-handle svg{width:18px;height:18px;display:block;margin:auto}.furniture-move{touch-action:none;cursor:grab}.furniture-move:active{cursor:grabbing}.resize-handle svg{width:16px;height:16px}.seat-name{line-height:1.15}
+/* The hover bridge must not intercept a thin fixture's resize handle. */
+.furniture-actions::before{pointer-events:none}
