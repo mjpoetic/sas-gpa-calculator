@@ -179,3 +179,8 @@ Room-label text scales to fill its resized box. Double-clicking a seat opens its
 
 ### Layered hover controls
 Furniture uses a stable stack with smaller objects above larger surfaces; hovering and selecting do not raise a desk above its accessories. Only the object under the pointer owns the hover controls. A narrow pointer corridor keeps that object's toolbar available when moving toward it across a larger object underneath. Hidden controls cannot intercept clicks. Touch keeps selection-based controls, and multiple selections retain their shared group toolbar.
+
+### Wall fixtures and shortcut reference
+With Snap & guides enabled, dragging a single door, whiteboard, smartboard, window, bulletin board, clock, or calendar within 24 room units of an edge aligns its orientation and places its footprint flush against that wall. Group moves retain their relative arrangement. Disable snapping for free placement. Bulletin boards are thin wall strips; new accessories include trash can, side table, wall clock, globe, mug, water bottle, electric pencil sharpener, and calendar.
+
+Press Shift + / (`?`) to open Keyboard shortcuts, or use the button in Account. Text entry does not trigger the help dialog. The registry in `assets/keyboard-shortcuts.js` is the source for future shortcuts; modules can also dispatch `sas-register-shortcut` with `{key, description}` to add a reference entry.

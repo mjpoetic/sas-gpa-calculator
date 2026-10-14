@@ -1,5 +1,5 @@
-import {normalizeStudentName} from './student-names.mjs?v=20261013-release6';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261013-release6';
+import {normalizeStudentName} from './student-names.mjs?v=20261013-release7';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261013-release7';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -19,7 +19,7 @@ export const catalog = {
   door: {label: 'Door', width: 140, height: 140/12, seats: 0},
   printer: {label:'Printer',width:90,height:75,seats:0},
   cabinet: {label:'Filing cabinet',width:80,height:110,seats:0},
-  window: {label:'Window',width:170,height:30,seats:0},
+  window: {label:'Window',width:170,height:12,seats:0},
   smartboard: {label:'Smart board',width:220,height:11,seats:0},
   plant: {label:'Plant',width:70,height:70,seats:0},
   laptop: {label:'Laptop',width:85,height:65,seats:0},
@@ -28,7 +28,15 @@ export const catalog = {
   couch: {label:'Couch',width:180,height:90,seats:0},
   chair: {label:'Chair',width:70,height:80,seats:0},
   officechair:{label:'Office chair',width:75,height:85,seats:0},
-  bulletin:{label:'Bulletin board',width:180,height:110,seats:0},
+  bulletin:{label:'Bulletin board',width:180,height:9,seats:0},
+  trash:{label:'Trash can',width:55,height:55,seats:0},
+  sidetable:{label:'Side table',width:85,height:85,seats:0},
+  clock:{label:'Wall clock',width:50,height:50,seats:0},
+  globe:{label:'Globe',width:50,height:50,seats:0},
+  mug:{label:'Tea / coffee mug',width:45,height:40,seats:0},
+  bottle:{label:'Water bottle',width:40,height:40,seats:0},
+  sharpener:{label:'Electric pencil sharpener',width:55,height:45,seats:0},
+  calendar:{label:'Calendar',width:70,height:55,seats:0},
   stool: {label:'Stool',width:55,height:55,seats:0},
   rug: {label: 'Reading rug', width: 180, height: 140, seats: 0},
   label: {label: 'Room label', width: 160, height: 40, seats: 0}
@@ -39,7 +47,8 @@ export function furniture(type, x = 400, y = 280) {
   return {id: uid(), type, label: spec.label, width: spec.width, height: spec.height, x, y, rotation: 0, seats: Array.from({length: spec.seats}, () => ({student: null, locked: false}))};
 }
 export function constrain(item,room={width:WIDTH,height:HEIGHT}) {
-  if(['door','board','smartboard'].includes(item.type))item.height=Math.max(8,Math.min(item.height,item.width/(item.type==='door'?12:20)));
+  if(['door','board','smartboard','bulletin'].includes(item.type))item.height=Math.max(8,Math.min(item.height,item.width/(item.type==='door'?12:20)));
+  if(item.type==='window')item.height=Math.max(8,Math.min(item.height,item.width/(170/12)));
   const angle=item.rotation*Math.PI/180;
   const w=Math.abs(Math.cos(angle))*item.width+Math.abs(Math.sin(angle))*item.height;
   const h=Math.abs(Math.sin(angle))*item.width+Math.abs(Math.cos(angle))*item.height;
@@ -131,14 +140,14 @@ export function snapGroup(items,others,grid=true) {
  }if(b.x<9)dx=-b.x;else if(WIDTH-b.x-b.width<9)dx=WIDTH-b.x-b.width;if(b.y<9)dy=-b.y;else if(HEIGHT-b.y-b.height<9)dy=HEIGHT-b.y-b.height;moveGroup(items,dx,dy);return bestX<9||bestY<9;
 }
 
-export const proportionalTypes=new Set(['round','plant','laptop','keyboard','mouse','chair','stool','printer','couch','window','officechair']);
+export const proportionalTypes=new Set(['round','plant','laptop','keyboard','mouse','chair','stool','printer','couch','window','officechair','trash','sidetable','clock','globe','mug','bottle','sharpener','calendar']);
 export function resizeFurniture(it,width,height,axis='width') {
  if(it.type==='cabinet'){it.width=80;it.height=Math.max(60,Math.min(300,Math.round(height/30)*30));}
- else if(['door','board','smartboard'].includes(it.type)){it.width=Math.max(8*(it.type==='door'?12:20),Math.min(400,axis==='height'?height*(it.type==='door'?12:20):width));it.height=it.width/(it.type==='door'?12:20);}
+ else if(['door','board','smartboard','bulletin'].includes(it.type)){it.width=Math.max(8*(it.type==='door'?12:20),Math.min(400,axis==='height'?height*(it.type==='door'?12:20):width));it.height=it.width/(it.type==='door'?12:20);}
  else if(proportionalTypes.has(it.type)){
   const spec=catalog[it.type],ratio=spec.width/spec.height;
   let w=axis==='height'?height*ratio:width;
-  w=Math.max(40,30*ratio,Math.min(400,300*ratio,w));it.width=w;it.height=w/ratio;
+  w=Math.max(40,(it.type==='window'?8:30)*ratio,Math.min(400,300*ratio,w));it.width=w;it.height=w/ratio;
  }else{it.width=Math.max(40,Math.min(400,width));it.height=Math.max(30,Math.min(300,height));}
  constrain(it);
 }
@@ -172,4 +181,12 @@ export function rotateGroup(items,degrees){
  const original=structuredClone(items),b=groupBounds(items),cx=b.x+b.width/2,cy=b.y+b.height/2,a=degrees*Math.PI/180;
  items.forEach(it=>{const dx=it.x+it.width/2-cx,dy=it.y+it.height/2-cy;it.x=cx+dx*Math.cos(a)-dy*Math.sin(a)-it.width/2;it.y=cy+dx*Math.sin(a)+dy*Math.cos(a)-it.height/2;it.rotation=(it.rotation+degrees%360+360)%360;});
  const after=groupBounds(items);if(after.width>WIDTH+1e-6||after.height>HEIGHT+1e-6){items.forEach((it,i)=>Object.assign(it,original[i]));return false;}moveGroup(items,0,0);return true;
+}
+
+export const wallFixtures=new Set(['door','board','smartboard','window','bulletin','clock','calendar']);
+export function snapToWall(item,threshold=24){
+ if(!wallFixtures.has(item.type))return null;
+ const b=footprint(item),cx=b.x+b.width/2,cy=b.y+b.height/2;
+ const edges=[{edge:'top',distance:b.y,center:cy,angle:0},{edge:'right',distance:WIDTH-b.x-b.width,center:WIDTH-cx,angle:90},{edge:'bottom',distance:HEIGHT-b.y-b.height,center:HEIGHT-cy,angle:180},{edge:'left',distance:b.x,center:cx,angle:270}].filter(e=>e.distance<=threshold).sort((a,b)=>a.distance+a.center*.001-b.distance-b.center*.001);
+ if(!edges.length)return null;const edge=edges[0];item.rotation=edge.angle;constrain(item);const rotated=footprint(item);if(edge.edge==='top')item.y-=rotated.y;if(edge.edge==='bottom')item.y+=HEIGHT-rotated.y-rotated.height;if(edge.edge==='left')item.x-=rotated.x;if(edge.edge==='right')item.x+=WIDTH-rotated.x-rotated.width;return edge.edge;
 }

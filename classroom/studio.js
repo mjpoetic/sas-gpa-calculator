@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release6';
-import {furnitureArt} from './furniture-art.mjs?v=20261013-release6';
-import {rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release6';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release6';
-import {connectCloud} from './cloud.js?v=20261013-release6';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release7';
+import {furnitureArt} from './furniture-art.mjs?v=20261013-release7';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release7';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release7';
+import {connectCloud} from './cloud.js?v=20261013-release7';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -19,7 +19,7 @@ const selectedItems=()=>chart().items.filter(it=>selectedIds.has(it.id));
 function choose(it,add=false){if(add){if(selectedIds.has(it.id))selectedIds.delete(it.id);else selectedIds.add(it.id);}else selectedIds=new Set([it.id]);selection=selectedIds.size?{id:[...selectedIds].at(-1),seat:null}:null;}
 function snapResize(it){if(!$('snap').checked)return;for(const other of chart().items){if(other.id===it.id)continue;if(Math.abs(it.width-other.width)<8)resizeFurniture(it,other.width,it.height,'width');if(Math.abs(it.height-other.height)<8)resizeFurniture(it,it.width,other.height,'height');}}
 function showGuides(items){const room=$('room');room.querySelectorAll('.alignment-guide').forEach(n=>n.remove());const b=groupBounds(items);for(const target of chart().items.filter(x=>!items.some(i=>i.id===x.id))){const t=footprint(target);for(const [axis,values,other] of [['x',[b.x,b.x+b.width/2,b.x+b.width],[t.x,t.x+t.width/2,t.x+t.width]],['y',[b.y,b.y+b.height/2,b.y+b.height],[t.y,t.y+t.height/2,t.y+t.height]]])for(const value of values)if(other.some(v=>Math.abs(v-value)<4)){const line=element('div','alignment-guide '+axis);line.style[axis==='x'?'left':'top']=value+'px';room.append(line);}}}
-function paintPositions(){positionGroupOverlay();showGuides(selectedItems());for(const it of selectedItems()){const n=$('room').querySelector(`[data-id="${it.id}"]`);if(n)Object.assign(n.style,{left:it.x+'px',top:it.y+'px',width:it.width+'px',height:it.height+'px'});}}
+function paintPositions(){positionGroupOverlay();showGuides(selectedItems());for(const it of selectedItems()){const n=$('room').querySelector(`[data-id="${it.id}"]`);if(n){Object.assign(n.style,{left:it.x+'px',top:it.y+'px',width:it.width+'px',height:it.height+'px',transform:`rotate(${it.rotation}deg)`});n.dataset.rotation=it.rotation;n.querySelectorAll('.seat-name').forEach(t=>t.style.transform=`rotate(${-it.rotation}deg)`);}}}
 const selected = () => chart().items.find(it => it.id === selection?.id);
 const appearance = () => chart().appearance || defaultAppearance();
 const say = text => {$('message').textContent = text;};
@@ -47,7 +47,7 @@ for (const [type,spec] of Object.entries(catalog)) {
   };
   $('palette').append(btn);
 }
-function addFurniture(type,preferred){if(chart().items.length>=500)return say('This chart has reached the furniture limit.');change(()=>{const item=furniture(type);const found=vacantPosition(item,chart().items,preferred);chart().items.push(item);choose(item);if(!found)say('Room is full; move the new item to make space.');},catalog[type].label+' added.');}
+function addFurniture(type,preferred){if(chart().items.length>=500)return say('This chart has reached the furniture limit.');change(()=>{const item=furniture(type);const found=vacantPosition(item,chart().items,preferred);if($('snap').checked)snapToWall(item);chart().items.push(item);choose(item);if(!found)say('Room is full; move the new item to make space.');},catalog[type].label+' added.');}
 function render() {
   const c = chart();setRoomSize(c.room);$('room-width').value=WIDTH;$('room-depth').value=HEIGHT;
   $('charts').replaceChildren(...state.charts.map(c => option(c.id,c.name)));$('charts').value = c.id;
@@ -100,7 +100,7 @@ function renderRoom() {
     const caption=element('span','item-caption',it.label);if(it.seats.length||['rug','label'].includes(it.type))node.append(caption);
     if(it.type==='label'){caption.classList.add('editable-room-label');caption.tabIndex=0;caption.setAttribute('role','textbox');caption.setAttribute('aria-label','Room label; click to rename');caption.title='Click to rename; drag the border to move';if(it.labelFont){caption.style.fontFamily=fontCSS(it.labelFont);void loadFont(it.labelFont).then(async()=>{if(document.fonts?.load)await document.fonts.load(`400 100px ${fontCSS(it.labelFont)}`);fitCaption(caption,it);}).catch(e=>say(e.message));}const observer=new ResizeObserver(()=>fitCaption(caption,it));observer.observe(node);labelObservers.push(observer);caption.oninput=()=>fitCaption(caption,it);caption.onpointerdown=e=>e.stopPropagation();caption.onclick=e=>{e.stopPropagation();choose(it);room.querySelectorAll('.item').forEach(n=>n.classList.toggle('selected',n===node));renderInspector();caption.contentEditable='true';caption.focus();};caption.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();caption.blur();}if(e.key==='Escape'){caption.textContent=it.label;caption.blur();}};caption.onblur=()=>{caption.contentEditable='false';const value=caption.textContent.trim().slice(0,60)||'Room label';if(value!==it.label)change(()=>{it.label=value;},'Room label updated.');};}
 
-    if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type,it.height);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=HEIGHT-1||f.x+f.width>=WIDTH-1),wallFlip=it.type==='door'&&((f.y+f.height>=HEIGHT-1&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=WIDTH-1&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);if(color){const rects=[...art.querySelectorAll('rect')].sort((a,b)=>Number(b.getAttribute('width'))*Number(b.getAttribute('height'))-Number(a.getAttribute('width'))*Number(a.getAttribute('height')));(rects[0]||art.querySelector('circle'))?.setAttribute('fill',color);}requestAnimationFrame(()=>fitCaption(caption,it));}
+    if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type,it.height);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=HEIGHT-1||f.x+f.width>=WIDTH-1),wallFlip=it.type==='door'&&((f.y+f.height>=HEIGHT-1&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=WIDTH-1&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);if(color&&!art.innerHTML.includes('var(--furniture-color')){const rects=[...art.querySelectorAll('rect')].sort((a,b)=>Number(b.getAttribute('width'))*Number(b.getAttribute('height'))-Number(a.getAttribute('width'))*Number(a.getAttribute('height')));(rects[0]||art.querySelector('circle'))?.setAttribute('fill',color);}requestAnimationFrame(()=>fitCaption(caption,it));}
     node.title=it.label;
     if(it.seats.length) {
       const grid = element('div','seat-grid');grid.style.setProperty('--columns',it.seats.length === 1 ? 1 : 2);
@@ -153,7 +153,7 @@ function renderRoom() {
         if(members.length>1){members.forEach((item,i)=>Object.assign(item,original[i]));scaleGroup(members,Math.max(.1,1+(dx+dy)/(bounds.width+bounds.height)));paintPositions();return;}
         const angle=it.rotation*Math.PI/180,step=1;
         it.width=Math.max(40,Math.min(400,Math.round((start.w+dx*Math.cos(angle)+dy*Math.sin(angle))/step)*step));
-        it.height=Math.max(8,Math.min(300,Math.round((start.h-dx*Math.sin(angle)+dy*Math.cos(angle))/step)*step));if(proportionalTypes.has(it.type)||['door','board','smartboard','cabinet'].includes(it.type))resizeFurniture(it,it.width,it.height,Math.abs(dx*Math.cos(angle)+dy*Math.sin(angle))/start.w>=Math.abs(-dx*Math.sin(angle)+dy*Math.cos(angle))/start.h?'width':'height');else constrain(it);snapResize(it);
+        it.height=Math.max(8,Math.min(300,Math.round((start.h-dx*Math.sin(angle)+dy*Math.cos(angle))/step)*step));if(proportionalTypes.has(it.type)||['door','board','smartboard','bulletin','cabinet'].includes(it.type))resizeFurniture(it,it.width,it.height,Math.abs(dx*Math.cos(angle)+dy*Math.sin(angle))/start.w>=Math.abs(-dx*Math.sin(angle)+dy*Math.cos(angle))/start.h?'width':'height');else constrain(it);snapResize(it);
         Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});if(it.type==='cabinet')node.querySelector('.furniture-art').innerHTML=furnitureArt(it.type,it.height);showGuides([it]);
       };
       const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(40,Math.min(400,Math.round(it.width/10)*10));it.height=Math.max(8,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height);}save();render();}};
@@ -166,7 +166,7 @@ function renderRoom() {
       selection={id:it.id,seat:null};room.querySelectorAll('.item').forEach(n=>n.classList.toggle('selected',selectedIds.has(n.dataset.id)));renderInspector();
       const members=selectedItems(),original=structuredClone(members),start={x:e.clientX,y:e.clientY};let moved=false;
       node.setPointerCapture(e.pointerId);
-      const move=ev=>{const dx=(ev.clientX-start.x)/zoom,dy=(ev.clientY-start.y)/zoom;if(!moved&&Math.hypot(dx,dy)<3)return;if(!moved){checkpoint();moved=true;node.classList.add('dragging');}members.forEach((item,i)=>Object.assign(item,original[i]));moveGroup(members,dx,dy);if($('snap').checked)snapGroup(members,chart().items.filter(x=>!selectedIds.has(x.id)));paintPositions();};
+      const move=ev=>{const dx=(ev.clientX-start.x)/zoom,dy=(ev.clientY-start.y)/zoom;if(!moved&&Math.hypot(dx,dy)<3)return;if(!moved){checkpoint();moved=true;node.classList.add('dragging');}members.forEach((item,i)=>Object.assign(item,original[i]));moveGroup(members,dx,dy);if($('snap').checked)snapGroup(members,chart().items.filter(x=>!selectedIds.has(x.id)));if(members.length===1&&$('snap').checked)snapToWall(members[0]);paintPositions();};
       const end=()=>{node.removeEventListener('pointermove',move);node.removeEventListener('pointerup',end);node.removeEventListener('pointercancel',end);if(moved){save();render();}};
       node.addEventListener('pointermove',move);node.addEventListener('pointerup',end);node.addEventListener('pointercancel',end);
     });
@@ -193,7 +193,7 @@ function renderInspector() {
   $('selection-title').textContent = group ? `${selectedItems().length} objects selected` : it ? catalog[it.type].label : 'Fine-tune your room';$('selection-hint').hidden = !!it;
   if(!it) return;
   for(const field of ['label','width','height','x','y']) $('item-'+field).value = it[field];
-  $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-height').min=['door','board','smartboard'].includes(it.type)?8:30;$('item-height').step=1;
+  $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-height').min=['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
   $('label-font-controls').hidden=it.type!=='label';$('label-font-source').value=it.labelFont?.source||'preset';$('label-font-family').value=it.labelFont?.family||'system';
   $('item-color').value=it.color || appearance().color || '#e8d7bb';
   if(selection.seat !== null) {
