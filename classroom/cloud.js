@@ -1,6 +1,6 @@
-import {mergeDocuments} from './sync-merge.mjs?v=20261014-release7';
-import {cloudConfig} from './cloud-config.js?v=20261014-release7';
-import {CloudStore} from './cloud-store.mjs?v=20261014-release7';
+import {mergeDocuments} from './sync-merge.mjs?v=20261014-release8';
+import {cloudConfig} from './cloud-config.js?v=20261014-release8';
+import {CloudStore} from './cloud-store.mjs?v=20261014-release8';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';

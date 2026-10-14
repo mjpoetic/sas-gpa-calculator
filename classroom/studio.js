@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release7';
-import {furnitureArt} from './furniture-art.mjs?v=20261014-release7';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release7';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release7';
-import {connectCloud} from './cloud.js?v=20261014-release7';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release8';
+import {furnitureArt} from './furniture-art.mjs?v=20261014-release8';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release8';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release8';
+import {connectCloud} from './cloud.js?v=20261014-release8';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -267,9 +267,20 @@ $('assignment').onchange = () => {const it=selected();if(!it || selection.seat==
 };
 $('locked').onchange = () => {const it=selected();if(it && selection.seat!==null) change(() => {it.seats[selection.seat].locked=$('locked').checked;});};
 function updateZoom() {
-  $('room').parentElement.dataset.zoom=$('zoom').value==='fit'?'fit':'manual';
-  zoom = $('zoom').value === 'fit' ? Math.min(3,Math.max(80,$('room').parentElement.clientWidth-4)/WIDTH,Math.max(80,$('room').parentElement.clientHeight-4)/HEIGHT) : Number($('zoom').value);
-  $('room').style.zoom = zoom;if($('canvas-zoom-level'))$('canvas-zoom-level').textContent=Math.round(zoom*100)+'%';
+  const room=$('room'),scroller=room.parentElement,box=scroller.getBoundingClientRect(),before=room.getBoundingClientRect(),oldZoom=zoom;
+  const anchor={x:(box.left+scroller.clientWidth/2-before.left)/oldZoom,y:(box.top+scroller.clientHeight/2-before.top)/oldZoom};
+  const style=getComputedStyle(scroller),px=parseFloat(style.paddingLeft)+parseFloat(style.paddingRight),py=parseFloat(style.paddingTop)+parseFloat(style.paddingBottom),fit=$('zoom').value==='fit';
+  scroller.dataset.zoom=fit?'fit':'manual';
+  zoom=fit?Math.min(3,Math.max(80,scroller.clientWidth-px-4)/WIDTH,Math.max(80,scroller.clientHeight-py-4)/HEIGHT):Number($('zoom').value);
+  room.style.zoom=zoom;
+  room.style.marginLeft=Math.max(0,(scroller.clientWidth-px-WIDTH*zoom)/2)/zoom+'px';
+  room.style.marginTop=Math.max(0,(scroller.clientHeight-py-HEIGHT*zoom)/2)/zoom+'px';
+  if(fit){scroller.scrollLeft=0;scroller.scrollTop=0;}else{
+    const after=room.getBoundingClientRect();
+    scroller.scrollLeft+=after.left+anchor.x*zoom-(box.left+scroller.clientWidth/2);
+    scroller.scrollTop+=after.top+anchor.y*zoom-(box.top+scroller.clientHeight/2);
+  }
+  if($('canvas-zoom-level'))$('canvas-zoom-level').textContent=Math.round(zoom*100)+'%';
 }
 $('zoom').onchange = updateZoom;
 new ResizeObserver(updateZoom).observe($('room').parentElement);
@@ -319,7 +330,7 @@ document.addEventListener('sas-workspace-resize',updateZoom);window.visualViewpo
 
 let panMode=false;
 function setPan(value){panMode=value;$('room').dataset.pan=String(value);$('canvas-pan').setAttribute('aria-pressed',String(value));}
-function setCanvasZoom(value){const scroller=$('room').parentElement;value=Math.max(.05,Math.min(3,value));let entry=$('zoom').querySelector('option[data-custom-zoom]');if(!entry){entry=option('custom','Custom zoom');entry.dataset.customZoom='true';$('zoom').append(entry);}entry.value=String(value);entry.textContent=Math.round(value*100)+'%';$('zoom').value=String(value);updateZoom();scroller.scrollLeft=Math.max(0,(scroller.scrollWidth-scroller.clientWidth)/2);scroller.scrollTop=Math.max(0,(scroller.scrollHeight-scroller.clientHeight)/2);setPan(true);say('Drag to pan the enlarged room. Turn Pan off to move furniture.');}
+function setCanvasZoom(value){const scroller=$('room').parentElement;value=Math.max(.05,Math.min(3,value));let entry=$('zoom').querySelector('option[data-custom-zoom]');if(!entry){entry=option('custom','Custom zoom');entry.dataset.customZoom='true';$('zoom').append(entry);}entry.value=String(value);entry.textContent=Math.round(value*100)+'%';$('zoom').value=String(value);updateZoom();setPan(true);say('Drag to pan the enlarged room. Turn Pan off to move furniture.');}
 document.addEventListener('sas-canvas-zoom',event=>{const mode=event.detail.mode;if(mode==='pan'){setPan(!panMode);return;}if(mode==='fit'){$('zoom').value='fit';updateZoom();setPan(false);return;}if(mode==='fill'){const s=$('room').parentElement;setCanvasZoom(Math.max(s.clientWidth/WIDTH,s.clientHeight/HEIGHT));return;}setCanvasZoom(zoom*(mode==='in'?1.25:.8));});
 $('room').addEventListener('pointerdown',event=>{if(!panMode||event.button!==0)return;event.preventDefault();event.stopImmediatePropagation();const room=$('room'),s=room.parentElement,start={x:event.clientX,y:event.clientY,left:s.scrollLeft,top:s.scrollTop};room.setPointerCapture(event.pointerId);const move=e=>{s.scrollLeft=start.left-(e.clientX-start.x);s.scrollTop=start.top-(e.clientY-start.y);};const end=()=>{room.removeEventListener('pointermove',move);room.removeEventListener('pointerup',end);room.removeEventListener('pointercancel',end);};room.addEventListener('pointermove',move);room.addEventListener('pointerup',end);room.addEventListener('pointercancel',end);},true);
 $('zoom').addEventListener('change',()=>{if($('zoom').value==='fit')setPan(false);});
