@@ -199,3 +199,6 @@ Both the refresh button and update notice share `assets/refresh.js`. Classroom r
 
 ### Compact roster and student dragging
 Students shows the roster first, with Add students and Saved lists opening dedicated dialogs. Student editing actions are collapsed behind each name’s Options button. Drag a roster name or an assigned seat onto another seat to assign or swap students. Dropping a waiting student onto an occupied seat returns the occupant to Waiting. Locked source and target seats reject moves; highlight colors show available versus locked targets. Dragging from the mobile roster hides the drawer to expose the grid. Drag operations preserve furniture, seat colors, and separation preferences, save normally, and support Undo. Touch verification uses browser-simulated touch, not physical-device validation.
+
+### Drop spotlight and blank seats
+Student drags from the roster or grid spotlight the destination with a bright fill and glow while other seats dim. Locked targets use an amber spotlight. The source gets a subtle dashed treatment, and all temporary styling clears on drop or cancellation. Empty seats have no visible text; their accessible seat descriptions and inspector numbering remain available.
