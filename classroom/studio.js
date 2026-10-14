@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release5';
-import {furnitureArt} from './furniture-art.mjs?v=20261014-release5';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release5';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release5';
-import {connectCloud} from './cloud.js?v=20261014-release5';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release6';
+import {furnitureArt} from './furniture-art.mjs?v=20261014-release6';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release6';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release6';
+import {connectCloud} from './cloud.js?v=20261014-release6';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -56,7 +56,7 @@ function render() {
   $('name').value = c.name;$('room-title').textContent = c.name;$('student-count').textContent = c.students.length;
   const all = seats(c), count = all.filter(s => s.student).length;
   $('seat-summary').textContent = `${count} seated · ${all.length} seats · ${c.students.length-count} unassigned`;
-  $('roster-summary').textContent = `${c.students.length} students · ${c.students.length-count} unassigned`;
+  $('roster-summary').textContent = `Unseated students (${c.students.length-count})`;$('clear-seats').disabled=!count;
   $('undo').disabled = !history.length;$('redo').disabled=!redoHistory.length;$('delete-chart').disabled = state.charts.length === 1;
   if(!selection){selectedIds.clear();selectedSeatKeys.clear();}else if(!selectedIds.has(selection.id))selectedIds=new Set([selection.id]);
   renderRoom();renderInspector();renderRoster();
@@ -129,7 +129,7 @@ function renderRoom() {
         btn.dataset.itemId=it.id;btn.dataset.seatIndex=i;if(student)attachStudentDrag(btn,student);
         btn.setAttribute('aria-label',`${it.label}, seat ${i+1}: ${student?seatName(student,chart().students):'unassigned'}${s.locked ? ', locked during shuffle' : ''}`);
         btn.ondblclick=e=>{e.stopPropagation();e.preventDefault();openSeatDetails(it,i);};
-        btn.onclick = e => {e.stopPropagation();if(Date.now()<suppressStudentClickUntil)return;const key=it.id+':'+i,now=Date.now(),double=lastSeatTap?.key===key&&now-lastSeatTap.time<400;lastSeatTap={key,time:now};if(e.shiftKey||e.metaKey||multiMode){toggleSeatSelection(it,i);return;}if(double){openSeatDetails(it,i);return;}selectedSeatKeys.clear();selectedIds=new Set([it.id]);selection = {id:it.id,seat:i};renderRoom();renderInspector();if(student){$('seat-student-name').focus();$('seat-student-name').select();}else ($('assignment').parentElement.querySelector('.site-select-trigger')||$('assignment')).focus();};
+        btn.onclick = e => {e.stopPropagation();if(Date.now()<suppressStudentClickUntil)return;const key=it.id+':'+i,now=Date.now(),double=lastSeatTap?.key===key&&now-lastSeatTap.time<400;lastSeatTap={key,time:now};if(e.shiftKey||e.metaKey||multiMode){toggleSeatSelection(it,i);return;}if(double){openSeatDetails(it,i);return;}selectedSeatKeys.clear();selectedIds=new Set([it.id]);selection = {id:it.id,seat:i};renderRoom();renderInspector();$('room').querySelector(`[data-item-id="${it.id}"][data-seat-index="${i}"]`)?.focus();};
         grid.append(btn);
       });node.append(grid);
     }
@@ -215,7 +215,7 @@ function renderRoster() {
   const picked=$('saved-rosters').value;$('saved-rosters').replaceChildren(option('','Choose a list'),...(state.studentLists||[]).map(l=>option(l.id,l.name)));$('saved-rosters').value=picked;
   $('load-roster').disabled=$('delete-roster').disabled=!$('saved-rosters').value;
   const assigned = new Set(seats(chart()).map(s => s.student));$('roster').replaceChildren();
-  chart().students.forEach(st => {
+  chart().students.filter(st=>!assigned.has(st.id)).forEach(st => {
     const row = element('div','student-row');const input = element('input');input.value=rosterName(st);input.readOnly=true;input.maxLength=80;input.setAttribute('aria-label',`Student ${rosterName(st)}`);
     let editing=false;const edit=element('button','student-edit','✎');edit.type='button';edit.setAttribute('aria-label',`Edit name for ${rosterName(st)}`);edit.title='Edit full student name';
     edit.onclick=()=>{editing=true;input.readOnly=false;input.value=st.name;input.focus();input.select();};
@@ -223,8 +223,9 @@ function renderRoster() {
     input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();input.blur();}if(e.key==='Escape'){editing=false;input.readOnly=true;input.value=rosterName(st);}};
     const remove = element('button','student-remove');remove.type='button';remove.title='Remove student';remove.setAttribute('aria-label',`Remove ${rosterName(st)}`);
     remove.onclick = () => change(() => {chart().students = chart().students.filter(s => s.id !== st.id);chart().students.forEach(s=>{if(s.avoid)s.avoid=s.avoid.filter(id=>id!==st.id);});seats(chart()).forEach(s => {if(s.student === st.id) {s.student=null;s.locked=false;}});},'Student removed. Undo is available.');
-    const avoid=element('button','student-avoid','↔');avoid.title='Choose students to seat apart';avoid.setAttribute('aria-label','Separation preferences for '+rosterName(st));avoid.onclick=()=>editSeparation(st);input.ondblclick=()=>editSeparation(st);rosterGlyph(avoid,'M6 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM18 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM3 12v-1a3 3 0 0 1 6 0v1m6 0v-1a3 3 0 0 1 6 0v1M9 18H3m0 0 3-3m-3 3 3 3m9-3h6m0 0-3-3m3 3-3 3');rosterGlyph(edit,'M4 16 16 4l4 4L8 20H4ZM13 7l4 4');rosterGlyph(remove,'M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 10v7m4-7v7');const actions=element('div','student-actions');actions.hidden=true;actions.append(avoid,edit,remove);const menu=element('button','student-menu');menu.type='button';menu.title='Student options';menu.setAttribute('aria-label','Options for '+rosterName(st));menu.setAttribute('aria-expanded','false');rosterGlyph(menu,'M5 12h.01M12 12h.01M19 12h.01');menu.onclick=()=>{actions.hidden=!actions.hidden;menu.setAttribute('aria-expanded',String(!actions.hidden));};attachStudentDrag(input,st);input.title='Drag to a seat; use Options to edit';row.append(input,element('small','',assigned.has(st.id)?'Seated':'Waiting'),menu,actions);$('roster').append(row);
+    const avoid=element('button','student-avoid','↔');avoid.title='Choose students to seat apart';avoid.setAttribute('aria-label','Separation preferences for '+rosterName(st));avoid.onclick=()=>editSeparation(st);input.ondblclick=()=>editSeparation(st);rosterGlyph(avoid,'M6 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM18 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM3 12v-1a3 3 0 0 1 6 0v1m6 0v-1a3 3 0 0 1 6 0v1M9 18H3m0 0 3-3m-3 3 3 3m9-3h6m0 0-3-3m3 3-3 3');rosterGlyph(edit,'M4 16 16 4l4 4L8 20H4ZM13 7l4 4');rosterGlyph(remove,'M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 10v7m4-7v7');const actions=element('div','student-actions');actions.hidden=true;actions.append(avoid,edit,remove);const menu=element('button','student-menu');menu.type='button';menu.title='Student options';menu.setAttribute('aria-label','Options for '+rosterName(st));menu.setAttribute('aria-expanded','false');rosterGlyph(menu,'M5 12h.01M12 12h.01M19 12h.01');menu.onclick=()=>{actions.hidden=!actions.hidden;menu.setAttribute('aria-expanded',String(!actions.hidden));};attachStudentDrag(input,st);input.title='Drag to a seat; use Options to edit';row.append(input,menu,actions);$('roster').append(row);
   });
+  if(!$('roster').children.length)$('roster').append(element('p','hint',chart().students.length?'Everyone has a seat.':'Add students or load a saved list.'));
 }
 $('furniture-tab').onclick = () => tab(false);$('students-tab').onclick = () => tab(true);
 for(const id of ['furniture-tab','students-tab']) $(id).onkeydown = e => {if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) {e.preventDefault();const show = e.key === 'Home' ? false : e.key === 'End' ? true : id === 'furniture-tab';tab(show);$(show?'students-tab':'furniture-tab').focus();}};
@@ -238,6 +239,9 @@ $('copy-chart').onclick = () => {if(state.charts.length >= 100) return say('You 
 $('delete-chart').onclick = () => {if(state.charts.length<2 || !confirm(`Delete “${chart().name}”? Undo will restore it.`)) return;change(() => {state.charts=state.charts.filter(c => c.id !== state.active);state.active=state.charts[0].id;selection=null;},'Chart deleted. Undo is available.');};
 $('apply-preset').onclick = () => {if(!confirm('Replace the room furniture with this layout? Your student list stays. Undo will restore the previous room.')) return;change(() => {chart().items=layout($('preset').value);assignUnseated(chart());selection=null;},'Layout applied. Students seated in roster order.');};
 $('add-students').onsubmit = e => {e.preventDefault();const names = $('student-names').value.split(/\r?\n/).map(normalizeStudentName).filter(Boolean);if(!names.length) return;if(names.some(n => n.length>80) || chart().students.length+names.length>500) return say('Use names up to 80 characters and no more than 500 students per chart.');change(() => {chart().students.push(...names.map(name => ({id:uid(),name})));$('student-names').value='';},`${names.length} students added. Drag a name onto a seat or use “Seat unassigned students”.`);document.dispatchEvent(new Event('sas-students-added'));};
+function clearSeatAssignments(targets){if(!targets.some(s=>s.student))return;change(()=>{targets.forEach(s=>{s.student=null;s.locked=false;});},'Seats emptied. Students returned to the list. Undo is available.');}
+$('clear-seats').onclick=()=>clearSeatAssignments(seats(chart()));
+document.addEventListener('keydown',e=>{if(!['Delete','Backspace'].includes(e.key)||e.metaKey||e.ctrlKey||e.altKey||e.target.closest?.('input,textarea,select,[contenteditable],dialog'))return;const targets=selectedSeatKeys.size?selectedSeats().map(entry=>entry.seat):selection?.seat!=null?[selected()?.seats[selection.seat]].filter(Boolean):[];if(!targets.length)return;e.preventDefault();clearSeatAssignments(targets);});
 $('assign-all').onclick = () => {change(() => assignUnseated(chart()));say('Students placed. '+separationMessage());};
 $('shuffle').onclick = () => {
   const movable = seats(chart()).filter(s => s.student && !s.locked).length;
@@ -340,6 +344,7 @@ function updateObjectControls(){
 }
 $('room').parentElement.addEventListener('scroll',updateObjectControls,{passive:true});window.addEventListener('resize',updateObjectControls);
 
+$('create-roster').onsubmit=e=>{e.preventDefault();const name=$('new-roster-name').value.trim(),names=$('new-roster-names').value.split(/\r?\n/).map(normalizeStudentName).filter(Boolean);if(!name)return;if(names.some(n=>n.length>80)||names.length>500)return say('Use names up to 80 characters and no more than 500 students per list.');if((state.studentLists||[]).length>=100)return say('You can save up to 100 student lists.');const id=uid();change(()=>{(state.studentLists||=[]).push({id,name,names});$('create-roster').reset();},'New student list saved. Choose Use list to load it into this classroom.');$('saved-rosters').value=id;$('saved-rosters').dispatchEvent(new Event('change'));};
 $('saved-rosters').onchange=()=>{$('load-roster').disabled=$('delete-roster').disabled=!$('saved-rosters').value;};
 $('save-roster').onclick=()=>{const name=$('roster-name').value.trim();if(!name||!chart().students.length)return say('Enter a list name and add students first.');if((state.studentLists||[]).length>=100)return say('You can save up to 100 student lists.');change(()=>{(state.studentLists||= []).push({id:uid(),name,names:chart().students.map(s=>s.name),avoid:chart().students.map(s=>(s.avoid||[]).map(id=>chart().students.findIndex(st=>st.id===id)).filter(i=>i>=0))});$('roster-name').value='';},'Student list saved for other classrooms.');};
 $('load-roster').onclick=()=>{const list=state.studentLists?.find(l=>l.id===$('saved-rosters').value);if(!list)return;if(chart().students.length&&!confirm('Replace the current students with '+list.name+'? Furniture stays in place. Undo is available.'))return;change(()=>{chart().students=list.names.map(name=>({id:uid(),name}));chart().students.forEach((s,i)=>{s.avoid=(list.avoid?.[i]||[]).map(n=>chart().students[n].id);});seats(chart()).forEach(s=>{s.student=null;s.locked=false;});},'Student list loaded. Use Seat unassigned students when ready.');};
@@ -402,7 +407,7 @@ $('seat-name-size-reset').onclick=()=>{const it=selected();if(it&&selection.seat
 
 $('seat-student-name').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();e.target.blur();}if(e.key==='Escape'){e.preventDefault();renderInspector();e.target.blur();}};
 
-function toggleSeatSelection(it,index){if(!selectedSeatKeys.size&&selection?.seat!==null&&selection?.seat!==undefined){const previous=selected();if(previous)selectedSeatKeys.add(seatKey(previous,selection.seat));}const key=seatKey(it,index);if(selectedSeatKeys.has(key))selectedSeatKeys.delete(key);else selectedSeatKeys.add(key);const entries=selectedSeats(),last=entries.at(-1);selectedIds.clear();selection=last?{id:last.it.id,seat:last.index}:null;lastSeatTap=null;renderRoom();renderInspector();say(entries.length+' seats selected. Use Edit to change their properties.');}
+function toggleSeatSelection(it,index){if(!selectedSeatKeys.size&&selection?.seat!==null&&selection?.seat!==undefined){const previous=selected();if(previous)selectedSeatKeys.add(seatKey(previous,selection.seat));}const key=seatKey(it,index);if(selectedSeatKeys.has(key))selectedSeatKeys.delete(key);else selectedSeatKeys.add(key);const entries=selectedSeats(),last=entries.at(-1);selectedIds.clear();selection=last?{id:last.it.id,seat:last.index}:null;lastSeatTap=null;renderRoom();renderInspector();$('room').querySelector(`[data-item-id="${it.id}"][data-seat-index="${index}"]`)?.focus();say(entries.length+' seats selected. Use Edit to change their properties.');}
 $('multi-seat-color').onchange=()=>change(()=>{selectedSeats().forEach(e=>{e.seat.color=$('multi-seat-color').value;});},'Selected seat colors updated.');
 $('multi-seat-size').onchange=()=>{const value=Number($('multi-seat-size').value);if(!Number.isFinite(value)||value<8||value>36)return;change(()=>{selectedSeats().forEach(e=>{e.seat.fontSize=value;});},'Selected name sizes updated.');};
 $('multi-seat-locked').onchange=()=>{const value=$('multi-seat-locked').checked;change(()=>{selectedSeats().forEach(e=>{e.seat.locked=value;});},'Selected seat locks updated.');};
