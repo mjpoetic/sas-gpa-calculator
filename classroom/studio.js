@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release10';
-import {furnitureArt} from './furniture-art.mjs?v=20261013-release10';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release10';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release10';
-import {connectCloud} from './cloud.js?v=20261013-release10';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release11';
+import {furnitureArt} from './furniture-art.mjs?v=20261013-release11';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release11';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release11';
+import {connectCloud} from './cloud.js?v=20261013-release11';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -153,11 +153,11 @@ function renderRoom() {
         if(!moved){checkpoint();moved=true;node.classList.add('resizing');}
         if(members.length>1){members.forEach((item,i)=>Object.assign(item,original[i]));scaleGroup(members,Math.max(.1,1+(dx+dy)/(bounds.width+bounds.height)));paintPositions();return;}
         const angle=it.rotation*Math.PI/180,step=1;
-        it.width=Math.max(it.type==='mug'?16:40,Math.min(400,Math.round((start.w+dx*Math.cos(angle)+dy*Math.sin(angle))/step)*step));
+        it.width=Math.max(['mug','mouse'].includes(it.type)?16:40,Math.min(400,Math.round((start.w+dx*Math.cos(angle)+dy*Math.sin(angle))/step)*step));
         it.height=Math.max(8,Math.min(300,Math.round((start.h-dx*Math.sin(angle)+dy*Math.cos(angle))/step)*step));if(proportionalTypes.has(it.type)||['door','board','smartboard','bulletin','cabinet'].includes(it.type))resizeFurniture(it,it.width,it.height,Math.abs(dx*Math.cos(angle)+dy*Math.sin(angle))/start.w>=Math.abs(-dx*Math.sin(angle)+dy*Math.cos(angle))/start.h?'width':'height');else constrain(it);snapResize(it);
         Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});if(it.type==='cabinet')node.querySelector('.furniture-art').innerHTML=furnitureArt(it.type,it.height);showGuides([it]);
       };
-      const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(it.type==='mug'?16:40,Math.min(400,Math.round(it.width/(it.type==='mug'?2:10))*(it.type==='mug'?2:10)));it.height=Math.max(8,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height);}save();render();}};
+      const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(['mug','mouse'].includes(it.type)?16:40,Math.min(400,Math.round(it.width/(['mug','mouse'].includes(it.type)?2:10))*(['mug','mouse'].includes(it.type)?2:10)));it.height=Math.max(8,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height);}save();render();}};
       resize.addEventListener('pointermove',move);resize.addEventListener('pointerup',end);resize.addEventListener('pointercancel',end);
     };node.append(resize);if(selectedIds.size<2)controlEntries.push({node,actions,resize});node.addEventListener('pointerenter',updateObjectControls);node.addEventListener('focusin',updateObjectControls);
     node.addEventListener('pointerdown', e => {
@@ -194,7 +194,7 @@ function renderInspector() {
   $('selection-title').textContent = group ? `${selectedItems().length} objects selected` : it ? catalog[it.type].label : 'Fine-tune your room';$('selection-hint').hidden = !!it;
   if(!it) return;
   for(const field of ['label','width','height','x','y']) $('item-'+field).value = it[field];
-  $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-width').min=it.type==='mug'?16:40;$('item-width').step=it.type==='mug'?1:10;$('item-height').min=it.type==='mug'?12:['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
+  $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-width').min=['mug','mouse'].includes(it.type)?16:40;$('item-width').step=['mug','mouse'].includes(it.type)?1:10;$('item-height').min=['mug','mouse'].includes(it.type)?12:['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
   $('label-font-controls').hidden=it.type!=='label';$('label-font-source').value=it.labelFont?.source||'preset';$('label-font-family').value=it.labelFont?.family||'system';
   const style=it.labelStyle||defaultLabelStyle();for(const key of ['background','outline'])$('label-'+key).checked=style[key];for(const key of ['fill','border','text'])$('label-'+key).value=style[key];
   $('item-color').value=it.color || appearance().color || '#e8d7bb';

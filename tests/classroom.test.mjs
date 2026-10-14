@@ -73,7 +73,7 @@ test('group transforms preserve touching edges, proportions, and room limits',as
 
 test('proportional furniture keeps its catalog ratio for both sizing axes',async()=>{
  const {resizeFurniture,proportionalTypes,catalog}=await import('../classroom/model.mjs');
- for(const type of proportionalTypes){const it=furniture(type);for(const axis of ['width','height']){resizeFurniture(it,220,180,axis);assert.ok(Math.abs(it.width/it.height-catalog[type].width/catalog[type].height)<1e-9);assert.ok(it.width>=(type==='mug'?16:40)&&it.width<=400&&it.height>=(type==='mug'?12:type==='window'?8:30)&&it.height<=300);}}
+ for(const type of proportionalTypes){const it=furniture(type);for(const axis of ['width','height']){resizeFurniture(it,220,180,axis);assert.ok(Math.abs(it.width/it.height-catalog[type].width/catalog[type].height)<1e-9);assert.ok(it.width>=(['mug','mouse'].includes(type)?16:40)&&it.width<=400&&it.height>=(['mug','mouse'].includes(type)?12:type==='window'?8:30)&&it.height<=300);}}
  const desk=furniture('teacher');resizeFurniture(desk,220,100);assert.equal(desk.width,220);assert.equal(desk.height,100);
 });
 

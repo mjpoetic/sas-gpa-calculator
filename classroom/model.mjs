@@ -1,5 +1,5 @@
-import {normalizeStudentName} from './student-names.mjs?v=20261013-release10';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261013-release10';
+import {normalizeStudentName} from './student-names.mjs?v=20261013-release11';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261013-release11';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -105,7 +105,7 @@ export function validateBackup(data) {
     const items = c.items.map(it => {
       if(it.color!==undefined && !/^#[\da-f]{6}$/i.test(it.color)) throw new Error('Invalid furniture color.');
       if (!Object.hasOwn(catalog, it.type) || !Array.isArray(it.seats) || it.seats.length !== catalog[it.type].seats || (!Number.isFinite(it.rotation) || it.rotation<0 || it.rotation>=360)) throw new Error('Invalid furniture in backup.');
-      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.color!==undefined?{color:it.color}:{}), ...(it.labelFont!==undefined?{labelFont:validateFont(it.labelFont)}:{}), ...(it.labelStyle!==undefined?{labelStyle:validateLabelStyle(it.labelStyle)}:{}), ...(it.flipX===true?{flipX:true}:{}), ...(it.flipY===true?{flipY:true}:{}), width: dimension(it.width,it.type==='mug'?16:40,400), height: dimension(it.height,8,300), x:num(it.x,-300,1900), y:num(it.y,-300,1900), rotation:it.rotation, seats:it.seats.map(s => {
+      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.color!==undefined?{color:it.color}:{}), ...(it.labelFont!==undefined?{labelFont:validateFont(it.labelFont)}:{}), ...(it.labelStyle!==undefined?{labelStyle:validateLabelStyle(it.labelStyle)}:{}), ...(it.flipX===true?{flipX:true}:{}), ...(it.flipY===true?{flipY:true}:{}), width: dimension(it.width,['mug','mouse'].includes(it.type)?16:40,400), height: dimension(it.height,8,300), x:num(it.x,-300,1900), y:num(it.y,-300,1900), rotation:it.rotation, seats:it.seats.map(s => {
         if (typeof s.locked !== 'boolean' || (s.student !== null && (!studentIds.has(s.student) || assigned.has(s.student)))) throw new Error('Invalid student assignment in backup.');
         if (s.student) assigned.add(s.student);
         if(s.color!==undefined&&!/^#[\da-f]{6}$/i.test(s.color))throw new Error('Invalid seat color.');
@@ -127,7 +127,7 @@ export function footprint(it) {
 export function groupBounds(items) {const boxes=items.map(footprint),x=Math.min(...boxes.map(b=>b.x)),y=Math.min(...boxes.map(b=>b.y));return {x,y,width:Math.max(...boxes.map(b=>b.x+b.width))-x,height:Math.max(...boxes.map(b=>b.y+b.height))-y};}
 export function moveGroup(items,dx,dy) {const b=groupBounds(items);dx=Math.max(-b.x,Math.min(WIDTH-b.x-b.width,dx));dy=Math.max(-b.y,Math.min(HEIGHT-b.y-b.height,dy));items.forEach(it=>{it.x+=dx;it.y+=dy;});}
 export function scaleGroup(items,requested) {
- const b=groupBounds(items),min=Math.max(...items.flatMap(it=>[(it.type==='mug'?16:40)/it.width,8/it.height])),max=Math.min((WIDTH-b.x)/b.width,(HEIGHT-b.y)/b.height,...items.flatMap(it=>[400/it.width,300/it.height]));
+ const b=groupBounds(items),min=Math.max(...items.flatMap(it=>[(['mug','mouse'].includes(it.type)?16:40)/it.width,8/it.height])),max=Math.min((WIDTH-b.x)/b.width,(HEIGHT-b.y)/b.height,...items.flatMap(it=>[400/it.width,300/it.height]));
  const scale=Math.min(max,Math.max(items.some(it=>it.type==='cabinet')?Math.max(1,min):min,requested));
  items.forEach(it=>{it.x=b.x+(it.x-b.x)*scale;it.y=b.y+(it.y-b.y)*scale;it.width=it.type==='cabinet'?80:it.width*scale;it.height*=scale;});return scale;
 }
@@ -147,7 +147,7 @@ export function resizeFurniture(it,width,height,axis='width') {
  else if(proportionalTypes.has(it.type)){
   const spec=catalog[it.type],ratio=spec.width/spec.height;
   let w=axis==='height'?height*ratio:width;
-  w=Math.max(it.type==='mug'?16:40,(it.type==='mug'?12:it.type==='window'?8:30)*ratio,Math.min(400,300*ratio,w));it.width=w;it.height=w/ratio;
+  w=Math.max(['mug','mouse'].includes(it.type)?16:40,(['mug','mouse'].includes(it.type)?12:it.type==='window'?8:30)*ratio,Math.min(400,300*ratio,w));it.width=w;it.height=w/ratio;
  }else{it.width=Math.max(40,Math.min(400,width));it.height=Math.max(30,Math.min(300,height));}
  constrain(it);
 }
@@ -161,7 +161,7 @@ export function vacantPosition(item,others,preferred={x:320,y:220}) {
 
 export function reshapeRoom(chart,width,height){
  const old=chart.room||{width:960,height:680},room=validateRoom({width,height}),scale=Math.min(1,width/old.width,height/old.height);
- chart.items.forEach(it=>{it.x*=width/old.width;it.y*=height/old.height;it.width=Math.max(it.type==='mug'?16:40,it.width*scale);it.height=Math.max(8,it.height*scale);constrain(it,room);});chart.room=room;setRoomSize(room);
+ chart.items.forEach(it=>{it.x*=width/old.width;it.y*=height/old.height;it.width=Math.max(['mug','mouse'].includes(it.type)?16:40,it.width*scale);it.height=Math.max(8,it.height*scale);constrain(it,room);});chart.room=room;setRoomSize(room);
 }
 export function rotateRoom(chart){const old=chart.room||{width:960,height:680},room={width:old.height,height:old.width};chart.items.forEach(it=>{const cx=it.x+it.width/2,cy=it.y+it.height/2;it.x=old.height-cy-it.width/2;it.y=cx-it.height/2;it.rotation=(it.rotation+90)%360;constrain(it,room);});chart.room=room;setRoomSize(room);}
 
