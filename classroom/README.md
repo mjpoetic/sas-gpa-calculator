@@ -139,3 +139,11 @@ Furniture, Students, Details, and Fit room are always accessible from the worksp
 ## Enlarging the chart
 
 The workspace removes its outer canvas padding and Fit room may enlarge beyond 100% when space allows. Visible minus/plus controls and a zoom percentage are available in every orientation. Fill view enlarges to cover the available chart viewport, with scrolling for the cropped part. Enlargement centers the scroll range and enables Pan; drag the room to inspect it, then turn Pan off to edit furniture. The percentage button or Fit room returns to the whole room. Zoom is view-only and does not change chart geometry. `tests/classroom-zoom.browser.cjs` covers enlargement, filling, panning, and returning to Fit in portrait, landscape, and desktop.
+
+## Account entry and control polish
+
+Login fields now use standard username/current-password metadata and names for password managers. Chromium regression covers autofill-style value assignment without input events; actual iCloud extension behavior still requires a device check. Sign-in reports incomplete fields, invalid credentials, and connection failures distinctly.
+
+New or out-of-sync browser sessions automatically offer the cloud classroom list after access verification, placing the last-viewed classroom first. Matching returning copies keep the current chart. Password setup/recovery remains ahead of chart selection; locally saved work is preserved until the user chooses a cloud collection.
+
+Account, Settings, More, and Appearance share dimensions, icon alignment, borders, and corner shape. Desktop library tabs stack vertically; compact layouts use tightly aligned tabs. Edit is available only for selected furniture/seats, and its inspector sizes to content. The redundant desktop zoom dropdown is hidden in favor of the visible zoom controls.
