@@ -1,9 +1,9 @@
-import {controlSize,placeControls} from './control-placement.mjs?v=20261014-release17';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release17';
-import {furnitureArt} from './furniture-art.mjs?v=20261014-release17';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release17';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release17';
-import {connectCloud} from './cloud.js?v=20261014-release17';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261014-release18';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release18';
+import {furnitureArt} from './furniture-art.mjs?v=20261014-release18';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release18';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release18';
+import {connectCloud} from './cloud.js?v=20261014-release18';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -276,7 +276,7 @@ function updateZoom() {
   const style=getComputedStyle(scroller),px=parseFloat(style.paddingLeft)+parseFloat(style.paddingRight),py=parseFloat(style.paddingTop)+parseFloat(style.paddingBottom),fit=$('zoom').value==='fit';
   scroller.dataset.zoom=fit?'fit':'manual';
   zoom=fit?Math.min(3,Math.max(80,scroller.clientWidth-px-4)/WIDTH,Math.max(80,scroller.clientHeight-py-4)/HEIGHT):Number($('zoom').value);
-  room.style.zoom=zoom;
+  room.style.zoom=zoom;room.style.setProperty('--selection-unit',1/zoom+'px');
   room.style.marginLeft=Math.max(0,(scroller.clientWidth-px-WIDTH*zoom)/2)/zoom+'px';
   room.style.marginTop=Math.max(0,(scroller.clientHeight-py-HEIGHT*zoom)/2)/zoom+'px';
   if(fit){scroller.scrollLeft=0;scroller.scrollTop=0;}else{
