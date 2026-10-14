@@ -1,6 +1,7 @@
-import {mergeDocuments} from './sync-merge.mjs?v=20261014-release8';
-import {cloudConfig} from './cloud-config.js?v=20261014-release8';
-import {CloudStore} from './cloud-store.mjs?v=20261014-release8';
+import {migrateTabSession} from './auth-session.mjs?v=20261014-release9';
+import {mergeDocuments} from './sync-merge.mjs?v=20261014-release9';
+import {cloudConfig} from './cloud-config.js?v=20261014-release9';
+import {CloudStore} from './cloud-store.mjs?v=20261014-release9';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
@@ -61,18 +62,14 @@ export async function connectCloud({getState,applyState,notify}) {
   }
   try {
     const {createClient}=await import(SDK);
-    // Keep the session in this tab. Share only the short-lived PKCE verifier
-    // across tabs so an email link opened in a new tab can finish sign-in.
-    const authStorage={
-      getItem:key=>(key.endsWith('-code-verifier') ? localStorage : sessionStorage).getItem(key),
-      setItem:(key,value)=>(key.endsWith('-code-verifier') ? localStorage : sessionStorage).setItem(key,value),
-      removeItem:key=>(key.endsWith('-code-verifier') ? localStorage : sessionStorage).removeItem(key),
-    };
-    client=createClient(cloudConfig.url,cloudConfig.publishableKey,{auth:{flowType:'pkce',storage:authStorage,storageKey:'sas-classroom-auth',persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    // Each browser has an independent persistent session. Within that browser,
+    // use SDK storage, broadcasting and locks to coordinate token refreshes.
+    migrateTabSession(localStorage,sessionStorage);
+    client=createClient(cloudConfig.url,cloudConfig.publishableKey,{auth:{flowType:'pkce',storageKey:'sas-classroom-auth',persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     client.auth.onAuthStateChange((event,session)=>{
       // Run outside the SDK auth callback lock.
       if(event==='PASSWORD_RECOVERY') recovery=true;
-      if(['INITIAL_SESSION','SIGNED_IN','SIGNED_OUT','PASSWORD_RECOVERY'].includes(event)) setTimeout(()=>{if(!busy) void account(session);},0);
+      if(['INITIAL_SESSION','SIGNED_IN','SIGNED_OUT','PASSWORD_RECOVERY'].includes(event)) setTimeout(()=>{if(event==='SIGNED_OUT'||!busy) void account(session);},0);
     });
     const initialized=await client.auth.initialize?.();if(initialized?.error)throw initialized.error;
     const {error}=await client.auth.getSession();if(error) throw error;
