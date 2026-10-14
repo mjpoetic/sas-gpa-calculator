@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release9';
-import {furnitureArt} from './furniture-art.mjs?v=20261013-release9';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release9';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release9';
-import {connectCloud} from './cloud.js?v=20261013-release9';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release10';
+import {furnitureArt} from './furniture-art.mjs?v=20261013-release10';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release10';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release10';
+import {connectCloud} from './cloud.js?v=20261013-release10';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -215,9 +215,9 @@ function renderRoster() {
     edit.onclick=()=>{editing=true;input.readOnly=false;input.value=st.name;input.focus();input.select();};
     input.onblur=()=>{if(!editing)return;editing=false;const name=normalizeStudentName(input.value);if(name&&name!==st.name)change(()=>{st.name=name;},'Student name updated.');else{input.readOnly=true;input.value=rosterName(st);}};
     input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();input.blur();}if(e.key==='Escape'){editing=false;input.readOnly=true;input.value=rosterName(st);}};
-    const remove = element('button','','×');remove.setAttribute('aria-label',`Remove ${rosterName(st)}`);
+    const remove = element('button','student-remove');remove.type='button';remove.title='Remove student';remove.setAttribute('aria-label',`Remove ${rosterName(st)}`);
     remove.onclick = () => change(() => {chart().students = chart().students.filter(s => s.id !== st.id);chart().students.forEach(s=>{if(s.avoid)s.avoid=s.avoid.filter(id=>id!==st.id);});seats(chart()).forEach(s => {if(s.student === st.id) {s.student=null;s.locked=false;}});},'Student removed. Undo is available.');
-    const avoid=element('button','student-avoid','↔');avoid.title='Choose students to seat apart';avoid.setAttribute('aria-label','Separation preferences for '+rosterName(st));avoid.onclick=()=>editSeparation(st);input.ondblclick=()=>editSeparation(st);row.append(avoid,input,element('small','',assigned.has(st.id)?'Seated':'Waiting'),edit,remove);$('roster').append(row);
+    const avoid=element('button','student-avoid','↔');avoid.title='Choose students to seat apart';avoid.setAttribute('aria-label','Separation preferences for '+rosterName(st));avoid.onclick=()=>editSeparation(st);input.ondblclick=()=>editSeparation(st);rosterGlyph(avoid,'M6 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM18 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM3 12v-1a3 3 0 0 1 6 0v1m6 0v-1a3 3 0 0 1 6 0v1M9 18H3m0 0 3-3m-3 3 3 3m9-3h6m0 0-3-3m3 3-3 3');rosterGlyph(edit,'M4 16 16 4l4 4L8 20H4ZM13 7l4 4');rosterGlyph(remove,'M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 10v7m4-7v7');const actions=element('div','student-actions');actions.append(avoid,edit,remove);row.append(input,element('small','',assigned.has(st.id)?'Seated':'Waiting'),actions);$('roster').append(row);
   });
 }
 $('furniture-tab').onclick = () => tab(false);$('students-tab').onclick = () => tab(true);
@@ -377,3 +377,5 @@ $('room').addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){hoverOw
 
 function defaultLabelStyle(){return {background:false,outline:false,fill:document.documentElement.classList.contains('dark')?'#20384b':'#edf5fa',border:'#66899f',text:document.documentElement.classList.contains('dark')?'#e0edf6':'#294c6b'};}
 for(const key of ['background','outline','fill','border','text'])$('label-'+key).onchange=()=>{const it=selected();if(it?.type==='label')change(()=>{const style=it.labelStyle||defaultLabelStyle();style[key]=['background','outline'].includes(key)?$('label-'+key).checked:$('label-'+key).value;it.labelStyle=style;});};
+
+function rosterGlyph(button,path){button.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${path}"/></svg>`;}
