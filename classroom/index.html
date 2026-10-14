@@ -6,13 +6,13 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Classroom Studio | SAS</title>
   <link rel="icon" href="../favicon-96x96.png">
-  <link rel="stylesheet" href="studio.css?v=20261013-icons1">
-  <link rel="stylesheet" href="../assets/appearance.css?v=20261013-icons1">
-  <link rel="stylesheet" href="liquid-glass.css?v=20261013-icons1">
-  <link rel="stylesheet" href="workspace.css?v=20261013-icons1">
-  <script type="module" src="workspace.js?v=20261013-icons1"></script>
-  <script type="module" src="../assets/appearance.js?v=20261013-icons1"></script>
-  <script type="module" src="studio.js?v=20261013-icons1"></script>
+  <link rel="stylesheet" href="studio.css?v=20261013-names1">
+  <link rel="stylesheet" href="../assets/appearance.css?v=20261013-names1">
+  <link rel="stylesheet" href="liquid-glass.css?v=20261013-names1">
+  <link rel="stylesheet" href="workspace.css?v=20261013-names1">
+  <script type="module" src="workspace.js?v=20261013-names1"></script>
+  <script type="module" src="../assets/appearance.js?v=20261013-names1"></script>
+  <script type="module" src="studio.js?v=20261013-names1"></script>
 </head>
 <body>
   <header class="header"><a href="../" class="brand">SAS <span>Classroom Studio</span></a><span class="badge">WORK IN PROGRESS · UNLISTED</span><a href="../">Back to honors calculator ↗</a></header>
@@ -29,7 +29,7 @@
     <details class="chart-customization panel"><summary>Room shape and orientation</summary><div class="customization-fields"><label>Room width<input id="room-width" type="number" min="480" max="1600" step="10" value="960"></label><label>Room depth<input id="room-depth" type="number" min="480" max="1600" step="10" value="680"></label><button id="apply-room">Apply room size</button><button id="square-room">Make square</button><button id="rotate-room">↻ Rotate room 90°</button></div><p class="hint">Adjust the rectangle to match your room. Furniture stays inside it; Undo restores the previous arrangement.</p></details><div class="workspace">
       <aside class="panel library"><div class="tabs" role="tablist" aria-label="Library"><button id="furniture-tab" role="tab" aria-selected="true" aria-controls="furniture-panel">Furniture</button><button id="students-tab" role="tab" aria-selected="false" aria-controls="students-panel">Students <span id="student-count">0</span></button></div>
         <section id="furniture-panel" role="tabpanel" aria-labelledby="furniture-tab"><h2>Make room</h2><p class="hint">Click to add in an open space, or drag furniture onto the room.</p><div id="palette" class="palette"></div><div class="section-divider"></div><h2>Start with a layout</h2><label>Arrangement <select id="preset"><option value="rows">Classic rows · 24 seats</option><option value="groups">Table groups · 24 seats</option><option value="horseshoe">Horseshoe · 18 seats</option></select></label><button id="apply-preset" class="wide">Apply layout</button><p class="hint">Replaces furniture; keeps your student list. Undo is available.</p></section>
-        <section id="students-panel" role="tabpanel" aria-labelledby="students-tab" hidden><h2>Your students</h2><p class="hint">Add one name per line. Duplicate names are allowed.</p><form id="add-students"><label for="student-names">Student names</label><textarea id="student-names" rows="4" placeholder="Alex Rivera&#10;Jordan Lee"></textarea><button class="primary wide">Add students</button></form><button id="assign-all" class="wide">Seat unassigned students</button><p id="roster-summary" class="hint"></p><div id="roster"></div></section>
+        <section id="students-panel" role="tabpanel" aria-labelledby="students-tab" hidden><h2>Your students</h2><p class="hint">One name per line; extra spaces are removed. Last names display as initials. Full names remain available through Edit.</p><form id="add-students"><label for="student-names">Student names</label><textarea id="student-names" rows="4" placeholder="Alex Rivera&#10;Jordan Lee"></textarea><button class="primary wide">Add students</button></form><button id="assign-all" class="wide">Seat unassigned students</button><p id="roster-summary" class="hint"></p><div id="roster"></div></section>
         <p class="local-note">Edits save on this device. When signed in and synchronized, edits save automatically to cloud. Export a backup anytime.</p>
       </aside>
       <section class="room-panel panel" aria-label="Seating chart editor"><div class="room-toolbar"><div><strong id="room-title">Classroom</strong><span id="seat-summary"></span></div><div class="toolbar-actions"><label class="check"><input id="snap" type="checkbox" checked> Snap &amp; guides</label><button id="multi-select" aria-pressed="false">Select multiple</button><button id="undo" title="Undo last change (⌘Z)">↶ Undo</button><button id="redo" title="Redo (⌘⇧Z)">↷ Redo</button><button id="shuffle" class="primary">⇄ Shuffle students</button></div></div><div class="room-scroll"><div id="room" aria-label="Classroom floor plan"></div></div><div class="room-footer"><span>Shift-click or use Select multiple · Drag blank space to select · Drag a group to move</span><label>Zoom <select id="zoom"><option value="fit" selected>Fit room</option><option value="0.6">60%</option><option value="0.8">80%</option><option value="1">100%</option><option value="1.2">120%</option></select></label></div></section>

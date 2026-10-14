@@ -1,7 +1,8 @@
-import {furnitureArt} from './furniture-art.mjs?v=20261013-icons1';
-import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-icons1';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-icons1';
-import {connectCloud} from './cloud.js?v=20261013-icons1';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-names1';
+import {furnitureArt} from './furniture-art.mjs?v=20261013-names1';
+import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-names1';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-names1';
+import {connectCloud} from './cloud.js?v=20261013-names1';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -101,7 +102,7 @@ function renderRoom() {
       it.seats.forEach((s,i) => {
         const student = chart().students.find(st => st.id === s.student);
         const btn = element('button',`seat${student ? ' assigned' : ''}${s.locked ? ' locked' : ''}${selection?.id === it.id && selection?.seat === i ? ' selected-seat' : ''}`);
-        const text = element('span','seat-name',student?.name || `Seat ${i+1}`);
+        const text = element('span','seat-name',student?seatName(student,chart().students):`Seat ${i+1}`);
         // The seat footprint follows its desk; only its name stays upright.
         text.style.transform = `rotate(${-it.rotation}deg)`;
         const sideways = it.rotation % 180 !== 0;
@@ -115,7 +116,7 @@ function renderRoom() {
           text.style.maxHeight = `${Math.max(0,(diagonal?side:sideways ? width : height)-4)}px`;
           observer.disconnect();
         }).observe(btn);
-        btn.setAttribute('aria-label',`${it.label}, seat ${i+1}: ${student?.name || 'unassigned'}${s.locked ? ', locked during shuffle' : ''}`);
+        btn.setAttribute('aria-label',`${it.label}, seat ${i+1}: ${student?seatName(student,chart().students):'unassigned'}${s.locked ? ', locked during shuffle' : ''}`);
         btn.onclick = e => {e.stopPropagation();if(e.shiftKey||e.metaKey||multiMode){choose(it,true);renderRoom();renderInspector();return;}selectedIds=new Set([it.id]);selection = {id:it.id,seat:i};renderRoom();renderInspector();($('assignment').parentElement.querySelector('.site-select-trigger')||$('assignment')).focus();};
         grid.append(btn);
       });node.append(grid);
@@ -190,18 +191,21 @@ function renderInspector() {
   $('item-color').value=it.color || appearance().color || '#e8d7bb';
   if(selection.seat !== null) {
     const s = it.seats[selection.seat];$('seat-title').textContent = `Seat ${selection.seat+1}`;
-    $('assignment').replaceChildren(option('','Unassigned'), ...chart().students.map(st => option(st.id,st.name)));
+    $('assignment').replaceChildren(option('','Unassigned'), ...chart().students.map(st => option(st.id,rosterName(st))));
     $('assignment').value = s.student || '';$('locked').checked = s.locked;
   }
 }
 function renderRoster() {
   const assigned = new Set(seats(chart()).map(s => s.student));$('roster').replaceChildren();
   chart().students.forEach(st => {
-    const row = element('div','student-row');const input = element('input');input.value = st.name;input.maxLength = 80;input.setAttribute('aria-label',`Rename ${st.name}`);
-    input.onchange = () => {if(!input.value.trim()) {input.value = st.name;return;} change(() => {st.name = input.value.trim();});};
-    const remove = element('button','','×');remove.setAttribute('aria-label',`Remove ${st.name}`);
+    const row = element('div','student-row');const input = element('input');input.value=rosterName(st);input.readOnly=true;input.maxLength=80;input.setAttribute('aria-label',`Student ${rosterName(st)}`);
+    let editing=false;const edit=element('button','student-edit','✎');edit.type='button';edit.setAttribute('aria-label',`Edit name for ${rosterName(st)}`);edit.title='Edit full student name';
+    edit.onclick=()=>{editing=true;input.readOnly=false;input.value=st.name;input.focus();input.select();};
+    input.onblur=()=>{if(!editing)return;editing=false;const name=normalizeStudentName(input.value);if(name&&name!==st.name)change(()=>{st.name=name;},'Student name updated.');else{input.readOnly=true;input.value=rosterName(st);}};
+    input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();input.blur();}if(e.key==='Escape'){editing=false;input.readOnly=true;input.value=rosterName(st);}};
+    const remove = element('button','','×');remove.setAttribute('aria-label',`Remove ${rosterName(st)}`);
     remove.onclick = () => change(() => {chart().students = chart().students.filter(s => s.id !== st.id);seats(chart()).forEach(s => {if(s.student === st.id) {s.student=null;s.locked=false;}});},'Student removed. Undo is available.');
-    row.append(input,element('small','',assigned.has(st.id)?'Seated':'Waiting'),remove);$('roster').append(row);
+    row.append(input,element('small','',assigned.has(st.id)?'Seated':'Waiting'),edit,remove);$('roster').append(row);
   });
 }
 $('furniture-tab').onclick = () => tab(false);$('students-tab').onclick = () => tab(true);
@@ -215,7 +219,7 @@ $('copy-chart').onclick = () => {if(state.charts.length >= 100) return say('You 
 },'Chart duplicated with its roster and assignments.');};
 $('delete-chart').onclick = () => {if(state.charts.length<2 || !confirm(`Delete “${chart().name}”? Undo will restore it.`)) return;change(() => {state.charts=state.charts.filter(c => c.id !== state.active);state.active=state.charts[0].id;selection=null;},'Chart deleted. Undo is available.');};
 $('apply-preset').onclick = () => {if(!confirm('Replace the room furniture with this layout? Your student list stays. Undo will restore the previous room.')) return;change(() => {chart().items=layout($('preset').value);assignUnseated(chart());selection=null;},'Layout applied. Students seated in roster order.');};
-$('add-students').onsubmit = e => {e.preventDefault();const names = $('student-names').value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);if(!names.length) return;if(names.some(n => n.length>80) || chart().students.length+names.length>500) return say('Use names up to 80 characters and no more than 500 students per chart.');change(() => {chart().students.push(...names.map(name => ({id:uid(),name})));$('student-names').value='';},`${names.length} students added. Use “Seat unassigned students” to place them.`);};
+$('add-students').onsubmit = e => {e.preventDefault();const names = $('student-names').value.split(/\r?\n/).map(normalizeStudentName).filter(Boolean);if(!names.length) return;if(names.some(n => n.length>80) || chart().students.length+names.length>500) return say('Use names up to 80 characters and no more than 500 students per chart.');change(() => {chart().students.push(...names.map(name => ({id:uid(),name})));$('student-names').value='';},`${names.length} students added. Use “Seat unassigned students” to place them.`);};
 $('assign-all').onclick = () => change(() => assignUnseated(chart()),'Students placed in empty, unlocked seats. Any remaining students are marked Waiting.');
 $('shuffle').onclick = () => {
   const movable = seats(chart()).filter(s => s.student && !s.locked).length;
@@ -297,3 +301,4 @@ $('room').addEventListener('pointerdown',event=>{if(!panMode||event.button!==0)r
 $('zoom').addEventListener('change',()=>{if($('zoom').value==='fit')setPan(false);});
 
 $('room').addEventListener('click',event=>{if(panMode){event.preventDefault();event.stopImmediatePropagation();}},true);
+$('student-names').addEventListener('paste',event=>{const text=event.clipboardData?.getData('text/plain');if(!text)return;event.preventDefault();const clean=text.split(/\r\n|\r|\n/).map(normalizeStudentName).join('\n');event.target.setRangeText(clean,event.target.selectionStart,event.target.selectionEnd,'end');event.target.dispatchEvent(new Event('input',{bubbles:true}));});

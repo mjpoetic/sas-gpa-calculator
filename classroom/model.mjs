@@ -1,4 +1,5 @@
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261013-icons1';
+import {normalizeStudentName} from './student-names.mjs?v=20261013-names1';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261013-names1';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -88,7 +89,7 @@ export function validateBackup(data) {
   const charts = data.charts.map(c => {
     if (!Array.isArray(c.students) || c.students.length > 500 || !Array.isArray(c.items) || c.items.length > 500) throw new Error('Backup exceeds classroom limits.');
     const room=c.room===undefined?{width:960,height:680}:validateRoom(c.room);
-    const students = c.students.map(s => ({id: id(s.id), name: str(s.name, 80)}));
+    const students = c.students.map(s => ({id: id(s.id), name: normalizeStudentName(str(s.name,80))}));
     const studentIds = new Set(students.map(s => s.id)), assigned = new Set();
     const items = c.items.map(it => {
       if(it.color!==undefined && !/^#[\da-f]{6}$/i.test(it.color)) throw new Error('Invalid furniture color.');

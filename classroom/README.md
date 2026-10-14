@@ -151,3 +151,7 @@ Account, Settings, More, and Appearance share dimensions, icon alignment, border
 ## Icons and help
 
 Undo/Redo use opposite curved SVG arrows, multi-select uses checked squares, Shuffle uses crossed arrows, Furniture uses a chair, and Students uses a group of people. Hover or keyboard focus reveals concise workspace help, including how multi-selection and group movement work; controls inside dialogs also have descriptive titles. Settings opens with chart appearance and room shape sections expanded. Account also contains the backup/import/print actions, replacing More. The top-left Sawgrass logo links to the main site. Icon/help regression checks distinct glyphs, selection guidance, expanded settings, combined account/files, the logo link, and narrow-screen fit.
+
+## Student name display
+
+Pasting names and adding/editing students trims and collapses whitespace on each line. The roster and assignment menu show first name plus last initial; seat labels show only the first name unless multiple roster students share that first-name spelling (case-insensitive), in which case they show the last initial too. First names are the first word and surname initials come from the final word; single-word names remain intact. Renaming or removing students recalculates seat labels. Full normalized names stay in saved/cloud/backup data and can be edited explicitly through the roster pencil button. Settings uses distinct typography/check, sizing-arrows, square, and rotation glyphs.

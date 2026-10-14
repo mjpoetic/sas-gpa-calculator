@@ -90,3 +90,7 @@ test('generated size overshoots recover without losing furniture or students',()
  const c=newChart();c.students=[{id:uid(),name:'Student'}];assignUnseated(c);c.items[3].width=400.00000000003;c.items[3].height=7.99999999999;c.items[4].width=450;
  const copy=validateBackup({version:1,active:c.id,charts:[c]}).charts[0];assert.equal(copy.items[3].width,400);assert.equal(copy.items[3].height,8);assert.equal(copy.items[4].width,400);assert.equal(copy.items.length,c.items.length);assert.deepEqual(copy.students,c.students);assert.equal(copy.items[3].seats[0].student,c.students[0].id);
 });
+
+test('student display names normalize spaces and disambiguate matching first names',async()=>{
+ const {normalizeStudentName,rosterName,seatName}=await import('../classroom/student-names.mjs');assert.equal(normalizeStudentName('  Alex\t  Smith  '),'Alex Smith');const students=[{name:'Alex Smith'},{name:'Alex Jones'},{name:'Jordan Rivera'},{name:'José Peña'},{name:'Jose Ortiz'},{name:'Cher'}];assert.equal(rosterName(students[2]),'Jordan R.');assert.equal(seatName(students[0],students),'Alex S.');assert.equal(seatName(students[1],students),'Alex J.');assert.equal(seatName(students[2],students),'Jordan');assert.equal(seatName(students[3],students),'José');assert.equal(seatName(students[5],students),'Cher');assert.equal(seatName(students[0],students.slice(0,1)),'Alex');
+});
