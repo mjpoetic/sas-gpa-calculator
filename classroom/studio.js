@@ -1,12 +1,12 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release5';
-import {furnitureArt} from './furniture-art.mjs?v=20261013-release5';
-import {rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release5';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release5';
-import {connectCloud} from './cloud.js?v=20261013-release5';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release6';
+import {furnitureArt} from './furniture-art.mjs?v=20261013-release6';
+import {rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release6';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release6';
+import {connectCloud} from './cloud.js?v=20261013-release6';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
-let controlFrame,controlEntries=[],groupOverlay,lastSeatTap,labelObservers=[];
+let controlFrame,controlEntries=[],groupOverlay,lastSeatTap,labelObservers=[],hoverOwner=null;
 let state, loadError = '', selection = null, history = [], redoHistory = [], zoom = 1;
 try {
   const saved = localStorage.getItem(KEY);
@@ -80,7 +80,7 @@ $('chart-reset').onclick=()=>change(()=>{chart().appearance=defaultAppearance();
 $('item-color').onchange=()=>{const it=selected();if(it)change(()=>{it.color=$('item-color').value;});};
 $('item-color-reset').onclick=()=>{const it=selected();if(it)change(()=>{delete it.color;});};
 function renderRoom() {
-  cancelAnimationFrame(controlFrame);controlEntries=[];groupOverlay=null;labelObservers.forEach(o=>o.disconnect());labelObservers=[];
+  cancelAnimationFrame(controlFrame);controlEntries=[];groupOverlay=null;if(!chart().items.some(it=>it.id===hoverOwner))hoverOwner=null;labelObservers.forEach(o=>o.disconnect());labelObservers=[];
   const room = $('room');room.style.width=WIDTH+'px';room.style.height=HEIGHT+'px';
   const previous=new Map([...room.querySelectorAll('.item')].map(node=>[node.dataset.id,{x:parseFloat(node.style.left),y:parseFloat(node.style.top),width:parseFloat(node.style.width),height:parseFloat(node.style.height),rotation:Number(node.dataset.rotation||0),active:node.classList.contains('dragging')||node.classList.contains('resizing')} ]));
   room.replaceChildren();
@@ -89,10 +89,11 @@ function renderRoom() {
   room.style.fontFamily=fontCSS(appearance().font);
   room.style.setProperty('--chart-font-size',`${appearance().fontSize}px`);
   const font=appearance().font,weight=appearance().weight||400;$('chart-font-status').textContent=font.source==='google'?'Loading '+font.family+'…':'Font applied: '+(fontOptions[font.family]?.label||font.family);void loadFont(font,weight).then(async()=>{if(document.fonts?.load)await document.fonts.load(`${weight} 14px ${fontCSS(font)}`);if(JSON.stringify(appearance().font)===JSON.stringify(font))$('chart-font-status').textContent='Font applied: '+(fontOptions[font.family]?.label||font.family);}).catch(error=>{$('chart-font-status').textContent=error.message;say(error.message);});
+  const layers=new Map([...chart().items].sort((a,b)=>b.width*b.height-a.width*a.height).map((it,i)=>[it.id,i+1]));
   for(const it of chart().items) {
     const node = element('div',`item ${it.type}${selectedIds.has(it.id) ? ' selected' : ''}`);
     node.ondblclick=e=>{if(it.type==='label'||e.target.closest('.seat'))return;if(e.target.closest('.furniture-actions,.resize-handle'))return;e.preventDefault();e.stopPropagation();choose(it);renderInspector();$('item-color').focus();$('item-color').click();};
-    node.dataset.id = it.id;node.dataset.rotation=it.rotation;node.tabIndex = 0;node.setAttribute('aria-label',`${it.label}. Drag to move, or use arrow keys.`);
+    node.style.zIndex=layers.get(it.id);node.dataset.id = it.id;node.dataset.rotation=it.rotation;node.tabIndex = 0;node.setAttribute('aria-label',`${it.label}. Drag to move, or use arrow keys.`);
     Object.assign(node.style,{left:`${it.x}px`,top:`${it.y}px`,width:`${it.width}px`,height:`${it.height}px`,transform:`rotate(${it.rotation}deg)`});
     const color=it.color || appearance().color;
     if(color) {node.style.background=color;node.style.setProperty('--furniture-color',color);const rgb=color.slice(1).match(/../g).map(c=>parseInt(c,16));node.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#172c3e':'#ffffff';}
@@ -320,8 +321,8 @@ function updateObjectControls(){
  for(const panel of document.querySelectorAll('.library:not([hidden]),.inspector:not([hidden])')){if(getComputedStyle(panel).position!=='fixed')continue;const p=panel.getBoundingClientRect();if(p.width>=b.width*.8&&p.top>b.top)bounds.bottom=Math.min(bounds.bottom,p.top-5);else if(p.right>=b.right-20&&p.left>b.left)bounds.right=Math.min(bounds.right,p.left-5);}
  const zoomBox=document.querySelector('.canvas-zoom')?.getBoundingClientRect();
  let active=false;const touch=matchMedia('(pointer:coarse)').matches,base=touch?44:32,size=Math.max(touch?36:24,base/Math.sqrt(Math.max(1,zoom)));
- for(const {node,actions,resize} of controlEntries){if(!node.isConnected)continue;if(!node.classList.contains('selected')&&!node.matches(':hover,:focus-within')){node.classList.remove('controls-visible');continue;}const box=node.getBoundingClientRect(),visible=box.right>bounds.left&&box.left<bounds.right&&box.bottom>bounds.top&&box.top<bounds.bottom;
- const showing=visible&&(node.classList.contains('selected')||node.matches(':hover,:focus-within'));node.classList.toggle('controls-visible',showing);if(!showing)continue;active=true;
+ for(const {node,actions,resize} of controlEntries){if(!node.isConnected)continue;if(!(node.classList.contains('group-selection')||node.dataset.id===hoverOwner||(!hoverOwner&&(node.classList.contains('selected')||node.matches(':focus-within'))))){node.classList.remove('controls-visible');continue;}const box=node.getBoundingClientRect(),visible=box.right>bounds.left&&box.left<bounds.right&&box.bottom>bounds.top&&box.top<bounds.bottom;
+ const showing=visible;node.classList.toggle('controls-visible',showing);if(!showing)continue;active=true;
  const angle=Number(node.dataset.rotation||0),r=angle*Math.PI/180,w=parseFloat(node.style.width),h=parseFloat(node.style.height),cx=box.x+box.width/2,cy=box.y+box.height/2;
  function place(el,x,y,factor){const ew=el.offsetWidth*zoom*factor,eh=el.offsetHeight*zoom*factor;if(zoomBox&&x+ew/2>zoomBox.left&&x-ew/2<zoomBox.right&&y+eh/2>zoomBox.top&&y-eh/2<zoomBox.bottom)y=Math.max(bounds.top+eh/2,zoomBox.top-eh/2-5);const dx=x-cx,dy=y-cy;el.style.left=(w/2+(dx*Math.cos(r)+dy*Math.sin(r))/zoom)+'px';el.style.top=(h/2+(-dx*Math.sin(r)+dy*Math.cos(r))/zoom)+'px';el.style.right='auto';el.style.bottom='auto';el.style.transform=`translate(-50%,-50%) rotate(${-angle}deg) scale(${factor})`;}
  const factor=size/((actions.firstElementChild.offsetWidth||base)*zoom),aw=actions.offsetWidth*zoom*factor,ah=actions.offsetHeight*zoom*factor;
@@ -360,3 +361,14 @@ function renderGroupControls(){
  resize.onpointerdown=e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();const original=structuredClone(members),b=groupBounds(members),start={x:e.clientX,y:e.clientY};let moved=false;resize.setPointerCapture(e.pointerId);const move=ev=>{const dx=(ev.clientX-start.x)/zoom,dy=(ev.clientY-start.y)/zoom;if(!moved&&Math.hypot(dx,dy)<3)return;if(!moved){checkpoint();moved=true;}members.forEach((it,i)=>Object.assign(it,original[i]));scaleGroup(members,Math.max(.1,1+(dx+dy)/(b.width+b.height)));paintPositions();};const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){save();render();}};resize.addEventListener('pointermove',move);resize.addEventListener('pointerup',end);resize.addEventListener('pointercancel',end);};
  actions.append(turn,copy,remove);groupOverlay.append(actions,resize);$('room').append(groupOverlay);positionGroupOverlay();controlEntries.push({node:groupOverlay,actions,resize});
 }
+
+// Hover never changes furniture stacking: smaller objects remain above their surfaces.
+$('room').addEventListener('pointermove',e=>{
+ if(e.pointerType==='touch')return;
+ const target=e.target.closest('.item'),previous=controlEntries.find(entry=>entry.node.dataset.id===hoverOwner);
+ if(previous&&target!==previous.node&&!e.target.closest('.furniture-actions,.resize-handle')){const a=previous.actions.getBoundingClientRect(),n=previous.node.getBoundingClientRect();const corridor=e.clientX>=Math.min(a.left,n.left)-4&&e.clientX<=Math.max(a.right,n.right)+4&&e.clientY>=Math.min(a.top,n.top)-4&&e.clientY<=Math.max(n.top,a.bottom)+6;if(corridor)return;}
+ const owner=target?.dataset.id||null;if(owner!==hoverOwner){hoverOwner=owner;updateObjectControls();}
+});
+$('room').addEventListener('pointerleave',()=>{hoverOwner=null;updateObjectControls();});
+
+$('room').addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){hoverOwner=null;updateObjectControls();}},true);

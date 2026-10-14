@@ -39,3 +39,4 @@
 /* Furniture artwork has no glass plate or highlight around it. */
 #room .item::after{display:none}#room .item{box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}#room .item:is(.officechair,.plant,.laptop,.keyboard,.mouse,.couch,.chair,.stool,.window,.smartboard,.cabinet,.printer,.shelf,.bulletin,.board,.door){background:transparent!important;border:0!important}#room .item.selected{outline:2px solid #61afe0;outline-offset:2px}.item.smartboard .furniture-art{inset:0}
 @media(pointer:coarse){.group-selection .furniture-actions button{width:44px;height:44px;min-height:44px}}@media print{.group-selection{display:none!important}#room .item.selected{outline:none}}
+.group-selection{z-index:1000}#room .item:not(.controls-visible) .furniture-actions,#room .item:not(.controls-visible) .resize-handle{pointer-events:none!important}
