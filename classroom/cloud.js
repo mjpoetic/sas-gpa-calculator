@@ -1,5 +1,5 @@
-import {cloudConfig} from './cloud-config.js?v=20261013-names1';
-import {CloudStore} from './cloud-store.mjs?v=20261013-names1';
+import {cloudConfig} from './cloud-config.js?v=20261013-controls1';
+import {CloudStore} from './cloud-store.mjs?v=20261013-controls1';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';

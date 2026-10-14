@@ -1,11 +1,12 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-names1';
-import {furnitureArt} from './furniture-art.mjs?v=20261013-names1';
-import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-names1';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-names1';
-import {connectCloud} from './cloud.js?v=20261013-names1';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-controls1';
+import {furnitureArt} from './furniture-art.mjs?v=20261013-controls1';
+import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-controls1';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-controls1';
+import {connectCloud} from './cloud.js?v=20261013-controls1';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
+let controlFrame,controlEntries=[];
 let state, loadError = '', selection = null, history = [], redoHistory = [], zoom = 1;
 try {
   const saved = localStorage.getItem(KEY);
@@ -79,6 +80,7 @@ $('chart-reset').onclick=()=>change(()=>{chart().appearance=defaultAppearance();
 $('item-color').onchange=()=>{const it=selected();if(it)change(()=>{it.color=$('item-color').value;});};
 $('item-color-reset').onclick=()=>{const it=selected();if(it)change(()=>{delete it.color;});};
 function renderRoom() {
+  cancelAnimationFrame(controlFrame);controlEntries=[];
   const room = $('room');room.style.width=WIDTH+'px';room.style.height=HEIGHT+'px';
   const previous=new Map([...room.querySelectorAll('.item')].map(node=>[node.dataset.id,{x:parseFloat(node.style.left),y:parseFloat(node.style.top),width:parseFloat(node.style.width),height:parseFloat(node.style.height),rotation:Number(node.dataset.rotation||0),active:node.classList.contains('dragging')||node.classList.contains('resizing')} ]));
   room.replaceChildren();
@@ -135,7 +137,7 @@ function renderRoom() {
       turn.addEventListener('pointermove',move);turn.addEventListener('pointerup',end);turn.addEventListener('pointercancel',end);
     };
     turn.onclick=e=>{e.stopPropagation();if(rotationDragged){rotationDragged=false;return;}change(()=>{it.rotation=(it.rotation+90)%360;constrain(it);selection={id:it.id,seat:null};});};
-    actions.append(turn,remove);node.append(actions);
+    const duplicate=element('button','furniture-duplicate');duplicate.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 9h11v11H9ZM4 15H3V3h12v1"/></svg>';duplicate.type='button';duplicate.title='Duplicate furniture with empty seats';duplicate.setAttribute('aria-label',`Duplicate ${it.label}`);duplicate.onclick=e=>{e.stopPropagation();duplicateFurniture(it);};actions.append(turn,duplicate,remove);node.append(actions);
     const resize=element('button','resize-handle','↘');resize.setAttribute('aria-label',`Resize ${it.label}`);resize.title='Drag to resize; use Width and Depth for exact sizes';
     resize.onpointerdown=e=>{
       if(e.button!==0) return;e.preventDefault();e.stopPropagation();if(!selectedIds.has(it.id))choose(it);selection={id:it.id,seat:null};renderInspector();
@@ -152,7 +154,7 @@ function renderRoom() {
       };
       const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(40,Math.min(400,Math.round(it.width/10)*10));it.height=Math.max(8,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height);}save();render();}};
       resize.addEventListener('pointermove',move);resize.addEventListener('pointerup',end);resize.addEventListener('pointercancel',end);
-    };node.append(resize);
+    };node.append(resize);controlEntries.push({node,actions,resize});node.addEventListener('pointerenter',updateObjectControls);node.addEventListener('focusin',updateObjectControls);
     node.addEventListener('pointerdown', e => {
       if(e.button !== 0 || e.target.closest('button')) return;
       if(e.shiftKey||e.metaKey||(multiMode&&!selectedIds.has(it.id))){choose(it,true);renderRoom();renderInspector();return;}
@@ -179,7 +181,7 @@ function renderRoom() {
       if(prior?.active)node.classList.add('settling');
     }
   }
-  updateZoom();
+  updateZoom();updateObjectControls();
 }
 function renderInspector() {
   document.dispatchEvent(new CustomEvent('sas-selection-changed',{detail:{selected:!!selected(),seat:!!selected()&&selection?.seat!==null}}));
@@ -235,7 +237,8 @@ for(const field of ['label','width','height','x','y']) $('item-'+field).onchange
   change(() => {if(field==='width'||field==='height')resizeFurniture(it,field==='width'?Number(input.value):it.width,field==='height'?Number(input.value):it.height,field);else {it[field]=field==='label'?input.value.trim()||catalog[it.type].label:Number(input.value);constrain(it);}});
 };
 $('rotate').onclick = () => {const it=selected();if(it) change(() => {it.rotation=(it.rotation+90)%360;constrain(it);});};
-$('duplicate-item').onclick = () => {const it=selected();if(!it || chart().items.length>=500) return;change(() => {const copy=structuredClone(it);copy.id=uid();copy.x+=30;copy.y+=30;copy.seats.forEach(s => {s.student=null;s.locked=false;});constrain(copy);chart().items.push(copy);selection={id:copy.id,seat:null};},'Furniture duplicated with empty seats.');};
+function duplicateFurniture(it){if(!it||chart().items.length>=500)return;change(()=>{const copy=structuredClone(it);copy.id=uid();copy.seats.forEach(s=>{s.student=null;s.locked=false;});vacantPosition(copy,chart().items,{x:it.x+30,y:it.y+30});chart().items.push(copy);choose(copy);},'Furniture duplicated with empty seats. Undo is available.');}
+$('duplicate-item').onclick=()=>duplicateFurniture(selected());
 $('delete-item').onclick = () => {const it=selected();if(it) change(() => {chart().items=chart().items.filter(i => i.id!==it.id);selection=null;},'Furniture removed. Its students are now unassigned.');};
 $('assignment').onchange = () => {const it=selected();if(!it || selection.seat===null) return;const target=it.seats[selection.seat], id=$('assignment').value||null;
   const previous=id ? seats(chart()).find(s => s.student===id && s!==target) : null;
@@ -302,3 +305,20 @@ $('zoom').addEventListener('change',()=>{if($('zoom').value==='fit')setPan(false
 
 $('room').addEventListener('click',event=>{if(panMode){event.preventDefault();event.stopImmediatePropagation();}},true);
 $('student-names').addEventListener('paste',event=>{const text=event.clipboardData?.getData('text/plain');if(!text)return;event.preventDefault();const clean=text.split(/\r\n|\r|\n/).map(normalizeStudentName).join('\n');event.target.setRangeText(clean,event.target.selectionStart,event.target.selectionEnd,'end');event.target.dispatchEvent(new Event('input',{bubbles:true}));});
+
+function updateObjectControls(){
+ cancelAnimationFrame(controlFrame);const s=$('room').parentElement,b=s.getBoundingClientRect(),v=window.visualViewport;
+ const bounds={left:Math.max(b.left,v?.offsetLeft||0)+5,top:Math.max(b.top,v?.offsetTop||0)+5,right:Math.min(b.right,(v?.offsetLeft||0)+(v?.width||innerWidth))-5,bottom:Math.min(b.bottom,(v?.offsetTop||0)+(v?.height||innerHeight))-5};
+ for(const panel of document.querySelectorAll('.library:not([hidden]),.inspector:not([hidden])')){if(getComputedStyle(panel).position!=='fixed')continue;const p=panel.getBoundingClientRect();if(p.width>=b.width*.8&&p.top>b.top)bounds.bottom=Math.min(bounds.bottom,p.top-5);else if(p.right>=b.right-20&&p.left>b.left)bounds.right=Math.min(bounds.right,p.left-5);}
+ const zoomBox=document.querySelector('.canvas-zoom')?.getBoundingClientRect();
+ let active=false;const touch=matchMedia('(pointer:coarse)').matches,base=touch?44:32,size=Math.max(touch?36:24,base/Math.sqrt(Math.max(1,zoom)));
+ for(const {node,actions,resize} of controlEntries){if(!node.isConnected)continue;if(!node.classList.contains('selected')&&!node.matches(':hover,:focus-within')){node.classList.remove('controls-visible');continue;}const box=node.getBoundingClientRect(),visible=box.right>bounds.left&&box.left<bounds.right&&box.bottom>bounds.top&&box.top<bounds.bottom;
+ const showing=visible&&(node.classList.contains('selected')||node.matches(':hover,:focus-within'));node.classList.toggle('controls-visible',showing);if(!showing)continue;active=true;
+ const angle=Number(node.dataset.rotation||0),r=angle*Math.PI/180,w=parseFloat(node.style.width),h=parseFloat(node.style.height),cx=box.x+box.width/2,cy=box.y+box.height/2;
+ function place(el,x,y,factor){const ew=el.offsetWidth*zoom*factor,eh=el.offsetHeight*zoom*factor;if(zoomBox&&x+ew/2>zoomBox.left&&x-ew/2<zoomBox.right&&y+eh/2>zoomBox.top&&y-eh/2<zoomBox.bottom)y=Math.max(bounds.top+eh/2,zoomBox.top-eh/2-5);const dx=x-cx,dy=y-cy;el.style.left=(w/2+(dx*Math.cos(r)+dy*Math.sin(r))/zoom)+'px';el.style.top=(h/2+(-dx*Math.sin(r)+dy*Math.cos(r))/zoom)+'px';el.style.right='auto';el.style.bottom='auto';el.style.transform=`translate(-50%,-50%) rotate(${-angle}deg) scale(${factor})`;}
+ const factor=size/((actions.firstElementChild.offsetWidth||base)*zoom),aw=actions.offsetWidth*zoom*factor,ah=actions.offsetHeight*zoom*factor;
+ place(actions,Math.max(bounds.left+aw/2,Math.min(bounds.right-aw/2,box.right-aw/2)),Math.max(bounds.top+ah/2,Math.min(bounds.bottom-ah/2,box.top-ah/2-5)),factor);
+ const rs=touch?36:Math.max(22,26/Math.sqrt(Math.max(1,zoom)));place(resize,Math.max(bounds.left+rs/2,Math.min(bounds.right-rs/2,box.right)),Math.max(bounds.top+rs/2,Math.min(bounds.bottom-rs/2,box.bottom)),rs/(resize.offsetWidth*zoom||24*zoom));
+ }if(active)controlFrame=requestAnimationFrame(updateObjectControls);
+}
+$('room').parentElement.addEventListener('scroll',updateObjectControls,{passive:true});window.addEventListener('resize',updateObjectControls);

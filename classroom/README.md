@@ -155,3 +155,7 @@ Undo/Redo use opposite curved SVG arrows, multi-select uses checked squares, Shu
 ## Student name display
 
 Pasting names and adding/editing students trims and collapses whitespace on each line. The roster and assignment menu show first name plus last initial; seat labels show only the first name unless multiple roster students share that first-name spelling (case-insensitive), in which case they show the last initial too. First names are the first word and surname initials come from the final word; single-word names remain intact. Renaming or removing students recalculates seat labels. Full normalized names stay in saved/cloud/backup data and can be edited explicitly through the roster pencil button. Settings uses distinct typography/check, sizing-arrows, square, and rotation glyphs.
+
+## Furniture controls in view
+
+Rotate, Duplicate, Delete, and Resize controls stay within the visible chart-scroll viewport, including rotation, zooming, scrolling, and partially visible furniture. The controls counter-rotate and scale independently of the furniture: mouse controls shrink modestly when zoomed in, while coarse-pointer controls retain larger touch targets. Duplicate uses vacant-space placement, preserves dimensions/colors, clears seats and locks, and supports Undo. The object-controls browser check covers edge containment, arbitrary rotation, zoom sizing, duplication, Undo, and mobile layout.
