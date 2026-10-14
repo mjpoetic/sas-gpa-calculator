@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-controls1';
-import {furnitureArt} from './furniture-art.mjs?v=20261013-controls1';
-import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-controls1';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-controls1';
-import {connectCloud} from './cloud.js?v=20261013-controls1';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261013-release2';
+import {furnitureArt} from './furniture-art.mjs?v=20261013-release2';
+import {catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261013-release2';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261013-release2';
+import {connectCloud} from './cloud.js?v=20261013-release2';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -198,6 +198,8 @@ function renderInspector() {
   }
 }
 function renderRoster() {
+  const picked=$('saved-rosters').value;$('saved-rosters').replaceChildren(option('','Choose a list'),...(state.studentLists||[]).map(l=>option(l.id,l.name)));$('saved-rosters').value=picked;
+  $('load-roster').disabled=$('delete-roster').disabled=!$('saved-rosters').value;
   const assigned = new Set(seats(chart()).map(s => s.student));$('roster').replaceChildren();
   chart().students.forEach(st => {
     const row = element('div','student-row');const input = element('input');input.value=rosterName(st);input.readOnly=true;input.maxLength=80;input.setAttribute('aria-label',`Student ${rosterName(st)}`);
@@ -322,3 +324,8 @@ function updateObjectControls(){
  }if(active)controlFrame=requestAnimationFrame(updateObjectControls);
 }
 $('room').parentElement.addEventListener('scroll',updateObjectControls,{passive:true});window.addEventListener('resize',updateObjectControls);
+
+$('saved-rosters').onchange=()=>{$('load-roster').disabled=$('delete-roster').disabled=!$('saved-rosters').value;};
+$('save-roster').onclick=()=>{const name=$('roster-name').value.trim();if(!name||!chart().students.length)return say('Enter a list name and add students first.');if((state.studentLists||[]).length>=100)return say('You can save up to 100 student lists.');change(()=>{(state.studentLists||= []).push({id:uid(),name,names:chart().students.map(s=>s.name)});$('roster-name').value='';},'Student list saved for other classrooms.');};
+$('load-roster').onclick=()=>{const list=state.studentLists?.find(l=>l.id===$('saved-rosters').value);if(!list)return;if(chart().students.length&&!confirm('Replace the current students with '+list.name+'? Furniture stays in place. Undo is available.'))return;change(()=>{chart().students=list.names.map(name=>({id:uid(),name}));seats(chart()).forEach(s=>{s.student=null;s.locked=false;});},'Student list loaded. Use Seat unassigned students when ready.');};
+$('delete-roster').onclick=()=>{const id=$('saved-rosters').value;if(id)change(()=>{state.studentLists=state.studentLists.filter(l=>l.id!==id);},'Saved list deleted. Classroom students are unchanged.');};

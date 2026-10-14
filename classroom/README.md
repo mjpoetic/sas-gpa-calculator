@@ -159,3 +159,8 @@ Pasting names and adding/editing students trims and collapses whitespace on each
 ## Furniture controls in view
 
 Rotate, Duplicate, Delete, and Resize controls stay within the visible chart-scroll viewport, including rotation, zooming, scrolling, and partially visible furniture. The controls counter-rotate and scale independently of the furniture: mouse controls shrink modestly when zoomed in, while coarse-pointer controls retain larger touch targets. Duplicate uses vacant-space placement, preserves dimensions/colors, clears seats and locks, and supports Undo. The object-controls browser check covers edge containment, arbitrary rotation, zoom sizing, duplication, Undo, and mobile layout.
+
+### Release indicator and saved student lists
+The release manifest is `/site-version.json`. For each published iteration, update its date-based version (`YYYY.MM.DD.iteration`), UTC preparation time, and matching `site-version` / `site-updated` metadata in both HTML entry points. The displayed time uses the viewer’s timezone. Open tabs check after ten seconds, every five minutes while visible, and on returning to the tab or reconnecting. A newer version offers Refresh or Later; classroom saves can prevent a refresh while cloud changes are pending.
+
+Saved student lists are available in Students. They travel with the existing cloud document and JSON backup, with no database schema change. Loading replaces the classroom roster and clears seat assignments while retaining furniture; Undo restores the previous roster. Print is in the header, and Rotate room is in the toolbar beneath the grid.
