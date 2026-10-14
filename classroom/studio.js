@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release2';
-import {furnitureArt} from './furniture-art.mjs?v=20261014-release2';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release2';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release2';
-import {connectCloud} from './cloud.js?v=20261014-release2';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release3';
+import {furnitureArt} from './furniture-art.mjs?v=20261014-release3';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release3';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release3';
+import {connectCloud} from './cloud.js?v=20261014-release3';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -14,9 +14,11 @@ try {
 } catch { loadError = 'Saved charts could not be loaded. Export your current work before reloading; the previous saved data will remain untouched until you make a change.'; }
 if (!state) {const c = newChart(); state = {version:1, active:c.id, charts:[c]};}
 const chart = () => state.charts.find(c => c.id === state.active);
-let selectedIds=new Set(),multiMode=false;
+let selectedIds=new Set(),selectedSeatKeys=new Set(),multiMode=false;
+const seatKey=(it,index)=>JSON.stringify([it.id,index]);
+const selectedSeats=()=>chart().items.flatMap(it=>it.seats.map((seat,index)=>({it,seat,index}))).filter(entry=>selectedSeatKeys.has(seatKey(entry.it,entry.index)));
 const selectedItems=()=>chart().items.filter(it=>selectedIds.has(it.id));
-function choose(it,add=false){if(add){if(selectedIds.has(it.id))selectedIds.delete(it.id);else selectedIds.add(it.id);}else selectedIds=new Set([it.id]);selection=selectedIds.size?{id:[...selectedIds].at(-1),seat:null}:null;}
+function choose(it,add=false){if(selectedSeatKeys.size)selectedIds.clear();selectedSeatKeys.clear();if(add){if(selectedIds.has(it.id))selectedIds.delete(it.id);else selectedIds.add(it.id);}else selectedIds=new Set([it.id]);selection=selectedIds.size?{id:[...selectedIds].at(-1),seat:null}:null;}
 function snapResize(it){if(!$('snap').checked)return;for(const other of chart().items){if(other.id===it.id)continue;if(Math.abs(it.width-other.width)<8)resizeFurniture(it,other.width,it.height,'width');if(!['door','board','smartboard','bulletin','window'].includes(it.type)&&Math.abs(it.height-other.height)<8)resizeFurniture(it,it.width,other.height,'height');}}
 function showGuides(items){const room=$('room');room.querySelectorAll('.alignment-guide').forEach(n=>n.remove());const b=groupBounds(items);for(const target of chart().items.filter(x=>!items.some(i=>i.id===x.id))){const t=footprint(target);for(const [axis,values,other] of [['x',[b.x,b.x+b.width/2,b.x+b.width],[t.x,t.x+t.width/2,t.x+t.width]],['y',[b.y,b.y+b.height/2,b.y+b.height],[t.y,t.y+t.height/2,t.y+t.height]]])for(const value of values)if(other.some(v=>Math.abs(v-value)<4)){const line=element('div','alignment-guide '+axis);line.style[axis==='x'?'left':'top']=value+'px';room.append(line);}}}
 function paintPositions(){positionGroupOverlay();showGuides(selectedItems());for(const it of selectedItems()){const n=$('room').querySelector(`[data-id="${it.id}"]`);if(n){Object.assign(n.style,{left:it.x+'px',top:it.y+'px',width:it.width+'px',height:it.height+'px',transform:`rotate(${it.rotation}deg)`});n.dataset.rotation=it.rotation;n.querySelectorAll('.seat-name').forEach(t=>t.style.transform=`rotate(${-it.rotation}deg)`);}}}
@@ -56,7 +58,7 @@ function render() {
   $('seat-summary').textContent = `${count} seated · ${all.length} seats · ${c.students.length-count} unassigned`;
   $('roster-summary').textContent = `${c.students.length} students · ${c.students.length-count} unassigned`;
   $('undo').disabled = !history.length;$('redo').disabled=!redoHistory.length;$('delete-chart').disabled = state.charts.length === 1;
-  if(!selection)selectedIds.clear();else if(!selectedIds.has(selection.id))selectedIds=new Set([selection.id]);
+  if(!selection){selectedIds.clear();selectedSeatKeys.clear();}else if(!selectedIds.has(selection.id))selectedIds=new Set([selection.id]);
   renderRoom();renderInspector();renderRoster();
   renderAppearance();
 }
@@ -82,16 +84,17 @@ $('item-color-reset').onclick=()=>{const it=selected();if(it)change(()=>{delete 
 function renderRoom() {
   cancelAnimationFrame(controlFrame);controlEntries=[];groupOverlay=null;if(!chart().items.some(it=>it.id===hoverOwner))hoverOwner=null;labelObservers.forEach(o=>o.disconnect());labelObservers=[];
   const room = $('room');room.style.width=WIDTH+'px';room.style.height=HEIGHT+'px';
+  room.dataset.seatSelection=String(selectedSeatKeys.size>0);
   const previous=new Map([...room.querySelectorAll('.item')].map(node=>[node.dataset.id,{x:parseFloat(node.style.left),y:parseFloat(node.style.top),width:parseFloat(node.style.width),height:parseFloat(node.style.height),rotation:Number(node.dataset.rotation||0),active:node.classList.contains('dragging')||node.classList.contains('resizing')} ]));
   room.replaceChildren();
-  if(!selection)selectedIds.clear();else if(!selectedIds.has(selection.id))selectedIds=new Set([selection.id]);
+  if(!selection){selectedIds.clear();selectedSeatKeys.clear();}else if(!selectedIds.has(selection.id))selectedIds=new Set([selection.id]);
   room.style.setProperty('--chart-font-weight',appearance().weight||400);
   room.style.fontFamily=fontCSS(appearance().font);
   room.style.setProperty('--chart-font-size',`${appearance().fontSize}px`);
   const font=appearance().font,weight=appearance().weight||400;$('chart-font-status').textContent=font.source==='google'?'Loading '+font.family+'…':'Font applied: '+(fontOptions[font.family]?.label||font.family);void loadFont(font,weight).then(async()=>{if(document.fonts?.load)await document.fonts.load(`${weight} 14px ${fontCSS(font)}`);if(JSON.stringify(appearance().font)===JSON.stringify(font))$('chart-font-status').textContent='Font applied: '+(fontOptions[font.family]?.label||font.family);}).catch(error=>{$('chart-font-status').textContent=error.message;say(error.message);});
   const layers=new Map([...chart().items].sort((a,b)=>b.width*b.height-a.width*a.height).map((it,i)=>[it.id,i+1]));
   for(const it of chart().items) {
-    const node = element('div',`item ${it.type}${selectedIds.has(it.id) ? ' selected' : ''}`);
+    const node = element('div',`item ${it.type}${!selectedSeatKeys.size&&selectedIds.has(it.id) ? ' selected' : ''}`);
     node.ondblclick=e=>{if(it.type==='label'||e.target.closest('.seat'))return;if(e.target.closest('.furniture-actions,.resize-handle'))return;e.preventDefault();e.stopPropagation();choose(it);renderInspector();$('item-color').focus();$('item-color').click();};
     node.style.zIndex=layers.get(it.id);node.dataset.id = it.id;node.dataset.rotation=it.rotation;node.tabIndex = 0;node.setAttribute('aria-label',`${it.label}. Drag to move, or use arrow keys.`);
     Object.assign(node.style,{left:`${it.x}px`,top:`${it.y}px`,width:`${it.width}px`,height:`${it.height}px`,transform:`rotate(${it.rotation}deg)`});
@@ -107,7 +110,7 @@ function renderRoom() {
       const grid = element('div','seat-grid');grid.style.setProperty('--columns',it.seats.length === 1 ? 1 : 2);
       it.seats.forEach((s,i) => {
         const student = chart().students.find(st => st.id === s.student);
-        const btn = element('button',`seat${student ? ' assigned' : ''}${s.locked ? ' locked' : ''}${selection?.id === it.id && selection?.seat === i ? ' selected-seat' : ''}`);
+        const btn = element('button',`seat${student ? ' assigned' : ''}${s.locked ? ' locked' : ''}${(selectedSeatKeys.has(seatKey(it,i))||(!selectedSeatKeys.size&&selection?.id === it.id && selection?.seat === i)) ? ' selected-seat' : ''}`);
         btn.style.fontSize=(s.fontSize||appearance().seatFontSize||appearance().fontSize)+'px';
         const text = element('span','seat-name',student?seatName(student,chart().students):'');
         // The seat footprint follows its desk; only its name stays upright.
@@ -126,7 +129,7 @@ function renderRoom() {
         btn.dataset.itemId=it.id;btn.dataset.seatIndex=i;if(student)attachStudentDrag(btn,student);
         btn.setAttribute('aria-label',`${it.label}, seat ${i+1}: ${student?seatName(student,chart().students):'unassigned'}${s.locked ? ', locked during shuffle' : ''}`);
         btn.ondblclick=e=>{e.stopPropagation();e.preventDefault();openSeatDetails(it,i);};
-        btn.onclick = e => {e.stopPropagation();if(Date.now()<suppressStudentClickUntil)return;const key=it.id+':'+i,now=Date.now(),double=lastSeatTap?.key===key&&now-lastSeatTap.time<400;lastSeatTap={key,time:now};if(double){openSeatDetails(it,i);return;}if(e.shiftKey||e.metaKey||multiMode){choose(it,true);renderRoom();renderInspector();return;}selectedIds=new Set([it.id]);selection = {id:it.id,seat:i};renderRoom();renderInspector();if(student){$('seat-student-name').focus();$('seat-student-name').select();}else ($('assignment').parentElement.querySelector('.site-select-trigger')||$('assignment')).focus();};
+        btn.onclick = e => {e.stopPropagation();if(Date.now()<suppressStudentClickUntil)return;const key=it.id+':'+i,now=Date.now(),double=lastSeatTap?.key===key&&now-lastSeatTap.time<400;lastSeatTap={key,time:now};if(e.shiftKey||e.metaKey||multiMode){toggleSeatSelection(it,i);return;}if(double){openSeatDetails(it,i);return;}selectedSeatKeys.clear();selectedIds=new Set([it.id]);selection = {id:it.id,seat:i};renderRoom();renderInspector();if(student){$('seat-student-name').focus();$('seat-student-name').select();}else ($('assignment').parentElement.querySelector('.site-select-trigger')||$('assignment')).focus();};
         grid.append(btn);
       });node.append(grid);
     }
@@ -174,7 +177,7 @@ function renderRoom() {
       node.addEventListener('pointermove',move);node.addEventListener('pointerup',end);node.addEventListener('pointercancel',end);
     });
     node.addEventListener('keydown',e => {
-      if(e.target !== node) return;
+      if(e.target !== node) return;selectedSeatKeys.clear();
       if(e.key === 'Enter' || e.key === ' ') {e.preventDefault();selection = {id:it.id,seat:it.seats.length ? 0 : null};renderRoom();renderInspector();(it.seats.length ? $('assignment') : $('item-label')).focus();return;}
       const delta = {ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
       if(!delta) return;e.preventDefault();
@@ -191,8 +194,9 @@ function renderRoom() {
   if(selectedItems().length>1)renderGroupControls();updateZoom();updateObjectControls();
 }
 function renderInspector() {
-  document.dispatchEvent(new CustomEvent('sas-selection-changed',{detail:{selected:!!selected(),seat:!!selected()&&selection?.seat!==null}}));
-  const it = selected(),group=selectedItems().length>1;$('group-controls').hidden=!group;$('group-summary').textContent=`${selectedItems().length} objects selected. Drag any selected object to move the group; drag a resize handle to scale everything together.`;$('group-scale').value=100;$('item-controls').hidden = !it||group;$('seat-controls').hidden = group || !it || selection.seat === null;
+  document.dispatchEvent(new CustomEvent('sas-selection-changed',{detail:{selected:!!selected(),seat:!!selected()&&selection?.seat!==null&&!multiMode}}));
+  const bulk=selectedSeats();$('multi-seat-controls').hidden=bulk.length<2;if(bulk.length>1){$('multi-seat-title').textContent=bulk.length+' seats selected';$('multi-seat-summary').textContent=(new Set(bulk.map(e=>e.seat.color||'default')).size>1?'Mixed colors. ':'')+'Changes apply only to selected seats. Undo is available.';$('multi-seat-color').value=bulk[0].seat.color||'#f4eee3';const sizes=bulk.map(e=>e.seat.fontSize||appearance().seatFontSize||appearance().fontSize);$('multi-seat-size').value=sizes.every(n=>n===sizes[0])?sizes[0]:'';$('multi-seat-locked').checked=bulk.every(e=>e.seat.locked);$('multi-seat-locked').indeterminate=bulk.some(e=>e.seat.locked)&&!bulk.every(e=>e.seat.locked);}
+  const it = selected(),group=selectedItems().length>1&&!bulk.length;$('group-controls').hidden=!group;$('group-summary').textContent=`${selectedItems().length} objects selected. Drag any selected object to move the group; drag a resize handle to scale everything together.`;$('group-scale').value=100;$('item-controls').hidden = !it||group||bulk.length>0;$('seat-controls').hidden = bulk.length>1||group || !it || selection.seat === null;
   $('selection-title').textContent = group ? `${selectedItems().length} objects selected` : it ? catalog[it.type].label : 'Fine-tune your room';$('selection-hint').hidden = !!it;
   if(!it) return;
   for(const field of ['label','width','height','x','y']) $('item-'+field).value = it[field];
@@ -239,7 +243,7 @@ $('shuffle').onclick = () => {
   const movable = seats(chart()).filter(s => s.student && !s.locked).length;
   change(() => shuffle(chart()));say((movable>=2?'Students shuffled. ':'Unassigned students seated where possible. ')+separationMessage());
 };
-function restoreEdit(from,to,message){if(!from.length)return;to.push(JSON.stringify(state));if(to.length>40)to.shift();state=JSON.parse(from.pop());selection=null;selectedIds.clear();save();render();say(message);}
+function restoreEdit(from,to,message){if(!from.length)return;to.push(JSON.stringify(state));if(to.length>40)to.shift();state=JSON.parse(from.pop());selection=null;selectedIds.clear();selectedSeatKeys.clear();save();render();say(message);}
 $('undo').onclick=()=>restoreEdit(history,redoHistory,'Previous change restored.');
 $('redo').onclick=()=>restoreEdit(redoHistory,history,'Change reapplied.');
 document.addEventListener('keydown',e=>{if(!(e.metaKey||e.ctrlKey)||e.altKey||e.key.toLowerCase()!=='z'||e.target.closest?.('input,textarea,select,[contenteditable]'))return;e.preventDefault();(e.shiftKey?$('redo'):$('undo')).click();});
@@ -397,3 +401,10 @@ $('seat-name-size').onchange=()=>{const it=selected();if(it&&selection.seat!==nu
 $('seat-name-size-reset').onclick=()=>{const it=selected();if(it&&selection.seat!==null)change(()=>{delete it.seats[selection.seat].fontSize;});};
 
 $('seat-student-name').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();e.target.blur();}if(e.key==='Escape'){e.preventDefault();renderInspector();e.target.blur();}};
+
+function toggleSeatSelection(it,index){if(!selectedSeatKeys.size&&selection?.seat!==null&&selection?.seat!==undefined){const previous=selected();if(previous)selectedSeatKeys.add(seatKey(previous,selection.seat));}const key=seatKey(it,index);if(selectedSeatKeys.has(key))selectedSeatKeys.delete(key);else selectedSeatKeys.add(key);const entries=selectedSeats(),last=entries.at(-1);selectedIds.clear();selection=last?{id:last.it.id,seat:last.index}:null;lastSeatTap=null;renderRoom();renderInspector();say(entries.length+' seats selected. Use Edit to change their properties.');}
+$('multi-seat-color').onchange=()=>change(()=>{selectedSeats().forEach(e=>{e.seat.color=$('multi-seat-color').value;});},'Selected seat colors updated.');
+$('multi-seat-size').onchange=()=>{const value=Number($('multi-seat-size').value);if(!Number.isFinite(value)||value<8||value>36)return;change(()=>{selectedSeats().forEach(e=>{e.seat.fontSize=value;});},'Selected name sizes updated.');};
+$('multi-seat-locked').onchange=()=>{const value=$('multi-seat-locked').checked;change(()=>{selectedSeats().forEach(e=>{e.seat.locked=value;});},'Selected seat locks updated.');};
+$('multi-seat-reset').onclick=()=>change(()=>{selectedSeats().forEach(e=>{delete e.seat.color;delete e.seat.fontSize;});},'Selected seat appearance reset.');
+$('multi-seat-clear').onclick=()=>{selectedSeatKeys.clear();selectedIds.clear();selection=null;render();};

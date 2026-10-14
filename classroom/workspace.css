@@ -69,3 +69,4 @@
 .furniture-actions .furniture-move svg,.resize-handle svg{width:18px;height:18px;display:block;margin:auto}.furniture-move{touch-action:none;cursor:grab}.furniture-move:active{cursor:grabbing}.resize-handle svg{width:16px;height:16px}.seat-name{line-height:1.15}
 /* The hover bridge must not intercept a thin fixture's resize handle. */
 .furniture-actions::before{pointer-events:none}
+#room[data-seat-selection=true] .item .furniture-actions,#room[data-seat-selection=true] .item .resize-handle{display:none!important}#multi-seat-controls label{margin:12px 0}.seat.selected-seat{outline:3px solid #4daee0!important;outline-offset:1px}
