@@ -147,3 +147,7 @@ Login fields now use standard username/current-password metadata and names for p
 New or out-of-sync browser sessions automatically offer the cloud classroom list after access verification, placing the last-viewed classroom first. Matching returning copies keep the current chart. Password setup/recovery remains ahead of chart selection; locally saved work is preserved until the user chooses a cloud collection.
 
 Account, Settings, More, and Appearance share dimensions, icon alignment, borders, and corner shape. Desktop library tabs stack vertically; compact layouts use tightly aligned tabs. Edit is available only for selected furniture/seats, and its inspector sizes to content. The redundant desktop zoom dropdown is hidden in favor of the visible zoom controls.
+
+## Icons and help
+
+Undo/Redo use opposite curved SVG arrows, multi-select uses checked squares, Shuffle uses crossed arrows, Furniture uses a chair, and Students uses a group of people. Hover or keyboard focus reveals concise workspace help, including how multi-selection and group movement work; controls inside dialogs also have descriptive titles. Settings opens with chart appearance and room shape sections expanded. Account also contains the backup/import/print actions, replacing More. The top-left Sawgrass logo links to the main site. Icon/help regression checks distinct glyphs, selection guidance, expanded settings, combined account/files, the logo link, and narrow-screen fit.
