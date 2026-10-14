@@ -1,5 +1,5 @@
-import {normalizeStudentName} from './student-names.mjs?v=20261013-release4';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261013-release4';
+import {normalizeStudentName} from './student-names.mjs?v=20261013-release5';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261013-release5';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -166,4 +166,10 @@ export function improveSeparation(chart){
  const movable=seats(chart).filter(s=>!s.locked),links=new Map(movable.map(s=>[s,edges.filter(e=>e.pair.includes(s))]));
  for(let pass=0;pass<20;pass++){let improved=false;for(const a of movable){if(!links.get(a).some(edgeConflict))continue;for(const b of movable){if(a===b||a.student===b.student)continue;const affected=[...new Set([...links.get(a),...links.get(b)])],before=affected.filter(edgeConflict).length;[a.student,b.student]=[b.student,a.student];if(affected.filter(edgeConflict).length<before){improved=true;break;}[a.student,b.student]=[b.student,a.student];}}if(!improved)break;}
  return edges.filter(edgeConflict).length;
+}
+
+export function rotateGroup(items,degrees){
+ const original=structuredClone(items),b=groupBounds(items),cx=b.x+b.width/2,cy=b.y+b.height/2,a=degrees*Math.PI/180;
+ items.forEach(it=>{const dx=it.x+it.width/2-cx,dy=it.y+it.height/2-cy;it.x=cx+dx*Math.cos(a)-dy*Math.sin(a)-it.width/2;it.y=cy+dx*Math.sin(a)+dy*Math.cos(a)-it.height/2;it.rotation=(it.rotation+degrees%360+360)%360;});
+ const after=groupBounds(items);if(after.width>WIDTH+1e-6||after.height>HEIGHT+1e-6){items.forEach((it,i)=>Object.assign(it,original[i]));return false;}moveGroup(items,0,0);return true;
 }

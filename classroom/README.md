@@ -171,3 +171,8 @@ Select a seat and use Edit → Seat color to set or reset its color. Colors belo
 Click a Room label to edit its text inline; Enter saves and Escape cancels. Drag its border to move it. Edit includes an independent label font using built-in (`system`, `serif`, `rounded`, `mono`), Google, or device fonts. Hover controls sit outside the label where space permits and hide during text editing.
 
 Drag the update notice by its message to reposition it; browser storage remembers the relative screen position. Later folds it into a dot on Refresh. Click Refresh to reopen the notice and choose when to reload.
+
+### Unified group editing
+Selecting several furniture items shows one shared rotate/duplicate/delete toolbar and one resize handle around the selection bounds. Group rotation turns both placement and orientation around the group center; groups too large to fit the rotated room bounds retain their previous arrangement. Duplication preserves relative spacing and clears seat assignments. Resizing scales spacing with dimensions, and all group actions support Undo.
+
+Room-label text scales to fill its resized box. Double-clicking a seat opens its own color, assignment/lock, student-name, and separation controls; double-clicking the furniture body edits the furniture color. The smartboard is a thin black top-down strip with a narrow light screen edge. Furniture artwork no longer receives the glass highlight plate; selected items retain a simple outline.

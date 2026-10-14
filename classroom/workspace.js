@@ -50,3 +50,5 @@ for(const [id,text] of Object.entries({'export':'Download a backup of all classr
 $('furniture-tab').title=tips['dock-furniture'];$('students-tab').title=tips['dock-students'];
 
 const release=document.createElement('p');release.className='hint';release.textContent='Version '+document.querySelector('meta[name=site-version]').content+' · Updated '+new Date(document.querySelector('meta[name=site-updated]').content).toLocaleString();account.append(release);
+
+document.addEventListener('sas-seat-details',()=>setPanel('details'));
