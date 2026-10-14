@@ -1,7 +1,7 @@
-import {migrateTabSession} from './auth-session.mjs?v=20261014-release12';
-import {mergeDocuments} from './sync-merge.mjs?v=20261014-release12';
-import {cloudConfig} from './cloud-config.js?v=20261014-release12';
-import {CloudStore} from './cloud-store.mjs?v=20261014-release12';
+import {migrateTabSession} from './auth-session.mjs?v=20261014-release13';
+import {mergeDocuments} from './sync-merge.mjs?v=20261014-release13';
+import {cloudConfig} from './cloud-config.js?v=20261014-release13';
+import {CloudStore} from './cloud-store.mjs?v=20261014-release13';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
@@ -13,7 +13,7 @@ export async function connectCloud({getState,applyState,notify}) {
   let passwordSetup=new URL(location.href).searchParams.has('code') || new URLSearchParams(location.hash.slice(1)).has('access_token'),callbackFailed=false;
   const fingerprint=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
   const markerKey=id=>'sas-cloud-baseline-'+id;
-  function remember(document){baseline=structuredClone(document);try{localStorage.setItem(markerKey(store.userId),JSON.stringify(document));}catch{}}
+  function remember(document){$('cloud-status').dataset.savedAt=store.savedAt||'';baseline=structuredClone(document);try{localStorage.setItem(markerKey(store.userId),JSON.stringify(document));}catch{}}
   function offerCharts(){clearTimeout(pickerTimer);if(!pendingPicker)return;if(recovery||passwordSetup)return;if(busy||!picker||$('cloud-download').disabled){pickerTimer=setTimeout(offerCharts,250);return;}pendingPicker=false;$('cloud-download').click();}
   function schedule(){clearTimeout(autoTimer);if(store&&autoReady&&dirty)autoTimer=setTimeout(flush,900);}
   async function flush(){if(!store||!autoReady||!dirty||picker?.open)return;if(busy||pulling){schedule();return;}const current=store,version=editVersion,document=getState();busy=true;enable(false);status('Saving changes to cloud…');try{await current.save(document);if(store!==current)return;remember(document);dirty=version!==editVersion;status(dirty?'More changes waiting to save…':'✓ All changes saved to cloud.');}catch(error){if(store!==current)return;if(error.message?.includes('Another browser')){autoReady=false;setTimeout(pullRemote,0);}status((error.message||'Cloud save failed. Reconnect to retry.')+' Your browser copy is saved.');}finally{busy=false;enable(true);if(dirty&&autoReady&&version!==editVersion)schedule();}}

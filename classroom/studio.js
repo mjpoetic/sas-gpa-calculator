@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release12';
-import {furnitureArt} from './furniture-art.mjs?v=20261014-release12';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release12';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release12';
-import {connectCloud} from './cloud.js?v=20261014-release12';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release13';
+import {furnitureArt} from './furniture-art.mjs?v=20261014-release13';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release13';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release13';
+import {connectCloud} from './cloud.js?v=20261014-release13';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -26,7 +26,7 @@ const selected = () => chart().items.find(it => it.id === selection?.id);
 const appearance = () => chart().appearance || defaultAppearance();
 const say = text => {$('message').textContent = text;};
 function save() {
-  try {localStorage.setItem(KEY, JSON.stringify(state)); $('save-state').textContent = '✓ Saved in this browser';document.dispatchEvent(new Event('sas-chart-edited'));return true;}
+  try {localStorage.setItem(KEY, JSON.stringify(state)); $('save-state').textContent = '✓ Saved in this browser';const stamp=new Date().toISOString();$('save-state').dataset.savedAt=stamp;localStorage.setItem(KEY+'-saved-at',stamp);document.dispatchEvent(new Event('sas-chart-edited'));return true;}
   catch {$('save-state').textContent = 'Save unavailable — export a backup'; say('Browser storage is unavailable or full. Export a backup to preserve your work.');return false;}
 }
 function checkpoint() {redoHistory=[];history.push(JSON.stringify(state)); if(history.length > 40) history.shift();}
@@ -195,7 +195,7 @@ function renderRoom() {
 }
 function renderInspector() {
   document.dispatchEvent(new CustomEvent('sas-selection-changed',{detail:{selected:!!selected(),seat:!!selected()&&selection?.seat!==null&&!multiMode}}));
-  const bulk=selectedSeats();$('multi-seat-controls').hidden=bulk.length<2;if(bulk.length>1){$('multi-seat-title').textContent=bulk.length+' seats selected';$('multi-seat-summary').textContent=(new Set(bulk.map(e=>e.seat.color||'default')).size>1?'Mixed colors. ':'')+'Changes apply only to selected seats. Undo is available.';$('multi-seat-color').value=bulk[0].seat.color||'#f4eee3';const sizes=bulk.map(e=>e.seat.fontSize||appearance().seatFontSize||appearance().fontSize);$('multi-seat-size').value=sizes.every(n=>n===sizes[0])?sizes[0]:'';$('multi-seat-locked').checked=bulk.every(e=>e.seat.locked);$('multi-seat-locked').indeterminate=bulk.some(e=>e.seat.locked)&&!bulk.every(e=>e.seat.locked);}
+  const bulk=selectedSeats();$('multi-seat-controls').hidden=bulk.length<2;if(bulk.length>1){$('multi-seat-title').textContent=bulk.length+' seats selected';$('multi-seat-summary').textContent=(new Set(bulk.map(e=>e.seat.color||(e.seat.student?'#dcebf6':'#f4eee3'))).size>1?'Mixed colors. ':'')+'Changes apply only to selected seats. Undo is available.';$('multi-seat-color').value=bulk[0].seat.color||(bulk[0].seat.student?'#dcebf6':'#f4eee3');const sizes=bulk.map(e=>e.seat.fontSize||appearance().seatFontSize||appearance().fontSize);$('multi-seat-size').value=sizes.every(n=>n===sizes[0])?sizes[0]:'';$('multi-seat-locked').checked=bulk.every(e=>e.seat.locked);$('multi-seat-locked').indeterminate=bulk.some(e=>e.seat.locked)&&!bulk.every(e=>e.seat.locked);}
   const it = selected(),group=selectedItems().length>1&&!bulk.length;$('group-controls').hidden=!group;$('group-summary').textContent=`${selectedItems().length} objects selected. Drag any selected object to move the group; drag a resize handle to scale everything together.`;$('group-scale').value=100;$('item-controls').hidden = !it||group||bulk.length>0;$('seat-controls').hidden = bulk.length>1||group || !it || selection.seat === null;
   $('selection-title').textContent = group ? `${selectedItems().length} objects selected` : it ? catalog[it.type].label : 'Fine-tune your room';$('selection-hint').hidden = !!it;
   if(!it) return;
@@ -207,7 +207,7 @@ function renderInspector() {
   if(selection.seat !== null) {
     const s = it.seats[selection.seat];$('seat-title').textContent = `Seat ${selection.seat+1}`;
     $('assignment').replaceChildren(option('','Unassigned'), ...chart().students.map(st => option(st.id,rosterName(st))));
-    $('seat-name-size').value=s.fontSize||appearance().seatFontSize||appearance().fontSize;$('seat-color').value=s.color||'#f4eee3';const student=chart().students.find(st=>st.id===s.student);$('seat-student-options').hidden=!student;$('seat-student-name').value=student?.name||'';
+    $('seat-name-size').value=s.fontSize||appearance().seatFontSize||appearance().fontSize;$('seat-color').value=s.color||(s.student?'#dcebf6':'#f4eee3');const student=chart().students.find(st=>st.id===s.student);$('seat-student-options').hidden=!student;$('seat-student-name').value=student?.name||'';
     $('assignment').value = s.student || '';$('locked').checked = s.locked;
   }
 }
