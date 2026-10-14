@@ -52,3 +52,10 @@ $('furniture-tab').title=tips['dock-furniture'];$('students-tab').title=tips['do
 const release=document.createElement('p');release.className='hint';release.textContent='Version '+document.querySelector('meta[name=site-version]').content+' · Updated '+new Date(document.querySelector('meta[name=site-updated]').content).toLocaleString();account.append(release);
 
 document.addEventListener('sas-seat-details',()=>setPanel('details'));
+
+const rosterEntry=dialog('roster-entry-dialog','Add students',[$('roster-entry-help'),$('add-students')]);
+const rosterLists=dialog('roster-lists-dialog','Saved student lists',[document.querySelector('.saved-rosters')]);
+$('roster-add-open').onclick=()=>{rosterEntry.showModal();$('student-names').focus();};$('roster-lists-open').onclick=()=>rosterLists.showModal();
+document.addEventListener('sas-students-added',()=>rosterEntry.close());
+
+document.addEventListener('sas-student-drag-start',()=>{if(innerWidth<1100)setPanel(null);});

@@ -1,5 +1,5 @@
-import {normalizeStudentName} from './student-names.mjs?v=20261013-release12';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261013-release12';
+import {normalizeStudentName} from './student-names.mjs?v=20261013-release13';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261013-release13';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
