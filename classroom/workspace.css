@@ -86,3 +86,5 @@
 .chart-first .room-scroll{display:block!important;place-items:normal}.chart-first #room{margin-right:0;margin-bottom:0}
 
 .quick-classrooms .manage-classrooms{border-top:1px solid var(--studio-glass-edge);margin-top:6px;padding-top:12px}.quick-classrooms [aria-checked=true]{background:#3986b833;color:inherit;font-weight:700}.seat-name{line-height:1.4;padding-block:.15em;overflow:visible}
+
+.quick-classrooms button[aria-checked=true]{background:linear-gradient(140deg,#347fae,#24658e)!important;color:#fff!important;border-color:#71b9e4!important;box-shadow:inset 0 1px 0 #ffffff40,0 3px 12px #19577533!important}.classroom-order{margin-top:20px;border-top:1px solid var(--studio-glass-edge);padding-top:14px}.classroom-order h3{margin:0 0 12px}.classroom-order-list{max-height:300px;overflow:auto}.classroom-order-list>div{display:flex;align-items:center;gap:8px;padding:6px 0}.classroom-order-list span{flex:1;min-width:0;overflow-wrap:anywhere}.classroom-order-list button{flex:none;width:36px;padding:0;font-size:20px}

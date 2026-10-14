@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release11';
-import {furnitureArt} from './furniture-art.mjs?v=20261014-release11';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release11';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release11';
-import {connectCloud} from './cloud.js?v=20261014-release11';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release12';
+import {furnitureArt} from './furniture-art.mjs?v=20261014-release12';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release12';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release12';
+import {connectCloud} from './cloud.js?v=20261014-release12';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -52,7 +52,7 @@ for (const [type,spec] of Object.entries(catalog)) {
 function addFurniture(type,preferred){if(chart().items.length>=500)return say('This chart has reached the furniture limit.');change(()=>{const item=furniture(type);const found=vacantPosition(item,chart().items,preferred);snapToWall(item);chart().items.push(item);choose(item);if(!found)say('Room is full; move the new item to make space.');},catalog[type].label+' added.');}
 function render() {
   const c = chart();$('chart-seat-font-size').value=appearance().seatFontSize||appearance().fontSize;setRoomSize(c.room);$('room-width').value=WIDTH;$('room-depth').value=HEIGHT;
-  $('charts').replaceChildren(...state.charts.map(c => option(c.id,c.name)));$('charts').value = c.id;
+  $('charts').replaceChildren(...orderedCharts().map(c => option(c.id,c.name)));$('charts').value = c.id;
   $('name').value = c.name;$('room-title').textContent = c.name;$('student-count').textContent = c.students.length;
   const all = seats(c), count = all.filter(s => s.student).length;
   $('seat-summary').textContent = `${count} seated · ${all.length} seats · ${c.students.length-count} unassigned`;
@@ -230,13 +230,15 @@ function renderRoster() {
 $('furniture-tab').onclick = () => tab(false);$('students-tab').onclick = () => tab(true);
 for(const id of ['furniture-tab','students-tab']) $(id).onkeydown = e => {if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) {e.preventDefault();const show = e.key === 'Home' ? false : e.key === 'End' ? true : id === 'furniture-tab';tab(show);$(show?'students-tab':'furniture-tab').focus();}};
 
+function orderedCharts(){const order=state.chartOrder||[];return [...state.charts].sort((a,b)=>{const ai=order.indexOf(a.id),bi=order.indexOf(b.id);return (ai<0?order.length:ai)-(bi<0?order.length:bi);});}
+document.addEventListener('sas-chart-order',e=>{const {id,direction,alphabetical}=e.detail;const list=orderedCharts();if(alphabetical)list.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));else{const i=list.findIndex(c=>c.id===id),j=i+direction;if(i<0||j<0||j>=list.length)return;[list[i],list[j]]=[list[j],list[i]];}change(()=>{state.chartOrder=list.map(c=>c.id);},'Classroom order saved. Undo is available.');});
 $('charts').onchange = () => {state.active = $('charts').value;selection=null;save();render();};
 $('name').onchange = () => change(() => {chart().name = $('name').value.trim() || 'Untitled classroom';});
 $('new-chart').onclick = () => {if(state.charts.length >= 100) return say('You can keep up to 100 charts.');change(() => {const c = newChart(`Classroom ${state.charts.length+1}`);state.charts.push(c);state.active=c.id;selection=null;},'New chart created.');};
 $('copy-chart').onclick = () => {if(state.charts.length >= 100) return say('You can keep up to 100 charts.');change(() => {
   const c = structuredClone(chart());c.id=uid();c.name=`${c.name.slice(0,73)} (copy)`;const map = new Map();c.students.forEach(s => {const old=s.id;s.id=uid();map.set(old,s.id);});c.items.forEach(it => {it.id=uid();it.seats.forEach(s => {s.student=map.get(s.student)||null;});});state.charts.push(c);state.active=c.id;selection=null;
 },'Chart duplicated with its roster and assignments.');};
-$('delete-chart').onclick = () => {if(state.charts.length<2 || !confirm(`Delete “${chart().name}”? Undo will restore it.`)) return;change(() => {state.charts=state.charts.filter(c => c.id !== state.active);state.active=state.charts[0].id;selection=null;},'Chart deleted. Undo is available.');};
+$('delete-chart').onclick = () => {if(state.charts.length<2 || !confirm(`Delete “${chart().name}”? Undo will restore it.`)) return;change(() => {state.charts=state.charts.filter(c => c.id !== state.active);if(state.chartOrder)state.chartOrder=state.chartOrder.filter(id=>id!==state.active);state.active=state.charts[0].id;selection=null;},'Chart deleted. Undo is available.');};
 $('apply-preset').onclick = () => {if(!confirm('Replace the room furniture with this layout? Your student list stays. Undo will restore the previous room.')) return;change(() => {chart().items=layout($('preset').value);assignUnseated(chart());selection=null;},'Layout applied. Students seated in roster order.');};
 $('add-students').onsubmit = e => {e.preventDefault();const names = $('student-names').value.split(/\r?\n/).map(normalizeStudentName).filter(Boolean);if(!names.length) return;if(names.some(n => n.length>80) || chart().students.length+names.length>500) return say('Use names up to 80 characters and no more than 500 students per chart.');change(() => {chart().students.push(...names.map(name => ({id:uid(),name})));$('student-names').value='';},`${names.length} students added. Drag a name onto a seat or use “Seat unassigned students”.`);document.dispatchEvent(new Event('sas-students-added'));};
 function clearSeatAssignments(targets){if(!targets.some(s=>s.student))return;change(()=>{targets.forEach(s=>{s.student=null;s.locked=false;});},'Seats emptied. Students returned to the list. Undo is available.');}

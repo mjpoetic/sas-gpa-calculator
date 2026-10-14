@@ -226,3 +226,5 @@ Overlapping changes pause saving and offer an explicit local-versus-other-device
 The Students drawer shows a compact, collapsible list of unseated students. Empty all seats returns students to that list while preserving furniture and seat styles; Delete/Backspace clears selected seats and Undo restores assignments. Saved lists can be created independently from the current classroom, including an empty list to start later.
 
 Snap and Guides starts off; wall fixtures still align automatically when dragged near room edges. Color controls use a consistent compact preset palette, with More colors exposing hex entry and the device’s detailed color picker.
+
+Manage classrooms includes Sort A–Z (natural numeric ordering) and Move up/Move down controls. The header menu and classroom selector use this saved order; cloud documents and backups retain it.
