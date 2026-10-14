@@ -1,8 +1,8 @@
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release3';
-import {furnitureArt} from './furniture-art.mjs?v=20261014-release3';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release3';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release3';
-import {connectCloud} from './cloud.js?v=20261014-release3';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261014-release4';
+import {furnitureArt} from './furniture-art.mjs?v=20261014-release4';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261014-release4';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261014-release4';
+import {connectCloud} from './cloud.js?v=20261014-release4';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -201,7 +201,7 @@ function renderInspector() {
   if(!it) return;
   for(const field of ['label','width','height','x','y']) $('item-'+field).value = it[field];
   $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-width').min=['mug','mouse'].includes(it.type)?16:40;$('item-width').step=['mug','mouse'].includes(it.type)?1:10;$('item-height').min=['mug','mouse'].includes(it.type)?12:['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
-  $('label-font-controls').hidden=it.type!=='label';$('label-font-source').value=it.labelFont?.source||'preset';$('label-font-family').value=it.labelFont?.family||'system';
+  $('label-font-size').value=it.labelFontSize||'';$('label-font-controls').hidden=it.type!=='label';$('label-font-source').value=it.labelFont?.source||'preset';$('label-font-family').value=it.labelFont?.family||'system';
   const style=it.labelStyle||defaultLabelStyle();for(const key of ['background','outline'])$('label-'+key).checked=style[key];for(const key of ['fill','border','text'])$('label-'+key).value=style[key];
   $('item-color').value=it.color || appearance().color || '#e8d7bb';
   if(selection.seat !== null) {
@@ -300,7 +300,7 @@ $('room').addEventListener('pointerdown',e=>{
 });
 function fitCaption(el,it){
  if(!el.isConnected)return;
- if(it.type==='label'){const ctx=document.createElement('canvas').getContext('2d');ctx.font=`400 100px ${getComputedStyle(el).fontFamily}`;const text=el.textContent||'Room label',width=ctx.measureText(text).width;el.style.fontSize=Math.max(8,Math.min(200,(it.width-12)*100/Math.max(1,width),(it.height-10)*.8))+'px';return;}el.classList.add('adaptive-caption');const long=el.scrollWidth>it.width-10;
+ if(it.type==='label'){if(it.labelFontSize){el.style.fontSize=it.labelFontSize+'px';return;}const ctx=document.createElement('canvas').getContext('2d');ctx.font=`400 100px ${getComputedStyle(el).fontFamily}`;const text=el.textContent||'Room label',width=ctx.measureText(text).width;el.style.fontSize=Math.max(8,Math.min(200,(it.width-12)*100/Math.max(1,width),(it.height-10)*.8))+'px';return;}el.classList.add('adaptive-caption');const long=el.scrollWidth>it.width-10;
  if(long&&it.height>it.width){el.classList.add('vertical-caption');el.style.width=(it.height-10)+'px';}
  const available=el.classList.contains('vertical-caption')?it.width-6:it.height-6;let size=appearance().fontSize;while(el.scrollHeight>available&&size>8){size--;el.style.fontSize=size+'px';}
  if(el.scrollHeight>available){el.classList.remove('vertical-caption');el.classList.add('floating-caption');el.style.width=Math.max(120,it.width)+'px';}
@@ -408,3 +408,8 @@ $('multi-seat-size').onchange=()=>{const value=Number($('multi-seat-size').value
 $('multi-seat-locked').onchange=()=>{const value=$('multi-seat-locked').checked;change(()=>{selectedSeats().forEach(e=>{e.seat.locked=value;});},'Selected seat locks updated.');};
 $('multi-seat-reset').onclick=()=>change(()=>{selectedSeats().forEach(e=>{delete e.seat.color;delete e.seat.fontSize;});},'Selected seat appearance reset.');
 $('multi-seat-clear').onclick=()=>{selectedSeatKeys.clear();selectedIds.clear();selection=null;render();};
+
+$('label-font-size').onchange=()=>{const it=selected(),value=Number($('label-font-size').value);if(it?.type==='label'&&Number.isFinite(value)&&value>=8&&value<=200)change(()=>{it.labelFontSize=value;},'Room label font size updated.');};
+$('label-font-size-auto').onclick=()=>{const it=selected();if(it?.type==='label')change(()=>{delete it.labelFontSize;},'Room label text fits automatically.');};
+function preparePrint(){document.getElementById('chart-print-sheet')?.remove();const sheet=element('section','');sheet.id='chart-print-sheet';const title=element('h1','',chart().name),frame=element('div','print-frame'),copy=$('room').cloneNode(true);copy.removeAttribute('id');copy.className='print-room';copy.style.setProperty('--print-scale',Math.min(248*96/25.4/WIDTH,168*96/25.4/HEIGHT));copy.style.zoom='1';copy.style.margin='0';copy.querySelectorAll('.furniture-actions,.resize-handle,.group-selection,.selection-marquee,.alignment-guide').forEach(n=>n.remove());copy.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));for(const it of chart().items.filter(it=>it.type==='label'&&!it.labelStyle))copy.querySelector(`[data-id="${it.id}"]`)?.style.setProperty('color','#20354e');copy.querySelectorAll('.selected,.selected-seat').forEach(n=>n.classList.remove('selected','selected-seat'));frame.append(copy);sheet.append(title,frame);document.body.append(sheet);}
+window.addEventListener('beforeprint',preparePrint);window.addEventListener('afterprint',()=>document.getElementById('chart-print-sheet')?.remove());

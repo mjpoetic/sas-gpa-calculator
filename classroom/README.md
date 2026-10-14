@@ -210,3 +210,8 @@ Thin fixture resize handles stretch only the local length axis, preserving the s
 
 ### Multi-seat properties
 Shift/Command-click seats, or enable Select Multiple and tap seats, to add or remove individual seats from the selection. The first Shift-click includes an already selected seat. Edit exposes shared color, name-label size, lock, appearance reset, and clear-selection controls when several seats are selected. Mixed sizes show an empty Mixed field; mixed locks use the checkbox’s intermediate state. Property changes apply only to selected seats and use the normal save/Undo flow. Selecting furniture switches back to furniture selection; seat selection does not expose furniture movement controls.
+
+### Chromium printing and explicit room-label size
+Printing builds a dedicated room snapshot before the print dialog opens. It fits inside a landscape Letter/A4-safe page area independently of screen zoom, panning, drawers, and control overlays; after printing, the temporary sheet is removed. Artwork and seat colors remain intact, backgrounds print white, and unstyled room labels use readable dark text. Chromium PDF checks confirm one-page Letter and A4 output. Actual Safari print-dialog behavior has not been revalidated for this change.
+
+Room-label Edit includes Label font size (8–200) independent of seat and furniture text. An explicit value stays fixed when the label box is resized; Fit text automatically restores the existing automatic-sizing behavior. The value saves in backups and cloud documents.
