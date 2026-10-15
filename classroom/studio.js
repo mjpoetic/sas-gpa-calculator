@@ -1,13 +1,13 @@
-import {enableTwoFingerPan} from './touch-pan.js?v=20261015-release9';
-import {avatarSVG} from './avatars.mjs?v=20261015-release9';
-import {openAvatarEditor} from './avatar-editor.js?v=20261015-release9';
-import {transferStudent} from './seat-transfer.mjs?v=20261015-release9';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261015-release9';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261015-release9';
-import {furnitureArt} from './furniture-art.mjs?v=20261015-release9';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261015-release9';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261015-release9';
-import {connectCloud} from './cloud.js?v=20261015-release9';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261015-release10';
+import {avatarSVG} from './avatars.mjs?v=20261015-release10';
+import {openAvatarEditor} from './avatar-editor.js?v=20261015-release10';
+import {transferStudent} from './seat-transfer.mjs?v=20261015-release10';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261015-release10';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261015-release10';
+import {furnitureArt} from './furniture-art.mjs?v=20261015-release10';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261015-release10';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261015-release10';
+import {connectCloud} from './cloud.js?v=20261015-release10';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
