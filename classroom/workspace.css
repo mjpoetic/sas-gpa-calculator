@@ -105,3 +105,9 @@
 
 /* Own only grid gestures; the surrounding page retains native touch scrolling. */
 .chart-first .room-scroll{touch-action:none}.two-finger-panning,.two-finger-panning *{cursor:grabbing!important}.two-finger-panning .furniture-actions,.two-finger-panning .resize-handle{visibility:hidden!important}
+
+@keyframes dialog-backdrop-enter{from{opacity:0}to{opacity:1}}
+@keyframes dialog-backdrop-exit{from{opacity:1}to{opacity:0}}
+.chart-first dialog[open]::backdrop{animation:dialog-backdrop-enter 220ms ease-out both}
+.chart-first dialog.dialog-motion-closing::backdrop{animation:dialog-backdrop-exit 150ms ease-in both}
+@media(prefers-reduced-motion:reduce){.chart-first dialog::backdrop{animation:none!important}}
