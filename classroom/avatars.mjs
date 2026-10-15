@@ -70,6 +70,19 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
   back='';front='<path d="M28 44Q21 30 27 19Q34 6 60 7Q86 6 93 20Q99 31 92 44L85 35Q60 29 35 35Z"/>';
   for(let row=0;row<4;row++)for(let col=0;col<9;col++){const x=29+col*7.6+(row%2)*3,y=9+row*6.8+((x-60)/32)**2*9+Math.sin(col*3+row)*.8;if(y>34||((x-60)/34)**2+((y-25)/21)**2>1)continue;front+=`<circle cx="${x}" cy="${y}" r="4.4"/><path d="M${x-1.8} ${y+1}q-1.3-3 1.5-3q2.7 0 1 2.7q-1 1-1.5-.2" fill="none" stroke="${strand}" stroke-width="1.2" stroke-linecap="round"/>`;}
  }
+ if(a.hair==='twists'){
+  // Two alternating strands form each rope; roots sit in visible scalp sections.
+  const twist=(x,y,endX,endY,width=5)=>{
+   const length=endY-y,steps=Math.max(3,Math.round(length/4)),point=t=>({x:x+(endX-x)*t+Math.sin(t*Math.PI)*1.2,y:y+length*t});
+   let out=`<path d="M${x} ${y}Q${(x+endX)/2+2} ${(y+endY)/2} ${endX} ${endY}" fill="none" stroke="${strand}" stroke-width="${width+1}" stroke-linecap="round"/>`;
+   for(let i=0;i<steps;i++){const a=point(i/steps),b=point((i+1)/steps),r=width*.27*(1-i/steps*.3);for(const side of [i%2?1:-1,i%2?-1:1])out+=`<path d="M${a.x+side*r} ${a.y}Q${(a.x+b.x)/2-side*r*1.5} ${(a.y+b.y)/2} ${b.x-side*r} ${b.y}" fill="none" stroke="${side===1?hair:tone(.075)}" stroke-width="${width*.52}" stroke-linecap="round"/>`;}
+   return out;
+  };
+  back=[ [32,29,18,90],[37,24,25,98],[42,21,33,93],[46,23,39,87],[74,23,81,89],[78,21,88,96],[83,25,96,99],[88,30,102,90] ].map(p=>twist(...p)).join('');
+  front=closeCap+`<g fill="none" stroke="${skin}" stroke-width="1.2" stroke-linecap="round"><path d="M60 12v18M40 20q20-7 40 0M33 29q27-8 54 0M48 15l-7 18m30-18 8 18"/></g>`;
+  front+=[ [42,16,30,39],[51,14,41,33],[57,15,53,30],[64,15,66,31],[70,14,78,34],[79,17,90,41] ].map(p=>twist(...p,4.4)).join('');
+  front+=twist(31,36,26,88,4.5)+twist(89,36,94,92,4.5);
+ }
  const eye=x=>a.eyes==='happy'?`<path d="M${x-5} 50q5-7 10 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M${x-5} 50q5-7 10 0" fill="none" stroke="#332d35" stroke-width="2" stroke-linecap="round"/>`:a.eyes==='classic'?`<ellipse cx="${x}" cy="49" rx="3" ry="5"/>`:`<ellipse cx="${x}" cy="49" rx="${a.eyes==='round'?6:5}" ry="6.5" fill="#fffaf4"/><ellipse cx="${x}" cy="49.5" rx="3" ry="4.5"/><circle cx="${x-1}" cy="47.5" r="1.2" fill="#fff"/>`;
  const eyes=eye(47)+(a.expression==='wink'?'<path d="m69 50 7-2" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="m69 50 7-2" fill="none" stroke="#332d35" stroke-width="2" stroke-linecap="round"/>':eye(73));
  let mouth=a.expression==='smirk'?'<path d="M53 64Q65 69 71 59" fill="none" stroke="#633d3c" stroke-width="2.5" stroke-linecap="round"/><path d="m67 38 10 2" stroke="#332d35" stroke-width="2" stroke-linecap="round"/>':a.expression==='grin'?'<path d="M49 61Q60 76 71 61Z" fill="#633d3c"/><path d="M51 61h18l-3 4H54Z" fill="#fff"/>':a.expression==='calm'?'<path d="M55 64h10" stroke="#633d3c" stroke-width="2" stroke-linecap="round"/>':'<path d="M52 61Q60 69 68 61" fill="none" stroke="#633d3c" stroke-width="2.5" stroke-linecap="round"/>';
