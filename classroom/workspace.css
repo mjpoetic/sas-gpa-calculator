@@ -102,3 +102,6 @@
 #item-geometry{margin:12px 0}#item-geometry>summary{cursor:pointer;padding:8px 0;font-weight:650}#selection-font-controls{border-bottom:1px solid var(--studio-glass-edge);padding-bottom:14px;margin-bottom:14px}#selection-font-controls label{margin:10px 0}
 
 .student-row .student-actions{flex-wrap:wrap}.nickname-editor label{margin:14px 0}.nickname-editor .primary{margin-top:12px}
+
+/* Own only grid gestures; the surrounding page retains native touch scrolling. */
+.chart-first .room-scroll{touch-action:none}.two-finger-panning,.two-finger-panning *{cursor:grabbing!important}.two-finger-panning .furniture-actions,.two-finger-panning .resize-handle{visibility:hidden!important}

@@ -1,12 +1,13 @@
-import {avatarSVG} from './avatars.mjs?v=20261015-release6';
-import {openAvatarEditor} from './avatar-editor.js?v=20261015-release6';
-import {transferStudent} from './seat-transfer.mjs?v=20261015-release6';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261015-release6';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261015-release6';
-import {furnitureArt} from './furniture-art.mjs?v=20261015-release6';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261015-release6';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261015-release6';
-import {connectCloud} from './cloud.js?v=20261015-release6';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261015-release7';
+import {avatarSVG} from './avatars.mjs?v=20261015-release7';
+import {openAvatarEditor} from './avatar-editor.js?v=20261015-release7';
+import {transferStudent} from './seat-transfer.mjs?v=20261015-release7';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261015-release7';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261015-release7';
+import {furnitureArt} from './furniture-art.mjs?v=20261015-release7';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261015-release7';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261015-release7';
+import {connectCloud} from './cloud.js?v=20261015-release7';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -339,6 +340,10 @@ $('rotate-room').onclick=()=>{change(()=>rotateRoom(chart()),'Room and furniture
 
 document.addEventListener('sas-workspace-resize',updateZoom);window.visualViewport?.addEventListener('resize',updateZoom);
 
+enableTwoFingerPan($('room').parentElement,{
+ begin(center){const box=$('room').getBoundingClientRect();return {zoom,x:(center.x-box.left)/zoom,y:(center.y-box.top)/zoom};},
+ transform(start,scale,center){const value=Math.max(.05,Math.min(3,start.zoom*scale)),room=$('room'),scroller=room.parentElement;let entry=$('zoom').querySelector('option[data-custom-zoom]');if(!entry){entry=option('custom','Custom zoom');entry.dataset.customZoom='true';$('zoom').append(entry);}entry.value=String(value);entry.textContent=Math.round(value*100)+'%';$('zoom').value=String(value);updateZoom();const box=room.getBoundingClientRect();scroller.scrollLeft+=box.left+start.x*zoom-center.x;scroller.scrollTop+=box.top+start.y*zoom-center.y;}
+});
 let panMode=false;
 function setPan(value){panMode=value;$('room').dataset.pan=String(value);$('canvas-pan').setAttribute('aria-pressed',String(value));}
 function setCanvasZoom(value){const scroller=$('room').parentElement;value=Math.max(.05,Math.min(3,value));let entry=$('zoom').querySelector('option[data-custom-zoom]');if(!entry){entry=option('custom','Custom zoom');entry.dataset.customZoom='true';$('zoom').append(entry);}entry.value=String(value);entry.textContent=Math.round(value*100)+'%';$('zoom').value=String(value);updateZoom();setPan(true);say('Drag to pan the enlarged room. Turn Pan off to move furniture.');}
