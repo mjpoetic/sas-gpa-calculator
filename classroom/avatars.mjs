@@ -24,7 +24,7 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
  const bodyTransform=`translate(60 ${a.style==='junior'?117:a.style==='senior'?123:120}) scale(${bodyScale[0]} ${bodyScale[1]}) translate(-60 -120)`;
  // Hairstyles share a canonical middle-school head and follow its actual geometry.
  const hairTransform=`translate(60 ${headY}) scale(${rx/28} 1) translate(-60 -47)`;
- const scalp=a.hair==='bald'?'':'<path d="M32 47A28 32 0 0 1 88 47L85 36Q60 26 35 36Z"/>';
+ let scalp=a.hair==='bald'?'':'<path d="M32 47A28 32 0 0 1 88 47L85 36Q60 26 35 36Z"/>';
  // Hair detail uses nearby hair tones, never white construction lines.
  const tone=(amount)=>{const rgb=hair.slice(1).match(/../g).map(v=>parseInt(v,16));return '#'+rgb.map(v=>Math.round(amount<0?v*(1+amount):v+(255-v)*amount).toString(16).padStart(2,'0')).join('');},strand=tone(-.22),ridge=tone(.08);
  let back={long:`<path d="M27 40Q25 12 59 14Q96 14 93 57L99 100H20Z" fill="${hair}"/>`,braids:`<path d="M30 45Q25 18 59 16Q94 17 91 49" fill="${hair}"/><g fill="${hair}">${[61,72,83,94].map(y=>`<ellipse cx="29" cy="${y}" rx="10" ry="8"/><ellipse cx="91" cy="${y}" rx="10" ry="8"/>`).join('')}</g>`,ponytail:`<ellipse cx="93" cy="42" rx="16" ry="27" fill="${hair}"/><path d="M88 31l8 3" stroke="#d994b0" stroke-width="6"/>`,bob:`<path d="M26 45Q22 15 59 14Q96 15 95 49L94 80H25Z" fill="${hair}"/>`,afro:`<path d="M23 69Q5 47 24 28Q23 10 44 9Q62-2 79 12Q104 10 102 34Q119 53 95 73Z" fill="${hair}"/>`}[a.hair]||'';
@@ -88,6 +88,25 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
   front=closeCap+`<g fill="none" stroke="${skin}" stroke-width="1.2" stroke-linecap="round"><path d="M60 12v18M40 20q20-7 40 0M33 29q27-8 54 0M48 15l-7 18m30-18 8 18"/></g>`;
   front+=[ [42,16,30,39],[51,14,41,33],[57,15,53,30],[64,15,66,31],[70,14,78,34],[79,17,90,41] ].map(p=>twist(...p,4.4)).join('');
   front+=twist(31,36,26,88,4.5)+twist(89,36,94,92,4.5);
+ }
+ if(a.hair==='braids'){
+  const braid=(x,start,end,side)=>{
+   const tip=x+side*3,root=x<60?Math.max(33,x+9):Math.min(87,x-9);
+   const point=t=>{const u=1-t;return {x:u*u*u*root+3*u*u*t*x+3*u*t*t*(x+side*2)+t*t*t*tip,y:u*u*u*start+3*u*u*t*(start+10)+3*u*t*t*61+t*t*t*end};};
+   return `<path d="M${root} ${start}C${x} ${start+10} ${x+side*2} 61 ${tip} ${end}" fill="none" stroke="${hair}" stroke-width="4.2" stroke-linecap="round"/>`+Array.from({length:Math.floor((end-start)/5)},(_,i)=>{const p=point((i+.5)/Math.floor((end-start)/5));return `<path d="m${p.x-.8} ${p.y-1} 1.6 1-.1 1" fill="none" stroke="${strand}" stroke-width=".7"/>`;}).join('')+`<path d="M${tip} ${end}q${side*5} 4 0 8t0 8t${side*2} 8" fill="none" stroke="${hair}" stroke-width="3.5" stroke-linecap="round"/>`;
+  };
+  back=[20,25,30,35,40,80,85,90,95,100].map((x,i)=>braid(x,29,77+i%3*4,x<60?-1:1)).join('');
+  front='<path d="M30 42Q27 11 60 12Q93 11 90 42L83 33Q70 28 60 35Q50 28 37 33Z"/>';
+  front+=`<g fill="none" stroke="${skin}" stroke-width=".75" stroke-linecap="round"><path d="M60 13v20"/>${[17,22,27].map((y,i)=>`<path d="M58 ${y+3}Q${43-i*3} ${y-1} ${34-i} ${y+12}M62 ${y+3}Q${77+i*3} ${y-1} ${86+i} ${y+12}"/>`).join('')}</g>`;
+  front+=braid(31,36,78,-1)+braid(89,36,80,1);
+ }
+ if(a.hair==='fade'){
+  scalp='';back='';
+  const blend=t=>{const h=hair.slice(1).match(/../g).map(v=>parseInt(v,16)),s=skin.slice(1).match(/../g).map(v=>parseInt(v,16));return '#'+h.map((v,i)=>Math.round(s[i]+(v-s[i])*t).toString(16).padStart(2,'0')).join('');};
+  front='<path d="M37 30Q34 13 60 14Q86 13 83 30L80 28Q60 27 40 28Z"/>';
+  const edge=y=>60-28*Math.sqrt(1-((y-47)/32)**2);
+  for(let i=0;i<9;i++){const y=28+i*2.2,next=y+2.4,left=edge(y),bottom=edge(next),w=5.6-i*.45;front+=`<path d="M${left} ${y}H${left+w}L${bottom+w-.4} ${next}H${bottom}ZM${120-left} ${y}H${120-left-w}L${120-bottom-w+.4} ${next}H${120-bottom}Z" fill="${blend(.85-i*.09)}"/>`;}
+  front+=Array.from({length:32},(_,i)=>{const x=42+i%8*5,y=19+Math.floor(i/8)*2.5;return `<circle cx="${x}" cy="${y}" r=".55" fill="${ridge}"/>`;}).join('');
  }
  const eye=x=>a.eyes==='happy'?`<path d="M${x-5} 50q5-7 10 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M${x-5} 50q5-7 10 0" fill="none" stroke="#332d35" stroke-width="2" stroke-linecap="round"/>`:a.eyes==='classic'?`<ellipse cx="${x}" cy="49" rx="3" ry="5"/>`:`<ellipse cx="${x}" cy="49" rx="${a.eyes==='round'?6:5}" ry="6.5" fill="#fffaf4"/><ellipse cx="${x}" cy="49.5" rx="3" ry="4.5"/><circle cx="${x-1}" cy="47.5" r="1.2" fill="#fff"/>`;
  const eyes=eye(47)+(a.expression==='wink'?'<path d="m69 50 7-2" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="m69 50 7-2" fill="none" stroke="#332d35" stroke-width="2" stroke-linecap="round"/>':eye(73));
