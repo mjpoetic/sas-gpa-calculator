@@ -1,6 +1,6 @@
-import {validateAvatar} from './avatars.mjs?v=20261015-release3';
-import {normalizeStudentName} from './student-names.mjs?v=20261015-release3';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261015-release3';
+import {validateAvatar} from './avatars.mjs?v=20261015-release4';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261015-release4';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261015-release4';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -101,7 +101,7 @@ export function validateBackup(data) {
   const charts = data.charts.map(c => {
     if (!Array.isArray(c.students) || c.students.length > 500 || !Array.isArray(c.items) || c.items.length > 500) throw new Error('Backup exceeds classroom limits.');
     const room=c.room===undefined?{width:960,height:680}:validateRoom(c.room);
-    const students = c.students.map(s => ({id: id(s.id), name: normalizeStudentName(str(s.name,80)),...(s.avatar!==undefined?{avatar:validateAvatar(s.avatar)}:{}),...(s.avoid!==undefined?{avoid:s.avoid}: {})}));
+    const students = c.students.map(s => ({id: id(s.id), name: normalizeStudentName(str(s.name,80)),...(s.nickname!==undefined?{nickname:validateNickname(s.nickname)}:{}),...(s.avatar!==undefined?{avatar:validateAvatar(s.avatar)}:{}),...(s.avoid!==undefined?{avoid:s.avoid}: {})}));
     const studentIds = new Set(students.map(s => s.id)), assigned = new Set();
     for(const student of students)if(student.avoid!==undefined&&(!Array.isArray(student.avoid)||student.avoid.length>500||student.avoid.some(ref=>typeof ref!=='string'||ref===student.id||!studentIds.has(ref))))throw new Error('Invalid student separation preferences.');
     const items = c.items.map(it => {
@@ -119,7 +119,7 @@ export function validateBackup(data) {
   });
   const studentLists=(data.studentLists||[]);
   if(!Array.isArray(studentLists)||studentLists.length>100)throw new Error('Invalid saved student lists.');
-  const lists=studentLists.map(list=>{if(!Array.isArray(list.names)||list.names.length>500)throw new Error('Invalid saved student list.');return {id:id(list.id),name:str(list.name,80),names:list.names.map(n=>normalizeStudentName(str(n,80))),...(list.avatars!==undefined?{avatars:validateListAvatars(list.avatars,list.names.length)}:{}),...(list.avoid!==undefined?{avoid:validateListAvoid(list.avoid,list.names.length)}:{})};});
+  const lists=studentLists.map(list=>{if(!Array.isArray(list.names)||list.names.length>500)throw new Error('Invalid saved student list.');return {id:id(list.id),name:str(list.name,80),names:list.names.map(n=>normalizeStudentName(str(n,80))),...(list.nicknames!==undefined?{nicknames:validateListNicknames(list.nicknames,list.names.length)}:{}),...(list.avatars!==undefined?{avatars:validateListAvatars(list.avatars,list.names.length)}:{}),...(list.avoid!==undefined?{avoid:validateListAvoid(list.avoid,list.names.length)}:{})};});
   const chartOrder=data.chartOrder;if(chartOrder!==undefined&&(!Array.isArray(chartOrder)||chartOrder.length>100||chartOrder.some(id=>typeof id!=='string')||new Set(chartOrder).size!==chartOrder.length))throw new Error('Invalid classroom order.');
   return {version:1, ...(chartOrder?{chartOrder:chartOrder.filter(id=>charts.some(c=>c.id===id))}:{}), ...(lists.length?{studentLists:lists}:{}), charts, active:charts.some(c => c.id === data.active) ? data.active : charts[0].id};
 }
@@ -202,3 +202,5 @@ export function validateSeatFontSize(value){if(!Number.isFinite(value)||value<8|
 export function validateLabelFontSize(value){if(!Number.isFinite(value)||value<8||value>200)throw new Error('Room label font size must be between 8 and 200.');return value;}
 
 function validateListAvatars(values,length){if(!Array.isArray(values)||values.length!==length)throw new Error('Invalid saved list avatars.');return values.map(a=>a===null?null:validateAvatar(a));}
+
+function validateListNicknames(values,length){if(!Array.isArray(values)||values.length!==length)throw new Error('Invalid saved list nicknames.');return values.map(v=>v===null?null:validateNickname(v));}
