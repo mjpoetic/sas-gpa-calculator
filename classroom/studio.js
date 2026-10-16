@@ -1,13 +1,13 @@
-import {enableTwoFingerPan} from './touch-pan.js?v=20261015-release25';
-import {avatarSVG} from './avatars.mjs?v=20261015-release25';
-import {openAvatarEditor} from './avatar-editor.js?v=20261015-release25';
-import {transferStudent} from './seat-transfer.mjs?v=20261015-release25';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261015-release25';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261015-release25';
-import {furnitureArt} from './furniture-art.mjs?v=20261015-release25';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261015-release25';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261015-release25';
-import {connectCloud} from './cloud.js?v=20261015-release25';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261016-release1';
+import {avatarSVG} from './avatars.mjs?v=20261016-release1';
+import {openAvatarEditor} from './avatar-editor.js?v=20261016-release1';
+import {transferStudent} from './seat-transfer.mjs?v=20261016-release1';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261016-release1';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261016-release1';
+import {furnitureArt} from './furniture-art.mjs?v=20261016-release1';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261016-release1';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261016-release1';
+import {connectCloud} from './cloud.js?v=20261016-release1';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -210,7 +210,7 @@ function renderInspector() {
   $('selection-title').textContent = group ? `${selectedItems().length} objects selected` : it ? (selection?.seat!=null ? 'Student details' : catalog[it.type].label) : 'Fine-tune your room';$('selection-hint').hidden = !!it;
   if(!it) return;
   for(const field of ['label','width','height','x','y']) $('item-'+field).value = it[field];
-  $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-width').min=['mug','mouse'].includes(it.type)?16:40;$('item-width').step=['mug','mouse'].includes(it.type)?1:10;$('item-height').min=['mug','mouse'].includes(it.type)?12:['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
+  $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-width').min=['mug','mouse'].includes(it.type)?16:40;$('item-width').step=['mug','mouse'].includes(it.type)?1:10;$('item-height').min=it.type==='powerstrip'?8:['mug','mouse'].includes(it.type)?12:['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
   $('label-font-size').value=it.labelFontSize||'';$('label-font-controls').hidden=it.type!=='label';$('label-font-source').value=it.labelFont?.source||'preset';$('label-font-family').value=it.labelFont?.family||'system';
   const style=it.labelStyle||defaultLabelStyle();for(const key of ['background','outline'])$('label-'+key).checked=style[key];for(const key of ['fill','border','text'])$('label-'+key).value=style[key];
   $('item-color').value=it.color || appearance().color || '#e8d7bb';

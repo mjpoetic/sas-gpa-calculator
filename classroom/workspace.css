@@ -111,3 +111,5 @@
 .chart-first dialog[open]::backdrop{animation:dialog-backdrop-enter 220ms ease-out both}
 .chart-first dialog.dialog-motion-closing::backdrop{animation:dialog-backdrop-exit 150ms ease-in both}
 @media(prefers-reduced-motion:reduce){.chart-first dialog::backdrop{animation:none!important}}
+
+#room .item:is(.computercart,.powerstrip,.tvtray){background:transparent!important;border:0!important}.item:is(.computercart,.powerstrip,.tvtray) .furniture-art{inset:0}.mini.computercart,.mini.tvtray{width:42px;height:32px}.mini.powerstrip{width:44px;height:18px}

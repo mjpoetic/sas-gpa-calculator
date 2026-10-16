@@ -1,6 +1,6 @@
-import {validateAvatar} from './avatars.mjs?v=20261015-release25';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261015-release25';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261015-release25';
+import {validateAvatar} from './avatars.mjs?v=20261016-release1';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261016-release1';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261016-release1';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -20,6 +20,9 @@ export const catalog = {
   shelf: {label: 'Bookshelf', width: 130, height: 45, seats: 0},
   door: {label: 'Door', width: 140, height: 140/12, seats: 0},
   printer: {label:'Printer',width:90,height:75,seats:0},
+  computercart:{label:'Computer cart',width:120,height:85,seats:0},
+  powerstrip:{label:'Power strip',width:75,height:22,seats:0},
+  tvtray:{label:'TV tray table',width:90,height:65,seats:0},
   cabinet: {label:'Filing cabinet',width:80,height:110,seats:0},
   window: {label:'Window',width:170,height:12,seats:0},
   smartboard: {label:'Smart board',width:220,height:11,seats:0},
@@ -144,14 +147,14 @@ export function snapGroup(items,others,grid=true) {
  }if(b.x<9)dx=-b.x;else if(WIDTH-b.x-b.width<9)dx=WIDTH-b.x-b.width;if(b.y<9)dy=-b.y;else if(HEIGHT-b.y-b.height<9)dy=HEIGHT-b.y-b.height;moveGroup(items,dx,dy);return bestX<9||bestY<9;
 }
 
-export const proportionalTypes=new Set(['round','plant','laptop','keyboard','mouse','chair','stool','printer','couch','window','officechair','trash','sidetable','clock','globe','mug','bottle','sharpener','calendar']);
+export const proportionalTypes=new Set(['computercart','powerstrip','tvtray','round','plant','laptop','keyboard','mouse','chair','stool','printer','couch','window','officechair','trash','sidetable','clock','globe','mug','bottle','sharpener','calendar']);
 export function resizeFurniture(it,width,height,axis='width') {
  if(it.type==='cabinet'){it.width=80;it.height=Math.max(60,Math.min(300,Math.round(height/30)*30));}
  else if(['door','board','smartboard','bulletin'].includes(it.type)){it.width=Math.max(8*(it.type==='door'?12:20),Math.min(400,axis==='height'?height*(it.type==='door'?12:20):width));it.height=it.width/(it.type==='door'?12:20);}
  else if(proportionalTypes.has(it.type)){
   const spec=catalog[it.type],ratio=spec.width/spec.height;
   let w=axis==='height'?height*ratio:width;
-  w=Math.max(['mug','mouse'].includes(it.type)?16:40,(['mug','mouse'].includes(it.type)?12:it.type==='window'?8:30)*ratio,Math.min(400,300*ratio,w));it.width=w;it.height=w/ratio;
+  w=Math.max(['mug','mouse'].includes(it.type)?16:40,(['mug','mouse'].includes(it.type)?12:['window','powerstrip'].includes(it.type)?8:30)*ratio,Math.min(400,300*ratio,w));it.width=w;it.height=w/ratio;
  }else{it.width=Math.max(40,Math.min(400,width));it.height=Math.max(30,Math.min(300,height));}
  constrain(it);
 }
