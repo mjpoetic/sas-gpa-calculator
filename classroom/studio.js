@@ -1,13 +1,13 @@
-import {enableTwoFingerPan} from './touch-pan.js?v=20261016-release7';
-import {avatarSVG} from './avatars.mjs?v=20261016-release7';
-import {openAvatarEditor} from './avatar-editor.js?v=20261016-release7';
-import {transferStudent} from './seat-transfer.mjs?v=20261016-release7';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261016-release7';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261016-release7';
-import {furnitureArt} from './furniture-art.mjs?v=20261016-release7';
-import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261016-release7';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261016-release7';
-import {connectCloud} from './cloud.js?v=20261016-release7';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261016-release8';
+import {avatarSVG} from './avatars.mjs?v=20261016-release8';
+import {openAvatarEditor} from './avatar-editor.js?v=20261016-release8';
+import {transferStudent} from './seat-transfer.mjs?v=20261016-release8';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261016-release8';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261016-release8';
+import {furnitureArt} from './furniture-art.mjs?v=20261016-release8';
+import {snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261016-release8';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261016-release8';
+import {connectCloud} from './cloud.js?v=20261016-release8';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -31,8 +31,9 @@ function paintPositions(){positionGroupOverlay();showGuides(selectedItems());for
 const selected = () => chart().items.find(it => it.id === selection?.id);
 const appearance = () => chart().appearance || defaultAppearance();
 const say = text => {$('message').textContent = text;};
+let exportedSnapshot=null;
 function save() {
-  try {localStorage.setItem(KEY, JSON.stringify(state)); $('save-state').textContent = '✓ Saved in this browser';const stamp=new Date().toISOString();$('save-state').dataset.savedAt=stamp;localStorage.setItem(KEY+'-saved-at',stamp);document.dispatchEvent(new Event('sas-chart-edited'));return true;}
+  try {const serialized=JSON.stringify(state),changed=localStorage.getItem(KEY)!==serialized;localStorage.setItem(KEY, serialized); $('save-state').textContent = '✓ Saved in this browser';const stamp=new Date().toISOString();$('save-state').dataset.savedAt=stamp;localStorage.setItem(KEY+'-saved-at',stamp);if(changed)document.dispatchEvent(new Event('sas-chart-edited'));return true;}
   catch {$('save-state').textContent = 'Save unavailable — export a backup'; say('Browser storage is unavailable or full. Export a backup to preserve your work.');return false;}
 }
 function checkpoint() {redoHistory=[];history.push(JSON.stringify(state)); if(history.length > 40) history.shift();}
@@ -296,7 +297,7 @@ function updateZoom() {
 }
 $('zoom').onchange = updateZoom;
 new ResizeObserver(updateZoom).observe($('room').parentElement);
-$('export').onclick = () => {const url=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));const a=element('a');a.href=url;a.download=`sas-classrooms-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(() => URL.revokeObjectURL(url),1000);say('Backup exported. It includes all classrooms and student names.');};
+$('export').onclick = () => {const url=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));const a=element('a');a.href=url;a.download=`sas-classrooms-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(() => URL.revokeObjectURL(url),1000);exportedSnapshot=JSON.stringify(state);document.dispatchEvent(new CustomEvent('sas-chart-backup',{detail:{document:structuredClone(state)}}));document.dispatchEvent(new Event('sas-refresh-ready'));say('Backup exported. It includes all classrooms and student names.');};
 $('import').onclick = () => $('import-file').click();
 $('import-file').onchange = async () => {const file=$('import-file').files[0];if(!file) return;try {
   if(file.size>5_000_000) throw new Error('Backup must be smaller than 5 MB.');
@@ -308,7 +309,7 @@ $('print').onclick = () => window.print();
 tab(document.body.dataset.workspacePanel==='students');render();if(loadError) {say(loadError);$('save-state').textContent='Saved data could not be loaded';}
 void connectCloud({getState:()=>structuredClone(state),applyState:incoming=>change(()=>{state=incoming;selection=null;},'Cloud charts opened. Undo is available.'),notify:say});
 
-document.addEventListener('sas-before-refresh',event=>{if(!save())event.preventDefault();});
+document.addEventListener('sas-before-refresh',event=>{if(!save()&&exportedSnapshot!==JSON.stringify(state)){event.detail?.setReason?.('Refresh paused. Browser saving is unavailable. Export a current backup, then try again.');event.preventDefault();}});
 
 $('item-angle').onchange=()=>{const it=selected();if(!it)return;if(!$('item-angle').checkValidity()||!$('item-angle').value){renderInspector();return;}change(()=>{it.rotation=Number($('item-angle').value);constrain(it);});};
 
