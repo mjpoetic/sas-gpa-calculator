@@ -107,7 +107,11 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
   const edge=y=>60-28*Math.sqrt(1-((y-47)/32)**2);
   for(let i=0;i<9;i++){const y=28+i*2.2,next=y+2.4,left=edge(y),bottom=edge(next),w=5.6-i*.45;front+=`<path d="M${left} ${y}H${left+w}L${bottom+w-.4} ${next}H${bottom}ZM${120-left} ${y}H${120-left-w}L${120-bottom-w+.4} ${next}H${120-bottom}Z" fill="${blend(.85-i*.09)}"/>`;}
   front+=Array.from({length:32},(_,i)=>{const x=42+i%8*5,y=19+Math.floor(i/8)*2.5;return `<circle cx="${x}" cy="${y}" r=".55" fill="${ridge}"/>`;}).join('');
-  if(a.hair==='waves')front+=`<g fill="none" stroke="${strand}" stroke-width="1.3" stroke-linecap="round">${[18,22,26].map(y=>`<path d="M40 ${y+2}q5-4 10-1t10 0t10 0t10 1"/>`).join('')}</g>`;
+  if(a.hair==='waves'){
+   front+='<path d="M32 35C29 20 37 7 60 7S91 20 88 35L84 38 81 32Q60 29 39 32L36 38Z"/>';
+   const rows=[[45,75,12],[39,81,16.5],[35,85,21],[34,86,25.5],[37,83,30]];
+   front+=rows.map(([left,right,y])=>{const step=(right-left)/4;let d=`M${left} ${y}`;for(let i=0;i<4;i++){const x=left+i*step;d+=`C${x+step/3} ${y-2.1} ${x+2*step/3} ${y+2.1} ${x+step} ${y}`;}return `<path d="${d}" fill="none" stroke="${strand}" stroke-width="1.5" stroke-linecap="round"/><path d="${d}" transform="translate(0 1.1)" fill="none" stroke="${ridge}" stroke-width=".6" stroke-linecap="round"/>`;}).join('');
+  }
   if(a.hair==='curlytop')front+=[ [33,25],[38,18],[46,14],[55,13],[65,12],[75,15],[83,20],[87,27],[44,25],[55,24],[67,24],[77,28] ].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${i%3===0?6.8:7.5}"/><path d="M${x-3} ${y+1}q-2-6 3-5q5 1 1 5q-2 2-3-.5" fill="none" stroke="${strand}" stroke-width="1.3" stroke-linecap="round"/>`).join('');
 
  }
