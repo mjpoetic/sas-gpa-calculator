@@ -1,5 +1,5 @@
 export const avatarOptions={
- style:[['junior','Elementary school'],['middle','Middle school'],['senior','High school']],
+ style:[['junior','Round'],['middle','Oval'],['senior','Narrow oval']],
  skin:[['#f6d7b0','Light warm'],['#edc6a4','Light tan'],['#dca878','Golden tan'],['#c78e64','Warm brown'],['#a86d49','Medium brown'],['#855337','Deep brown'],['#603d2c','Dark brown'],['#ecc5bd','Light rose']],
  hair:[['crop','Short crop'],['swoop','Side sweep'],['curls','Soft curls'],['afro','Rounded afro'],['sponge','Sponge curl high top'],['spongeafro','Sponge curl afro'],['coils','Coils'],['bob','Bob'],['long','Long hair'],['braids','Braids'],['ponytail','Ponytail'],['fade','Fade'],['curlytop','Curly top'],['waves','Waves'],['cornrows','Cornrows'],['boxbraids','Box braids'],['locs','Long locs'],['shortlocs','Short locs'],['twists','Two-strand twists'],['puffs','Afro puffs'],['bald','No hair']],
  hairColor:[['#302420','Espresso'],['#65402c','Chestnut'],['#b16b32','Copper'],['#e7c366','Golden'],['#d8d7d0','Silver'],['#9a69bc','Purple'],['#438aaf','Blue'],['#da7b99','Pink'],['#800020','Burgundy'],['#228b22','Forest green']],
@@ -19,10 +19,9 @@ export const defaultAvatar=()=>({enabled:true,style:'middle',skin:'#dca878',hair
 export function validateAvatar(value){if(!value||typeof value!=='object'||typeof value.enabled!=='boolean')throw new Error('Invalid student avatar.');const result={enabled:value.enabled};for(const [key,choices] of Object.entries(avatarOptions)){const legacy={capColor:'#800020',capBrimColor:'#34445f',mouthAccessory:'none',eyes:'classic',glassesColor:value.accessory==='round'?'#835832':'#34445c'};const candidate=value[key]===undefined?legacy[key]:value[key];if(!(choices[0][0].startsWith('#')?typeof candidate==='string'&&/^#[\da-f]{6}$/i.test(candidate):choices.some(([v])=>v===candidate)))throw new Error('Invalid avatar '+key+'.');result[key]=typeof candidate==='string'&&candidate.startsWith('#')?candidate.toLowerCase():candidate;}return result;}
 export function randomAvatar(random=Math.random){const a=defaultAvatar();for(const [key,choices] of Object.entries(avatarOptions))a[key]=choices[Math.min(choices.length-1,Math.floor(random()*choices.length))][0];return a;}
 export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,shirt=a.clothingColor,skin=a.skin,headY=a.style==='junior'?46:a.style==='senior'?49:47,rx=a.style==='junior'?30:a.style==='senior'?26:28;
- // Keep clothing, shoulders, and neck together as age proportions change.
- const bodyScale=a.style==='junior'?[.86,.86]:a.style==='senior'?[1.1,1.08]:[1,1];
- const bodyTransform=`translate(60 ${a.style==='junior'?117:a.style==='senior'?123:120}) scale(${bodyScale[0]} ${bodyScale[1]}) translate(-60 -120)`;
- // Hairstyles share a canonical middle-school head and follow its actual geometry.
+ // Head shape is independent of body size; legacy style IDs retain saved selections.
+ const bodyTransform='translate(60 120) scale(1 1) translate(-60 -120)';
+ // Hair and headwear follow the chosen head geometry.
  const hairTransform=`translate(60 ${headY}) scale(${rx/28} 1) translate(-60 -47)`;
  let scalp=a.hair==='bald'?'':'<path d="M32 47A28 32 0 0 1 88 47L85 36Q60 26 35 36Z"/>';
  // Hair detail uses nearby hair tones, never white construction lines.
@@ -56,12 +55,14 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
   back=long?`<g fill="none" stroke-linecap="round">${[20,27,34,41,79,86,93,100].map((x,i)=>{const end=88+(i%3)*7,d=`M${x+(x<60?5:-5)} 27C${x-3} 46 ${x+3} 65 ${x+(i%2?2:-2)} ${end}`;return `<path d="${d}" stroke="${strand}" stroke-width="7.5"/><path d="${d}" stroke="${hair}" stroke-width="5.8"/>`;}).join('')}</g>`:`<g fill="${hair}"><ellipse cx="29" cy="43" rx="4" ry="8"/><ellipse cx="91" cy="43" rx="4" ry="8"/></g>`;
  }
  if(a.hair==='cornrows'){
-  // Parallel, raised braids follow the scalp from hairline to crown.
-  // Narrow skin-colored partings stop at the hairline, not on the forehead.
-  const rows=[34,43,52,60,68,77,86];
-  front=closeCap+`<g fill="none" stroke="${skin}" stroke-width="1.4" stroke-linecap="round">${[38.5,47.5,56,64,72.5,81.5].map(x=>`<path d="M${60+(x-60)*.62} ${12+Math.abs(x-60)*.13}Q${x} 22 ${x} ${32+Math.abs(x-60)*.15}"/>`).join('')}</g>`;
-  front+=`<g fill="${ridge}">${rows.map(x=>[18,22,26,30].map(y=>{const px=60+(x-60)*(.65+(y-15)*.02),tilt=(x-60)*.6;return `<g transform="translate(${px} ${y}) rotate(${tilt})"><ellipse cx="-1.1" cy="-.6" rx="1.7" ry="2.3" transform="rotate(-30)"/><ellipse cx="1.1" cy=".6" rx="1.7" ry="2.3" transform="rotate(30)"/></g>`;}).join('')).join('')}</g>`;
-  back=`<g fill="${hair}">${[42,47,52,57].map(y=>`<ellipse cx="30" cy="${y}" rx="3.5" ry="3.7"/><ellipse cx="90" cy="${y}" rx="3.5" ry="3.7"/>`).join('')}</g>`;
+  front=closeCap;
+  // Scalp channels separate five raised braids running back from the hairline.
+  front+=`<g fill="none" stroke="${skin}" stroke-width="1.5" stroke-linecap="round">${[40.5,53.5,66.5,79.5].map(x=>`<path d="M${60+(x-60)*.63} ${12+Math.abs(x-60)*.12}Q${x} 23 ${x} ${33+Math.abs(x-60)*.16}"/>`).join('')}</g>`;
+  for(const x of [34,47,60,73,86]){const topX=60+(x-60)*.65,topY=12+Math.abs(x-60)*.16,endY=32+Math.abs(x-60)*.22;
+   front+=`<path d="M${topX} ${topY}Q${x} 22 ${x} ${endY}" fill="none" stroke="${strand}" stroke-width="6" stroke-linecap="round"/><path d="M${topX} ${topY}Q${x} 22 ${x} ${endY}" fill="none" stroke="${hair}" stroke-width="4.5" stroke-linecap="round"/>`;
+   for(let i=0;i<5;i++){const t=(i+.6)/5,u=1-t,px=u*u*topX+2*u*t*x+t*t*x,py=u*u*topY+2*u*t*22+t*t*endY;front+=`<path d="m${px-1.6} ${py-1} 3.2 1.4-1.6 1.1" fill="none" stroke="${ridge}" stroke-width=".8" stroke-linecap="round"/>`;}
+  }
+  back=`<g fill="none" stroke="${hair}" stroke-width="4" stroke-linecap="round"><path d="M31 36q-8 15-2 30t-3 13m63-43q8 15 2 30t3 13"/></g>`;
  }
  if(a.hair==='afro'){
   // A rounded halo of tightly packed hair, rather than large curl lobes.
@@ -98,7 +99,7 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
  if(['fade','waves','curlytop','sponge'].includes(a.hair)){
   scalp='';back='';
   const blend=t=>{const h=hair.slice(1).match(/../g).map(v=>parseInt(v,16)),s=skin.slice(1).match(/../g).map(v=>parseInt(v,16));return '#'+h.map((v,i)=>Math.round(s[i]+(v-s[i])*t).toString(16).padStart(2,'0')).join('');};
-  front='<path d="M37 30Q34 13 60 14Q86 13 83 30L80 28Q60 27 40 28Z"/>';
+  front='<path d="M34 33C31 20 39 8 60 8S89 20 86 33L81 31Q60 28 39 31Z"/>';
   const edge=y=>60-28*Math.sqrt(1-((y-47)/32)**2);
   for(let i=0;i<9;i++){const y=28+i*2.2,next=y+2.4,left=edge(y),bottom=edge(next),w=5.6-i*.45;front+=`<path d="M${left} ${y}H${left+w}L${bottom+w-.4} ${next}H${bottom}ZM${120-left} ${y}H${120-left-w}L${120-bottom-w+.4} ${next}H${120-bottom}Z" fill="${blend(.85-i*.09)}"/>`;}
   front+=Array.from({length:32},(_,i)=>{const x=42+i%8*5,y=19+Math.floor(i/8)*2.5;return `<circle cx="${x}" cy="${y}" r=".55" fill="${ridge}"/>`;}).join('');
@@ -133,11 +134,11 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
  if(['sponge','spongeafro'].includes(a.hair)){
   const afro=a.hair==='spongeafro';
   if(afro){back='';front='<path d="M24 43C17 24 28 3 60 3S103 24 96 43L88 44 84 33Q60 29 36 33L32 44Z"/>';}
-  else front+='<path d="M31 34Q25 18 34 8Q60-1 86 8Q95 18 89 34L82 31Q60 29 38 31Z"/>';
+  else front+='<path d="M35 35C35 25 30 16 35 8Q60-1 85 8C90 16 85 25 85 35L80 32Q60 29 40 32Z"/>';
   // Dense small sponge coils follow each silhouette rather than forming a grid.
   for(let row=0;row<6;row++)for(let col=0;col<12;col++){
    const x=(afro?25:32)+col*(afro?6.3:5.1)+(row%2)*2.2,y=7+row*5.5+Math.sin(col*2.7+row)*1.1;
-   if(afro?(((x-60)/36)**2+((y-26)/24)**2>1||(y>30&&x>35&&x<85)):(x>89||y>29||((x-60)/30)**2+((y-22)/20)**2>1))continue;
+   if(afro?(((x-60)/36)**2+((y-26)/24)**2>1||(y>30&&x>35&&x<85)):(Math.abs(x-60)>28-(y-7)*.23||y>29||((x-60)/30)**2+((y-22)/20)**2>1))continue;
    front+=`<circle cx="${x}" cy="${y}" r="${afro?3.6:3.3}"/><path d="M${x-1.3} ${y+.7}q-1.4-2.6 1.2-2.6q2.5.5.8 2.5" fill="none" stroke="${strand}" stroke-width=".9" stroke-linecap="round"/>`;
   }
  }

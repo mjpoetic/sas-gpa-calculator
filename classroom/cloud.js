@@ -1,7 +1,7 @@
-import {migrateTabSession} from './auth-session.mjs?v=20261015-release22';
-import {mergeDocuments} from './sync-merge.mjs?v=20261015-release22';
-import {cloudConfig} from './cloud-config.js?v=20261015-release22';
-import {CloudStore} from './cloud-store.mjs?v=20261015-release22';
+import {migrateTabSession} from './auth-session.mjs?v=20261015-release23';
+import {mergeDocuments} from './sync-merge.mjs?v=20261015-release23';
+import {cloudConfig} from './cloud-config.js?v=20261015-release23';
+import {CloudStore} from './cloud-store.mjs?v=20261015-release23';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
