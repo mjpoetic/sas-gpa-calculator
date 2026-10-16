@@ -113,3 +113,5 @@
 @media(prefers-reduced-motion:reduce){.chart-first dialog::backdrop{animation:none!important}}
 
 #room .item:is(.computercart,.powerstrip,.tvtray){background:transparent!important;border:0!important}.item:is(.computercart,.powerstrip,.tvtray) .furniture-art{inset:0}.mini.computercart,.mini.tvtray{width:42px;height:32px}.mini.powerstrip{width:44px;height:18px}
+
+#cloud-mfa{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}#cloud-mfa[hidden],#cloud-mfa [hidden]{display:none!important}#cloud-mfa .hint{max-width:none}#mfa-setup{margin:14px 0}#mfa-qr{display:block;background:white;border-radius:10px;max-width:100%;height:auto}#mfa-secret{display:block;overflow-wrap:anywhere;user-select:all;padding:10px}#mfa-form{flex-wrap:wrap}#mfa-code{width:100%;letter-spacing:.2em}#mfa-setup details{margin-top:10px}

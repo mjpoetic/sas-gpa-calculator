@@ -1,5 +1,5 @@
-import './dialog-motion.js?v=20261016-release2';
-import {animateWorkspace} from './panel-motion.js?v=20261016-release2';
+import './dialog-motion.js?v=20261016-release3';
+import {animateWorkspace} from './panel-motion.js?v=20261016-release3';
 // Move existing controls into compact panels without changing their data bindings.
 const $=id=>document.getElementById(id),body=document.body;
 body.classList.add('chart-first');
@@ -104,3 +104,5 @@ syncView();
 const classroomKeys={f:'fullscreen-chart',h:'collapse-chart-tools',s:'workspace-save-button',e:'dock-details',d:'dock-furniture',u:'dock-students',p:'print'};
 document.addEventListener('keydown',event=>{if(event.defaultPrevented||event.repeat||event.isComposing||event.metaKey||event.ctrlKey||event.altKey||event.shiftKey||event.target.closest?.('input,textarea,select,[contenteditable="true"]')||document.querySelector('dialog[open],:popover-open'))return;const button=$(classroomKeys[event.key.toLowerCase()]);if(!button||button.disabled||button.hidden)return;event.preventDefault();const act=()=>{if(event.key.toLowerCase()==='e')setPanel('details');else button.click();};if(['e','d','u'].includes(event.key.toLowerCase())&&body.classList.contains('chart-fullscreen'))void exitChartFullscreen().then(act);else act();});
 for(const [key,id] of Object.entries(classroomKeys)){const button=$(id);button.setAttribute('aria-keyshortcuts',key.toUpperCase());button.dataset.tooltip=(button.dataset.tooltip||button.dataset.delayedTooltip||button.textContent.trim())+' ('+key.toUpperCase()+')';}
+
+document.addEventListener('sas-mfa-required',()=>{if(!account.open)account.showModal();});

@@ -1,7 +1,8 @@
-import {migrateTabSession} from './auth-session.mjs?v=20261016-release2';
-import {mergeDocuments} from './sync-merge.mjs?v=20261016-release2';
-import {cloudConfig} from './cloud-config.js?v=20261016-release2';
-import {CloudStore} from './cloud-store.mjs?v=20261016-release2';
+import {createMFA} from './mfa.js?v=20261016-release3';
+import {migrateTabSession} from './auth-session.mjs?v=20261016-release3';
+import {mergeDocuments} from './sync-merge.mjs?v=20261016-release3';
+import {cloudConfig} from './cloud-config.js?v=20261016-release3';
+import {CloudStore} from './cloud-store.mjs?v=20261016-release3';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
@@ -9,7 +10,7 @@ export async function connectCloud({getState,applyState,notify}) {
   const $=id=>document.getElementById(id), status=text=>{$('cloud-status').textContent=text;};
   let baseline=null,applyingRemote=false,pulling=false,conflictOpen=false,deferredRevision=null,interacting=false;
   let autoReady=false,dirty=false,autoTimer,editVersion=0,picker,pendingPicker=false,pickerTimer;
-  let client, store, busy=false, accountEpoch=0, recovery=false;
+  let mfa,mfaLocked=false,client, store, busy=false, accountRequest=0, accountEpoch=0, recovery=false;
   let passwordSetup=new URL(location.href).searchParams.has('code') || new URLSearchParams(location.hash.slice(1)).has('access_token'),callbackFailed=false;
   const fingerprint=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
   const markerKey=id=>'sas-cloud-baseline-'+id;
@@ -35,9 +36,15 @@ export async function connectCloud({getState,applyState,notify}) {
     $('cloud-login-form').hidden=signedIn;$('cloud-account').hidden=!signedIn;$('cloud-signup-form').hidden=true;$('cloud-signup-form').reset();
     if(!signedIn) {$('cloud-password-form').hidden=true;$('cloud-new-password').value='';$('cloud-confirm-password').value='';}
   }
-  function enable(enabled) {for(const id of ['cloud-upload','cloud-download','cloud-signout','cloud-send','cloud-password-signin','cloud-forgot','cloud-set-password','cloud-password-save','cloud-password-cancel','cloud-create','cloud-signup-submit','cloud-signup-cancel']) $(id).disabled=!enabled;}
+  function enable(enabled) {for(const id of ['cloud-upload','cloud-download','cloud-signout','cloud-send','cloud-password-signin','cloud-forgot','cloud-set-password','cloud-password-save','cloud-password-cancel','cloud-create','cloud-signup-submit','cloud-signup-cancel']) $(id).disabled=!enabled||(mfaLocked&&['cloud-upload','cloud-download','cloud-set-password'].includes(id));}
   enable(false);
   async function account(session) {
+    const attempt=++accountRequest;
+    if(session && mfa){
+      try {const allowed=await mfa.authorize(session.user);if(attempt!==accountRequest)return;if(!allowed){
+        mfaLocked=true;++accountEpoch;store=null;baseline=null;autoReady=false;pendingPicker=false;clearTimeout(autoTimer);clearTimeout(pickerTimer);picker?.close();controls(true);$('cloud-email-display').textContent=session.user.email;enable(true);$('cloud-download').disabled=true;$('cloud-upload').disabled=true;$('cloud-set-password').disabled=true;status('Verify your authenticator code in Account to unlock cloud charts.');return;
+      }mfaLocked=false;} catch {if(attempt!==accountRequest)return;mfaLocked=true;store=null;autoReady=false;clearTimeout(autoTimer);status('Could not check two-factor authentication. Reconnect and sign in again.');return;}
+    } else {mfaLocked=false;mfa?.reset();}
     // Auth emits SIGNED_IN again on tab focus. Keep the known cloud revision.
     if(store && session?.user?.id===store.userId) {
       if(recovery || passwordSetup) {$('cloud-password-form').hidden=false;status(recovery?'Your reset link is verified. Choose a new password below.':'You are signed in. Choose a password below for easier sign-in on any device, or select Not now to keep using email links.');$('cloud-password-cancel').textContent='Not now';}
@@ -65,10 +72,11 @@ export async function connectCloud({getState,applyState,notify}) {
     // use SDK storage, broadcasting and locks to coordinate token refreshes.
     migrateTabSession(localStorage,sessionStorage);
     client=createClient(cloudConfig.url,cloudConfig.publishableKey,{auth:{flowType:'pkce',storageKey:'sas-classroom-auth',persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    mfa=createMFA(client,{changed:async()=>{const {data,error}=await client.auth.getSession();if(error)throw error;await account(data.session);},locked:()=>document.dispatchEvent(new Event('sas-mfa-required'))});
     client.auth.onAuthStateChange((event,session)=>{
       // Run outside the SDK auth callback lock.
       if(event==='PASSWORD_RECOVERY') recovery=true;
-      if(['INITIAL_SESSION','SIGNED_IN','SIGNED_OUT','PASSWORD_RECOVERY'].includes(event)) setTimeout(()=>{if(event==='SIGNED_OUT'||!busy) void account(session);},0);
+      if(['INITIAL_SESSION','SIGNED_IN','SIGNED_OUT','PASSWORD_RECOVERY','TOKEN_REFRESHED','MFA_CHALLENGE_VERIFIED'].includes(event)) setTimeout(()=>{if(event==='SIGNED_OUT'||!busy) void account(session);},0);
     });
     const initialized=await client.auth.initialize?.();if(initialized?.error)throw initialized.error;
     const {error}=await client.auth.getSession();if(error) throw error;
@@ -166,7 +174,7 @@ export async function connectCloud({getState,applyState,notify}) {
   setInterval(pullRemote,5000);window.addEventListener('online',pullRemote);document.addEventListener('visibilitychange',()=>{if(!document.hidden)void pullRemote();});document.addEventListener('pointerdown',()=>{interacting=true;},true);for(const name of ['pointerup','pointercancel'])document.addEventListener(name,()=>{interacting=false;},true);
   $('cloud-signout').onclick=async()=>{
     if(busy) return;busy=true;enable(false);
-    try {const {error}=await client.auth.signOut({scope:'local'});if(error) throw error;++accountEpoch;store=null;baseline=null;deferredRevision=null;autoReady=false;pendingPicker=false;clearTimeout(pickerTimer);clearTimeout(autoTimer);controls(false);status('Signed out. Your charts remain in this browser; clear them before leaving a shared computer.');}
+    try {const {error}=await client.auth.signOut({scope:'local'});if(error) throw error;++accountEpoch;mfa?.reset();store=null;baseline=null;deferredRevision=null;autoReady=false;pendingPicker=false;clearTimeout(pickerTimer);clearTimeout(autoTimer);controls(false);status('Signed out. Your charts remain in this browser; clear them before leaving a shared computer.');}
     catch {notify('Sign-out failed. Try again while connected.');}
     finally {busy=false;enable(true);}
   };

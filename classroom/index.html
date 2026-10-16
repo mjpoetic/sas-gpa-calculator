@@ -6,16 +6,16 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Classroom Studio | SAS</title>
   <link rel="icon" href="../favicon-96x96.png">
-  <link rel="stylesheet" href="studio.css?v=20261016-release2">
-  <link rel="stylesheet" href="../assets/appearance.css?v=20261016-release2">
-  <link rel="stylesheet" href="liquid-glass.css?v=20261016-release2">
-  <link rel="stylesheet" href="avatars.css?v=20261016-release2">
-  <link rel="stylesheet" href="workspace.css?v=20261016-release2">
-  <link rel="stylesheet" href="../assets/color-palette.css?v=20261016-release2"><script type="module" src="../assets/color-palette.js?v=20261016-release2"></script>
-  <script type="module" src="workspace.js?v=20261016-release2"></script>
-  <script type="module" src="../assets/appearance.js?v=20261016-release2"></script>
-  <script type="module" src="studio.js?v=20261016-release2"></script>
-<meta name="site-version" content="2026.10.16.2"><meta name="site-updated" content="2026-10-16T12:04:18Z"><script type="module" src="../assets/site-updates.js?v=20261016-release2"></script><script type="module" src="../assets/disclosure-preferences.js?v=20261016-release2"></script><script type="module" src="../assets/keyboard-shortcuts.js?v=20261016-release2"></script></head>
+  <link rel="stylesheet" href="studio.css?v=20261016-release3">
+  <link rel="stylesheet" href="../assets/appearance.css?v=20261016-release3">
+  <link rel="stylesheet" href="liquid-glass.css?v=20261016-release3">
+  <link rel="stylesheet" href="avatars.css?v=20261016-release3">
+  <link rel="stylesheet" href="workspace.css?v=20261016-release3">
+  <link rel="stylesheet" href="../assets/color-palette.css?v=20261016-release3"><script type="module" src="../assets/color-palette.js?v=20261016-release3"></script>
+  <script type="module" src="workspace.js?v=20261016-release3"></script>
+  <script type="module" src="../assets/appearance.js?v=20261016-release3"></script>
+  <script type="module" src="studio.js?v=20261016-release3"></script>
+<meta name="site-version" content="2026.10.16.3"><meta name="site-updated" content="2026-10-16T13:22:11Z"><script type="module" src="../assets/site-updates.js?v=20261016-release3"></script><script type="module" src="../assets/disclosure-preferences.js?v=20261016-release3"></script><script type="module" src="../assets/keyboard-shortcuts.js?v=20261016-release3"></script></head>
 <body>
   <header class="header"><a href="../" class="brand">SAS <span>Classroom Studio</span></a><span class="badge">WORK IN PROGRESS · UNLISTED</span><a href="../">Back to honors calculator ↗</a></header>
   <main>
@@ -25,6 +25,7 @@
       <p class="hint cloud-signin-help">Create a free teacher account to save your classrooms across devices.</p><form id="cloud-login-form" autocomplete="on" hidden><label>Email <input id="cloud-email" name="username" type="email" autocomplete="username" required placeholder="you@school.org"></label><label>Password <input id="cloud-password" name="password" type="password" autocomplete="current-password" required></label><button id="cloud-password-signin" class="primary" disabled>Sign in</button><button id="cloud-send" type="button" disabled>Email sign-in link</button><button id="cloud-forgot" type="button" disabled>Forgot password?</button><button id="cloud-create" type="button" disabled>Create teacher account</button></form>
       <form id="cloud-signup-form" autocomplete="on" hidden><p class="hint">Your classrooms are private to your account. Confirm your email before signing in.</p><label>Email <input id="cloud-signup-email" name="username" type="email" autocomplete="username" required></label><label>Password <input id="cloud-signup-password" name="password" type="password" autocomplete="new-password" minlength="12" required aria-describedby="signup-password-help"></label><p id="signup-password-help" class="hint">Use at least 12 characters.</p><label>Confirm password <input id="cloud-signup-confirm" type="password" autocomplete="new-password" minlength="12" required></label><button id="cloud-signup-submit" class="primary" disabled>Create account</button><button id="cloud-signup-cancel" type="button">Back to sign in</button></form>
       <div id="cloud-account" hidden><span id="cloud-email-display"></span><button id="cloud-upload" class="primary">Save to cloud</button><button id="cloud-download">Open cloud charts</button><button id="cloud-set-password">Set / change password</button><button id="cloud-signout">Sign out</button></div>
+      <section id="cloud-mfa" hidden aria-labelledby="mfa-title"><h3 id="mfa-title">Two-factor authentication</h3><p id="mfa-status" class="hint" role="status"></p><button id="mfa-enable" type="button">Enable 2FA</button><button id="mfa-remove" type="button" hidden>Remove authenticator</button><div id="mfa-setup" hidden><img id="mfa-qr" alt="Scan this setup QR code with your authenticator app" width="200" height="200"><details><summary>Enter setup key manually</summary><code id="mfa-secret"></code></details></div><form id="mfa-form" hidden><label id="mfa-factor-label" hidden>Authenticator<select id="mfa-factor"></select></label><label>Six-digit authenticator code<input id="mfa-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label><button class="primary" type="submit">Verify code</button><button id="mfa-cancel" type="button">Cancel</button></form><p class="hint">2FA protects cloud access. Charts already saved in this browser remain on this device. If you lose your authenticator, contact the site owner for identity-verified recovery.</p></section>
       <form id="cloud-password-form" hidden><p class="hint">Choose a password with at least 12 characters.</p><label>New password <input id="cloud-new-password" type="password" autocomplete="new-password" minlength="12" required></label><label>Confirm password <input id="cloud-confirm-password" type="password" autocomplete="new-password" minlength="12" required></label><button id="cloud-password-save" class="primary" disabled>Save password</button><button id="cloud-password-cancel" type="button">Cancel</button></form>
     </section>
     <section class="chart-bar" aria-label="Chart settings"><label>Classroom <select id="charts"></select></label><button id="new-chart">+ New</button><button id="copy-chart">Duplicate chart</button><label class="chart-name">Chart name <input id="name" maxlength="80"></label><button id="delete-chart" class="quiet">Delete chart</button><span id="save-state" role="status">Saved in this browser</span></section>

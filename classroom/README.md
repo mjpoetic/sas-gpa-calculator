@@ -20,7 +20,7 @@ Charts are stored under `sas-classroom-studio-v1` in this browser's local storag
 
 The dedicated **SAS Classroom Studio** Supabase project hosts email/password accounts and private chart storage. Teachers choose **Create teacher account**, enter their email and a password of at least 12 characters twice, confirm their email, then sign in. Database policies restrict each collection to its authenticated user ID and reject anonymous users; the old owner email allowlist is no longer required. Browser UI checks are not the security boundary.
 
-**Registration launch prerequisite:** custom SMTP is not configured as of October 16, 2026. Public signup remains disabled until a production sender is connected. Keep email confirmation enabled and anonymous sign-in disabled. In Supabase Authentication → Emails → SMTP Settings, use the verified Resend domain `sashonors.com`, sender `accounts@sashonors.com`, name `Classroom Studio`, host `smtp.resend.com`, port `465`, username `resend`, and a Resend sending API key as the SMTP password. Enter the key directly in the dashboard, save, and test the sender; then enable Authentication → Sign In / Providers → Allow new users to sign up. Do not disable email confirmation to bypass email delivery. Confirm delivery with an authorized test teacher before inviting others. No email-provider credentials belong in this repository.
+Teacher registration and Resend SMTP were enabled on October 16, 2026. The sender is `accounts@sashonors.com` with display name `Classroom Studio`. Email confirmation remains required; anonymous sign-in is off. SMTP credentials live only in Supabase. Actual mailbox delivery still requires an authorized signup test.
 
 Sign in with a password or emailed link. Changes autosave locally and to your account after cloud charts are opened or the browser collection is saved. On a new device, choose a classroom from Open cloud charts. Concurrent saves use revision checks, merge independent edits, and ask before resolving conflicting edits.
 
@@ -38,7 +38,7 @@ The preview is standalone HTML/CSS/JavaScript; it does not modify the generated 
 
 Browser regression checks are `tests/classroom-rotation.browser.cjs` and `tests/classroom-cloud.browser.cjs`. They require Playwright available through Node module resolution (or `NODE_PATH`) and the installed Google Chrome executable. Start the local preview server first. The cloud browser test uses an isolated simulated backend and sends no invitation or roster data to Supabase. Live SQL isolation checks were run separately against the SAS project with test data rolled back.
 
-Live Safari verification completed with the approved owner account: passwordless sign-in, first cloud save, and opening the cloud copy of the empty starter chart. The saved collection contains no student names. Supabase's built-in email service is limited to two authentication emails per hour; requests beyond that receive an actionable rate-limit message. Configure custom SMTP before broader use or if more frequent sign-in is needed. See https://supabase.com/docs/guides/auth/rate-limits.
+Live Safari verification completed with the approved owner account: passwordless sign-in, first cloud save, and opening the cloud copy of the empty starter chart. The saved collection contains no student names. Production email now uses Resend SMTP; Supabase and Resend rate limits both apply. Requests beyond those limits receive an actionable message. See https://supabase.com/docs/guides/auth/rate-limits.
 
 ## Email and password sign-in
 
@@ -244,3 +244,13 @@ Avatar hairstyles include fades, sponge curls, curly tops, waves, cornrows, box 
 Optional student nicknames are edited using Student Options → Set nickname or Goes by in seat properties. The actual full name is retained separately. Preferred names appear on seats, in rosters and avatar previews; duplicate displayed names include the actual last initial. Clearing a nickname restores the actual first name. Nicknames persist in cloud documents, backups, duplicated charts, and saved lists.
 
 `tests/classroom-signup.browser.cjs` checks registration validation, email confirmation instructions, rate limits, cleared passwords, redirect URLs, and mobile layout with a simulated SDK. Live transaction-only SQL checks verify own-row saves, cross-account isolation, and anonymous denial; all test records are rolled back. No real confirmation email was sent by these tests.
+
+## Optional two-factor authentication
+
+Account → Two-factor authentication → Enable 2FA enrolls a TOTP authenticator. Scan the QR code or enter the manual setup key, then verify a six-digit code. Canceling does not enable 2FA. Unfinished setup secrets are cleared when Account closes; restarting cleans up abandoned unverified factors. Setup keys and codes are never included in charts, backups, or logs.
+
+For enrolled teachers, password login, email links, and password recovery must be followed by an authenticator code before cloud reads or saves. A restrictive database policy checks verified factors in Supabase Auth and requires an `aal2` session. Teachers without verified factors retain ordinary sign-in. The narrow no-argument lookup function lives in a non-exposed schema, checks only the current user's factors, returns only a boolean, and cannot be called by anonymous clients.
+
+Removing an authenticator requires a fresh code; removing the last one turns 2FA off. Keep a secure authenticator backup before enabling. There are no app-generated recovery codes. A lost authenticator requires site-owner assistance and independent identity verification before any administrative factor reset; password-reset email alone must not bypass 2FA. Previously downloaded or browser-saved charts are not encrypted or erased by 2FA.
+
+`tests/classroom-mfa.browser.cjs` uses simulated authentication to verify enrollment, cancellation, wrong codes, cloud gating, fresh-code removal, secret clearing, sign-out and mobile layout. It never enrolls a real teacher.
