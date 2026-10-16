@@ -11,3 +11,5 @@ test('baseball cap colors accept custom values and legacy avatars retain default
 test('sponge styles sit together after rounded afro and preserve the saved sponge identifier',()=>{const hair=avatarOptions.hair.map(([id])=>id),index=hair.indexOf('afro');assert.deepEqual(hair.slice(index,index+3),['afro','sponge','spongeafro']);assert.equal(validateAvatar({...defaultAvatar(),hair:'sponge'}).hair,'sponge');assert.notEqual(avatarSVG({...defaultAvatar(),hair:'sponge'}),avatarSVG({...defaultAvatar(),hair:'spongeafro'}));});
 
 test('head shapes replace school labels while preserving saved identifiers',()=>{assert.deepEqual(avatarOptions.style,[['junior','Round'],['middle','Oval'],['senior','Narrow oval']]);for(const style of ['junior','middle','senior'])assert.equal(validateAvatar({...defaultAvatar(),style}).style,style);});
+
+test('new avatars start with the darkest preset hair without replacing saved colors',()=>{assert.equal(defaultAvatar().hairColor,'#302420');assert.equal(validateAvatar({...defaultAvatar(),hairColor:'#65402c'}).hairColor,'#65402c');});

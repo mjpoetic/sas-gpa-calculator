@@ -15,7 +15,7 @@ export const avatarOptions={
  mouthAccessory:[['none','None'],['braces','Braces']],
  backdrop:[['#dcebf6','Sky'],['#e6def2','Lilac'],['#dceee1','Mint'],['#f4e7c9','Sunshine'],['#f4dfe5','Blush'],['#e4e8ed','Silver'],['#800020','Burgundy'],['#228b22','Forest green']]
 };
-export const defaultAvatar=()=>({enabled:true,style:'middle',skin:'#dca878',hair:'swoop',hairColor:'#65402c',expression:'smile',eyes:'bright',glassesColor:'#34445c',clothing:'hoodie',clothingColor:'#4c95b9',accessory:'none',mouthAccessory:'none',capColor:'#800020',capBrimColor:'#34445f',extra:'none',backdrop:'#dcebf6'});
+export const defaultAvatar=()=>({enabled:true,style:'middle',skin:'#dca878',hair:'swoop',hairColor:'#302420',expression:'smile',eyes:'bright',glassesColor:'#34445c',clothing:'hoodie',clothingColor:'#4c95b9',accessory:'none',mouthAccessory:'none',capColor:'#800020',capBrimColor:'#34445f',extra:'none',backdrop:'#dcebf6'});
 export function validateAvatar(value){if(!value||typeof value!=='object'||typeof value.enabled!=='boolean')throw new Error('Invalid student avatar.');const result={enabled:value.enabled};for(const [key,choices] of Object.entries(avatarOptions)){const legacy={capColor:'#800020',capBrimColor:'#34445f',mouthAccessory:'none',eyes:'classic',glassesColor:value.accessory==='round'?'#835832':'#34445c'};const candidate=value[key]===undefined?legacy[key]:value[key];if(!(choices[0][0].startsWith('#')?typeof candidate==='string'&&/^#[\da-f]{6}$/i.test(candidate):choices.some(([v])=>v===candidate)))throw new Error('Invalid avatar '+key+'.');result[key]=typeof candidate==='string'&&candidate.startsWith('#')?candidate.toLowerCase():candidate;}return result;}
 export function randomAvatar(random=Math.random){const a=defaultAvatar();for(const [key,choices] of Object.entries(avatarOptions))a[key]=choices[Math.min(choices.length-1,Math.floor(random()*choices.length))][0];return a;}
 export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,shirt=a.clothingColor,skin=a.skin,headY=a.style==='junior'?46:a.style==='senior'?49:47,rx=a.style==='junior'?30:a.style==='senior'?26:28;
@@ -62,7 +62,7 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
    front+=`<path d="M${topX} ${topY}Q${x} 22 ${x} ${endY}" fill="none" stroke="${strand}" stroke-width="6" stroke-linecap="round"/><path d="M${topX} ${topY}Q${x} 22 ${x} ${endY}" fill="none" stroke="${hair}" stroke-width="4.5" stroke-linecap="round"/>`;
    for(let i=0;i<5;i++){const t=(i+.6)/5,u=1-t,px=u*u*topX+2*u*t*x+t*t*x,py=u*u*topY+2*u*t*22+t*t*endY;front+=`<path d="m${px-1.6} ${py-1} 3.2 1.4-1.6 1.1" fill="none" stroke="${ridge}" stroke-width=".8" stroke-linecap="round"/>`;}
   }
-  back=`<g fill="none" stroke="${hair}" stroke-width="4" stroke-linecap="round"><path d="M31 36q-8 15-2 30t-3 13m63-43q8 15 2 30t3 13"/></g>`;
+  back=`<g fill="none" stroke="${hair}" stroke-width="3.2" stroke-linecap="round"><path d="M36 33Q32 57 37 76L39 84M84 33Q88 57 83 76L81 84"/></g>`;
  }
  if(a.hair==='afro'){
   // A rounded halo of tightly packed hair, rather than large curl lobes.
@@ -99,9 +99,10 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
  if(['fade','waves','curlytop','sponge'].includes(a.hair)){
   scalp='';back='';
   const blend=t=>{const h=hair.slice(1).match(/../g).map(v=>parseInt(v,16)),s=skin.slice(1).match(/../g).map(v=>parseInt(v,16));return '#'+h.map((v,i)=>Math.round(s[i]+(v-s[i])*t).toString(16).padStart(2,'0')).join('');};
-  front='<path d="M34 33C31 20 39 8 60 8S89 20 86 33L81 31Q60 28 39 31Z"/>';
+  const croppedTop='<path d="M35 35C31 20 39 8 60 8S89 20 85 35H82V31Q60 29 38 31V35Z"/>';front='';
   const edge=y=>60-28*Math.sqrt(1-((y-47)/32)**2);
   for(let i=0;i<9;i++){const y=28+i*2.2,next=y+2.4,left=edge(y),bottom=edge(next),w=5.6-i*.45;front+=`<path d="M${left} ${y}H${left+w}L${bottom+w-.4} ${next}H${bottom}ZM${120-left} ${y}H${120-left-w}L${120-bottom-w+.4} ${next}H${120-bottom}Z" fill="${blend(.85-i*.09)}"/>`;}
+  front+=croppedTop;
   front+=Array.from({length:32},(_,i)=>{const x=42+i%8*5,y=19+Math.floor(i/8)*2.5;return `<circle cx="${x}" cy="${y}" r=".55" fill="${ridge}"/>`;}).join('');
   if(a.hair==='waves'){
    front+='<path d="M32 35C29 20 37 7 60 7S91 20 88 35L84 38 81 32Q60 29 39 32L36 38Z"/>';
