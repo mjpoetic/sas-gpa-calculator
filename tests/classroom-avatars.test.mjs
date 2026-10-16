@@ -13,3 +13,12 @@ test('sponge styles sit together after rounded afro and preserve the saved spong
 test('head shapes replace school labels while preserving saved identifiers',()=>{assert.deepEqual(avatarOptions.style,[['junior','Round'],['middle','Oval'],['senior','Narrow oval']]);for(const style of ['junior','middle','senior'])assert.equal(validateAvatar({...defaultAvatar(),style}).style,style);});
 
 test('new avatars start with the darkest preset hair without replacing saved colors',()=>{assert.equal(defaultAvatar().hairColor,'#302420');assert.equal(validateAvatar({...defaultAvatar(),hairColor:'#65402c'}).hairColor,'#65402c');});
+
+test('headphones layer with glasses and legacy selections migrate safely',()=>{
+ const a={...defaultAvatar(),accessory:'glasses',headphones:'on',headphoneBandColor:'#112233',headphoneCupColor:'#abcdef',headphonePadColor:'#765432'};
+ const svg=avatarSVG(a);assert.match(svg,/data-avatar-accessory="headphones"/);for(const color of ['#112233','#abcdef','#765432'])assert.ok(svg.includes(color));assert.match(svg,/<rect x="35" y="42"/);
+ const old={...defaultAvatar(),accessory:'headphones'};delete old.headphones;const migrated=validateAvatar(old);assert.equal(migrated.accessory,'none');assert.equal(migrated.headphones,'on');
+ const c=newChart();c.students=[{id:'s',name:'Alex',avatar:a}];assert.deepEqual(validateBackup({version:1,active:c.id,charts:[c]}).charts[0].students[0].avatar,a);
+ assert.throws(()=>validateAvatar({...a,catInnerColor:'url(bad)'}),/catInnerColor/);
+ for(const hair of ['afro','puffs','bun','curlybun','coils'])for(const extra of ['baseball','frog'])assert.match(avatarSVG({...a,hair,extra}),/clip-path="url\(#avatar-hair-/);
+});
