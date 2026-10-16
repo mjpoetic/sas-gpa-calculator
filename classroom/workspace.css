@@ -45,8 +45,8 @@
 @media(max-width:600px) and (orientation:portrait){
  :root #account-dialog{padding:16px;width:calc(100vw - 24px);max-height:calc(100dvh - 24px);box-sizing:border-box}
  :root #account-dialog>.cloud-panel{padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
- :root #account-dialog #cloud-login-form,:root #account-dialog #cloud-password-form{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;width:100%;min-width:0;align-items:stretch}
- :root #account-dialog #cloud-login-form[hidden],:root #account-dialog #cloud-password-form[hidden]{display:none!important}
+ :root #account-dialog #cloud-login-form,:root #account-dialog #cloud-signup-form,:root #account-dialog #cloud-password-form{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;width:100%;min-width:0;align-items:stretch}
+ :root #account-dialog #cloud-login-form[hidden],:root #account-dialog #cloud-signup-form[hidden],:root #account-dialog #cloud-password-form[hidden]{display:none!important}
  :root #account-dialog .cloud-panel form>label{display:block;flex:none;width:100%;min-width:0;max-width:100%;margin:0;font-size:13px;line-height:1.4}
  :root #account-dialog .cloud-panel form input{width:100%;max-width:100%;min-width:0;min-height:48px;margin-top:6px;padding:12px;font-size:16px!important;line-height:1.4;box-sizing:border-box}
  :root #account-dialog .cloud-panel form>button{width:100%;min-width:0;min-height:48px;margin:0;justify-content:center}

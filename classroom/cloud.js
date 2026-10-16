@@ -1,7 +1,7 @@
-import {migrateTabSession} from './auth-session.mjs?v=20261016-release1';
-import {mergeDocuments} from './sync-merge.mjs?v=20261016-release1';
-import {cloudConfig} from './cloud-config.js?v=20261016-release1';
-import {CloudStore} from './cloud-store.mjs?v=20261016-release1';
+import {migrateTabSession} from './auth-session.mjs?v=20261016-release2';
+import {mergeDocuments} from './sync-merge.mjs?v=20261016-release2';
+import {cloudConfig} from './cloud-config.js?v=20261016-release2';
+import {CloudStore} from './cloud-store.mjs?v=20261016-release2';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
@@ -26,15 +26,16 @@ export async function connectCloud({getState,applyState,notify}) {
   });
   $('cloud-login-form').onsubmit=e=>{e.preventDefault();status('Sign-in is connecting. Wait for the Sign in button to become available.');};
   $('cloud-password-form').onsubmit=e=>e.preventDefault();
+  $('cloud-signup-form').onsubmit=e=>e.preventDefault();
   const configured=!!cloudConfig.url && !!cloudConfig.publishableKey;
   $('cloud-login-form').hidden=!configured;
   if(!configured) {status('Cloud sign-in is awaiting backend setup. Browser saving and backups are available.');return;}
   status('Connecting to sign-in…');
   function controls(signedIn) {
-    $('cloud-login-form').hidden=signedIn;$('cloud-account').hidden=!signedIn;
+    $('cloud-login-form').hidden=signedIn;$('cloud-account').hidden=!signedIn;$('cloud-signup-form').hidden=true;$('cloud-signup-form').reset();
     if(!signedIn) {$('cloud-password-form').hidden=true;$('cloud-new-password').value='';$('cloud-confirm-password').value='';}
   }
-  function enable(enabled) {for(const id of ['cloud-upload','cloud-download','cloud-signout','cloud-send','cloud-password-signin','cloud-forgot','cloud-set-password','cloud-password-save','cloud-password-cancel']) $(id).disabled=!enabled;}
+  function enable(enabled) {for(const id of ['cloud-upload','cloud-download','cloud-signout','cloud-send','cloud-password-signin','cloud-forgot','cloud-set-password','cloud-password-save','cloud-password-cancel','cloud-create','cloud-signup-submit','cloud-signup-cancel']) $(id).disabled=!enabled;}
   enable(false);
   async function account(session) {
     // Auth emits SIGNED_IN again on tab focus. Keep the known cloud revision.
@@ -44,14 +45,12 @@ export async function connectCloud({getState,applyState,notify}) {
     }
     const epoch=++accountEpoch;
     store=null;baseline=null;deferredRevision=null;autoReady=false;pendingPicker=false;clearTimeout(pickerTimer);clearTimeout(autoTimer);controls(false);
-    if(!session) {status(callbackFailed?'This sign-in link could not be used. Request a new email link in this browser and open it here.':'Sign in with a password, or use an email link to sign in and set one up.');return;}
+    if(!session) {status(callbackFailed?'This sign-in link could not be used. Request a new email link in this browser and open it here.':'Sign in with your email and password, or create a teacher account.');return;}
     status('Checking your account access…');enable(false);
     try {
       const {data:{user},error}=await client.auth.getUser();if(error) throw error;
-      const {data,error:accessError}=await client.from('classroom_access').select('email').limit(1);
-      if(accessError) throw accessError;
       if(epoch!==accountEpoch) return;
-      if(!data?.length) {await client.auth.signOut({scope:'local'});status('This account does not have access to the classroom preview.');return;}
+      if(!user?.email || user.is_anonymous) {await client.auth.signOut({scope:'local'});status('Sign in with a verified email account to save classrooms.');return;}
       store=new CloudStore(client,user.id);controls(true);$('cloud-email-display').textContent=user.email;
       // Adopt a remote revision only after verifying the local baseline.
       try{const remote=await store.load();if(epoch!==accountEpoch)return;const local=fingerprint(getState());let baseline;try{const saved=localStorage.getItem(markerKey(user.id));baseline=saved?fingerprint(JSON.parse(saved)):null;}catch{}autoReady=!remote||fingerprint(remote)===local||fingerprint(remote)===baseline;pendingPicker=!!remote&&!autoReady;if(pendingPicker)offerCharts();if(autoReady){if(remote)remember(remote);dirty=!remote||fingerprint(remote)!==local;schedule();}else status('Your account has different charts. Open cloud charts to continue automatic saving, or use Save to cloud to keep this browser’s version.');}catch{autoReady=false;status('Could not connect cloud saving. Use Open cloud charts to retry.');}
@@ -78,13 +77,29 @@ export async function connectCloud({getState,applyState,notify}) {
     if(url.searchParams.has('code')) {url.searchParams.delete('code');history.replaceState(null,'',url);}
     enable(true);
   } catch {if(!client){status('Sign-in could not connect. Reload to try again. Browser saving still works.');return;}callbackFailed=true;passwordSetup=false;const failedURL=new URL(location.href);failedURL.searchParams.delete('code');failedURL.hash='';history.replaceState(null,'',failedURL);enable(true);status('This sign-in link could not be used. Request a new email link in this browser and open it here.');}
+  $('cloud-create').onclick=()=>{if(busy)return;$('cloud-password').value='';$('cloud-signup-email').value=$('cloud-email').value;$('cloud-login-form').hidden=true;$('cloud-signup-form').hidden=false;status('Create your teacher account. We will email you a confirmation link.');$('cloud-signup-email').focus();};
+  $('cloud-signup-cancel').onclick=()=>{if(busy)return;$('cloud-signup-form').reset();$('cloud-signup-form').hidden=true;$('cloud-login-form').hidden=false;$('cloud-email').focus();};
+  $('cloud-signup-form').onsubmit=async e=>{
+    e.preventDefault();if(busy || !$('cloud-signup-form').reportValidity())return;
+    if($('cloud-signup-password').value!==$('cloud-signup-confirm').value){status('The two passwords do not match.');return;}
+    busy=true;enable(false);status('Creating your account…');
+    const email=$('cloud-signup-email').value.trim();
+    try {
+      const redirect=new URL('./',location.href);redirect.search='';redirect.hash='';
+      const {data,error}=await client.auth.signUp({email,password:$('cloud-signup-password').value,options:{emailRedirectTo:redirect.href}});if(error)throw error;
+      $('cloud-signup-form').reset();$('cloud-signup-form').hidden=true;$('cloud-login-form').hidden=false;$('cloud-email').value=email;
+      if(data.session)await account(data.session);
+      else status('Check your email for a confirmation link, then return here and sign in. If you already have an account, sign in or use Forgot password.');
+    } catch(error) {status(error.status===429?'Too many requests. Wait before trying again.':error.code==='weak_password'?'Choose a stronger password with at least 12 characters.':error.code==='email_address_not_authorized'?'Registration email delivery needs to be configured. Please try again later.':error.code==='signup_disabled'?'Teacher registration is not available yet. Please try again later.':'Could not create your account. Check your email address and try again later.');}
+    finally {$('cloud-signup-password').value='';$('cloud-signup-confirm').value='';busy=false;enable(true);}
+  };
   $('cloud-send').onclick=async()=>{
     if(busy || !$('cloud-email').reportValidity()) return;busy=true;enable(false);
     try {
       const redirect=new URL('./',location.href);redirect.search='';redirect.hash='';
       const {error}=await client.auth.signInWithOtp({email:$('cloud-email').value.trim(),options:{shouldCreateUser:false,emailRedirectTo:redirect.href}});
       if(error) throw error;
-      status('If your account is approved, a sign-in link is on its way. Open it in this browser.');
+      status('If you have an account, a sign-in link is on its way. Open it in this browser.');
     } catch(error) {
       if(error.status===429 || ['over_email_send_rate_limit','over_request_rate_limit'].includes(error.code)) status('The sign-in email limit has been reached. Wait before requesting another link. Your browser charts are still available.');
       else if(error.code==='email_address_not_authorized') status('Email delivery needs to be configured for this account. Your browser charts are still available.');
@@ -98,7 +113,7 @@ export async function connectCloud({getState,applyState,notify}) {
       const {data,error}=await client.auth.signInWithPassword({email:$('cloud-email').value.trim(),password:$('cloud-password').value});
       if(error) throw error;
       $('cloud-password').value='';await account(data.session);
-    } catch(error) {status(error.status===429?'Too many sign-in attempts. Wait before trying again.':error.code==='invalid_credentials'?'The email and password did not match. Check the saved password entry or type the password manually.':error.name==='AuthRetryableFetchError'||error.message?.includes('fetch')?'Sign-in could not reach the server. Check your connection and try again.':'Sign-in failed. Try entering your email and password manually. If you have not set a password, use an email link first.');}
+    } catch(error) {status(error.status===429?'Too many sign-in attempts. Wait before trying again.':error.code==='email_not_confirmed'?'Confirm your email using the link in your inbox before signing in.':error.code==='invalid_credentials'?'The email and password did not match. Check the saved password entry or type the password manually.':error.name==='AuthRetryableFetchError'||error.message?.includes('fetch')?'Sign-in could not reach the server. Check your connection and try again.':'Sign-in failed. Try entering your email and password manually. If you have not set a password, use an email link first.');}
     finally {$('cloud-password').value='';busy=false;enable(true);}
   };
   $('cloud-set-password').onclick=()=>{if(!store || busy) return;$('cloud-password-form').hidden=false;$('cloud-new-password').focus();};
@@ -119,7 +134,7 @@ export async function connectCloud({getState,applyState,notify}) {
     try {
       const redirect=new URL('./',location.href);redirect.search='';redirect.hash='';
       const {error}=await client.auth.resetPasswordForEmail($('cloud-email').value.trim(),{redirectTo:redirect.href});if(error) throw error;
-      status('If your account is approved, a password reset link is on its way. Open it in this browser.');
+      status('If you have an account, a password reset link is on its way. Open it in this browser.');
     } catch(error) {status(error.status===429 ? 'The email limit has been reached. Wait before requesting another reset link.' : 'Could not request a password reset. Try again later.');}
     finally {busy=false;enable(true);}
   };

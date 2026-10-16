@@ -16,9 +16,11 @@ For local use, run `python3 -m http.server 4173` at the repository root, then op
 
 Charts are stored under `sas-classroom-studio-v1` in this browser's local storage, separately from calculator data. Storage is per browser and site origin; clearing browser data removes charts. Export backups regularly. Exported files include student names. Import validates the file and replaces the saved classrooms after confirmation; undo can restore them during the current session.
 
-## Owner sign-in and cloud storage
+## Teacher accounts and cloud storage
 
-The dedicated **SAS Classroom Studio** Supabase project hosts managed passwordless email sign-in and private chart storage. Public signups and anonymous sign-in are disabled. Only the approved owner email can access classroom data, and every stored chart collection belongs to its authenticated user ID. Database policies enforce both checks; browser UI checks are not the security boundary.
+The dedicated **SAS Classroom Studio** Supabase project hosts email/password accounts and private chart storage. Teachers choose **Create teacher account**, enter their email and a password of at least 12 characters twice, confirm their email, then sign in. Database policies restrict each collection to its authenticated user ID and reject anonymous users; the old owner email allowlist is no longer required. Browser UI checks are not the security boundary.
+
+**Registration launch prerequisite:** custom SMTP is not configured as of October 16, 2026. Public signup remains disabled until a production sender is connected. Keep email confirmation enabled and anonymous sign-in disabled. In Supabase Authentication → Emails → SMTP Settings, use the verified Resend domain `sashonors.com`, sender `accounts@sashonors.com`, name `Classroom Studio`, host `smtp.resend.com`, port `465`, username `resend`, and a Resend sending API key as the SMTP password. Enter the key directly in the dashboard, save, and test the sender; then enable Authentication → Sign In / Providers → Allow new users to sign up. Do not disable email confirmation to bypass email delivery. Confirm delivery with an authorized test teacher before inviting others. No email-provider credentials belong in this repository.
 
 Sign in with a password or emailed link. Changes autosave locally and to your account after cloud charts are opened or the browser collection is saved. On a new device, choose a classroom from Open cloud charts. Concurrent saves use revision checks, merge independent edits, and ask before resolving conflicting edits.
 
@@ -40,9 +42,9 @@ Live Safari verification completed with the approved owner account: passwordless
 
 ## Email and password sign-in
 
-The login form also accepts an email and password through Supabase Auth. Following an email sign-in link automatically offers password setup, including on a new device; **Not now** keeps email-link access available. While already signed in, **Set / change password** opens the same form. Enter the new password twice (at least 12 characters). Invalid or expired callbacks leave email-link retry available. The owner must enter and submit their own password. Password fields are cleared after requests and are never added to chart data, browser storage, exports, or logs.
+The login form also accepts an email and password through Supabase Auth. Following an email sign-in link automatically offers password setup, including on a new device; **Not now** keeps email-link access available. While already signed in, **Set / change password** opens the same form. Enter the new password twice (at least 12 characters). Invalid or expired callbacks leave email-link retry available. Each teacher enters and submits their own password. Password fields are cleared after requests and are never added to chart data, browser storage, exports, or logs.
 
-**Forgot password?** requests a Supabase recovery email. Open that link in the same browser and origin that requested it; the verified recovery session reveals the password form. Password sign-in uses the same approved-email and ownership database policies as email-link sign-in. Public registration remains disabled. Regular password sign-in does not send an email; password recovery and email-link requests still use the email delivery quota.
+**Forgot password?** requests a Supabase recovery email. Open that link in the same browser and origin that requested it; the verified recovery session reveals the password form. Password sign-in uses the same ownership database policies as email-link sign-in. Registration requires the production email setup described above. Regular password sign-in does not send an email; password recovery and email-link requests still use the email delivery quota.
 
 `tests/classroom-password.browser.cjs` verifies failed and successful password login, password confirmation, updating a password, cleared fields, sign-out, recovery callbacks, and mobile overflow using a simulated auth client. No real password is created or changed by the automated test.
 
@@ -240,3 +242,5 @@ Student avatars are optional original vector bust portraits. In Students, use Op
 Avatar hairstyles include fades, sponge curls, curly tops, waves, cornrows, box braids, long and short locs, twists and afro puffs. Braces are independent of glasses/headphones. Polo shirts, burgundy and forest green presets are available. Every color category (skin, hair, clothing and backdrop) supports custom hex colors and a detailed picker. Flip controls use consistent SVG glyphs.
 
 Optional student nicknames are edited using Student Options → Set nickname or Goes by in seat properties. The actual full name is retained separately. Preferred names appear on seats, in rosters and avatar previews; duplicate displayed names include the actual last initial. Clearing a nickname restores the actual first name. Nicknames persist in cloud documents, backups, duplicated charts, and saved lists.
+
+`tests/classroom-signup.browser.cjs` checks registration validation, email confirmation instructions, rate limits, cleared passwords, redirect URLs, and mobile layout with a simulated SDK. Live transaction-only SQL checks verify own-row saves, cross-account isolation, and anonymous denial; all test records are rolled back. No real confirmation email was sent by these tests.

@@ -19,12 +19,12 @@ alter table public.classroom_documents enable row level security;
 revoke all on public.classroom_documents from anon, authenticated;
 grant select,insert,update on public.classroom_documents to authenticated;
 create policy owner_read on public.classroom_documents for select to authenticated
-  using ((select auth.uid())=user_id and exists(select 1 from public.classroom_access));
+  using ((select auth.uid())=user_id and nullif((select auth.jwt()->>'email'),'') is not null and not coalesce((select (auth.jwt()->>'is_anonymous')::boolean),false));
 create policy owner_insert on public.classroom_documents for insert to authenticated
-  with check ((select auth.uid())=user_id and exists(select 1 from public.classroom_access));
+  with check ((select auth.uid())=user_id and nullif((select auth.jwt()->>'email'),'') is not null and not coalesce((select (auth.jwt()->>'is_anonymous')::boolean),false));
 create policy owner_update on public.classroom_documents for update to authenticated
-  using ((select auth.uid())=user_id and exists(select 1 from public.classroom_access))
-  with check ((select auth.uid())=user_id and exists(select 1 from public.classroom_access));
+  using ((select auth.uid())=user_id and nullif((select auth.jwt()->>'email'),'') is not null and not coalesce((select (auth.jwt()->>'is_anonymous')::boolean),false))
+  with check ((select auth.uid())=user_id and nullif((select auth.jwt()->>'email'),'') is not null and not coalesce((select (auth.jwt()->>'is_anonymous')::boolean),false));
 commit;
 
 -- Supabase's automatic RLS event trigger does not need client RPC access.
