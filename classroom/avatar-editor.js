@@ -1,4 +1,4 @@
-import {avatarOptions,defaultAvatar,validateAvatar,randomAvatar,avatarSVG} from './avatars.mjs?v=20261016-release4';
+import {avatarOptions,defaultAvatar,validateAvatar,randomAvatar,avatarSVG} from './avatars.mjs?v=20261016-release5';
 export function openAvatarEditor(student,{showAvatars,firstAvatar,onSave,onRemove}){
  // A double-click can emit both our rapid-tap fallback and native dblclick.
  const existing=document.querySelector('.avatar-editor[open]');if(existing)return;
