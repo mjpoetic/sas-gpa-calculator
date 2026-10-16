@@ -62,7 +62,11 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
    front+=`<path d="M${topX} ${topY}Q${x} 22 ${x} ${endY}" fill="none" stroke="${strand}" stroke-width="6" stroke-linecap="round"/><path d="M${topX} ${topY}Q${x} 22 ${x} ${endY}" fill="none" stroke="${hair}" stroke-width="4.5" stroke-linecap="round"/>`;
    for(let i=0;i<5;i++){const t=(i+.6)/5,u=1-t,px=u*u*topX+2*u*t*x+t*t*x,py=u*u*topY+2*u*t*22+t*t*endY;front+=`<path d="m${px-1.6} ${py-1} 3.2 1.4-1.6 1.1" fill="none" stroke="${ridge}" stroke-width=".8" stroke-linecap="round"/>`;}
   }
-  back=`<g fill="none" stroke="${hair}" stroke-width="3.2" stroke-linecap="round"><path d="M36 33Q32 57 37 76L39 84M84 33Q88 57 83 76L81 84"/></g>`;
+  // Rear braids follow the neck; even the lowest tip clears the shoulders.
+  back=`<g data-hairstyle="cornrow-tails" fill="none" stroke-linecap="round">${[0,1,2].map(i=>{
+   const start=35+i*5,end=35+i*4,y=74+i%2,left=`M${start} 34C${29+i*4} 50 ${30+i*4} 64 ${end} ${y}`,right=`M${120-start} 34C${91-i*4} 50 ${90-i*4} 64 ${120-end} ${y}`;
+   return `<path d="${left}" stroke="${strand}" stroke-width="3.4"/><path d="${right}" stroke="${strand}" stroke-width="3.4"/><path d="${left}" stroke="${hair}" stroke-width="2.5"/><path d="${right}" stroke="${hair}" stroke-width="2.5"/><path d="M${end-2.5} ${y-6}l1.6 1.4-1.2 1.2M${120-end+2.5} ${y-6}l-1.6 1.4 1.2 1.2" stroke="${ridge}" stroke-width=".65"/>`;
+  }).join('')}</g>`;
   if(a.hair==='curlybun'){
    back='';
    const curls=[[43,14,6.5],[48,7,6.5],[59,7,7],[70,7,6.5],[77,14,7],[71,21,7],[59,19,8],[48,21,7],[60,13,6]];
