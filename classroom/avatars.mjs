@@ -1,7 +1,7 @@
 export const avatarOptions={
  style:[['junior','Round'],['middle','Oval'],['senior','Narrow oval']],
  skin:[['#f6d7b0','Light warm'],['#edc6a4','Light tan'],['#dca878','Golden tan'],['#c78e64','Warm brown'],['#a86d49','Medium brown'],['#855337','Deep brown'],['#603d2c','Dark brown'],['#ecc5bd','Light rose']],
- hair:[['crop','Short crop'],['swoop','Side sweep'],['curls','Soft curls'],['afro','Rounded afro'],['sponge','Sponge curl high top'],['spongeafro','Sponge curl afro'],['coils','Coils'],['bob','Bob'],['long','Long hair'],['braids','Braids'],['ponytail','Ponytail'],['bun','High bun'],['fade','Fade'],['curlytop','Curly top'],['waves','Waves'],['cornrows','Cornrows'],['boxbraids','Box braids'],['locs','Long locs'],['shortlocs','Short locs'],['twists','Two-strand twists'],['puffs','Afro puffs'],['bald','No hair']],
+ hair:[['crop','Short crop'],['swoop','Side sweep'],['curls','Soft curls'],['afro','Rounded afro'],['sponge','Sponge curl high top'],['spongeafro','Sponge curl afro'],['coils','Coils'],['bob','Bob'],['long','Long hair'],['braids','Braids'],['ponytail','Ponytail'],['bun','High bun'],['curlybun','Braided curly bun'],['fade','Fade'],['curlytop','Curly top'],['waves','Waves'],['cornrows','Cornrows'],['boxbraids','Box braids'],['locs','Long locs'],['shortlocs','Short locs'],['twists','Two-strand twists'],['puffs','Afro puffs'],['bald','No hair']],
  hairColor:[['#302420','Espresso'],['#65402c','Chestnut'],['#b16b32','Copper'],['#e7c366','Golden'],['#d8d7d0','Silver'],['#9a69bc','Purple'],['#438aaf','Blue'],['#da7b99','Pink'],['#800020','Burgundy'],['#228b22','Forest green']],
  eyes:[['classic','Classic dots'],['bright','Bright eyes'],['round','Round eyes'],['happy','Happy eyes'],['sleepy','Sleepy eyes']],
  glassesColor:[['#34445c','Navy'],['#ffffff','White'],['#f4ce70','Gold'],['#bce8ef','Ice blue'],['#f09fbc','Pink'],['#800020','Burgundy'],['#228b22','Forest green']],
@@ -54,7 +54,7 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
   front=closeCap+locks.map(([x,y,endX,endY],i)=>`<path d="M${x} ${y}C${x-3} ${y+7} ${endX+3} ${endY-9} ${endX} ${endY}" fill="none" stroke="${strand}" stroke-width="7.4" stroke-linecap="round"/><path d="M${x} ${y}C${x-3} ${y+7} ${endX+3} ${endY-9} ${endX} ${endY}" fill="none" stroke="${hair}" stroke-width="5.5" stroke-linecap="round"/>`).join('');
   back=long?`<g fill="none" stroke-linecap="round">${[20,27,34,41,79,86,93,100].map((x,i)=>{const end=88+(i%3)*7,d=`M${x+(x<60?5:-5)} 27C${x-3} 46 ${x+3} 65 ${x+(i%2?2:-2)} ${end}`;return `<path d="${d}" stroke="${strand}" stroke-width="7.5"/><path d="${d}" stroke="${hair}" stroke-width="5.8"/>`;}).join('')}</g>`:`<g fill="${hair}"><ellipse cx="29" cy="43" rx="4" ry="8"/><ellipse cx="91" cy="43" rx="4" ry="8"/></g>`;
  }
- if(a.hair==='cornrows'){
+ if(['cornrows','curlybun'].includes(a.hair)){
   front=closeCap;
   // Scalp channels separate five raised braids running back from the hairline.
   front+=`<g fill="none" stroke="${skin}" stroke-width="1.5" stroke-linecap="round">${[40.5,53.5,66.5,79.5].map(x=>`<path d="M${60+(x-60)*.63} ${12+Math.abs(x-60)*.12}Q${x} 23 ${x} ${33+Math.abs(x-60)*.16}"/>`).join('')}</g>`;
@@ -63,6 +63,11 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
    for(let i=0;i<5;i++){const t=(i+.6)/5,u=1-t,px=u*u*topX+2*u*t*x+t*t*x,py=u*u*topY+2*u*t*22+t*t*endY;front+=`<path d="m${px-1.6} ${py-1} 3.2 1.4-1.6 1.1" fill="none" stroke="${ridge}" stroke-width=".8" stroke-linecap="round"/>`;}
   }
   back=`<g fill="none" stroke="${hair}" stroke-width="3.2" stroke-linecap="round"><path d="M36 33Q32 57 37 76L39 84M84 33Q88 57 83 76L81 84"/></g>`;
+  if(a.hair==='curlybun'){
+   back='';
+   const curls=[[43,14,6.5],[48,7,6.5],[59,7,7],[70,7,6.5],[77,14,7],[71,21,7],[59,19,8],[48,21,7],[60,13,6]];
+   front+=`<g data-hairstyle="curlybun">${curls.map(([x,y,r],i)=>`<circle cx="${x}" cy="${y}" r="${r}"/><path d="M${x-3} ${y+1}q-2-5 2-5q6-1 5 4q-1 4-5 2q-2-1 0-3" fill="none" stroke="${i%2?ridge:strand}" stroke-width="1.3" stroke-linecap="round"/>`).join('')}</g>`;
+  }
  }
  if(a.hair==='afro'){
   // A rounded halo of tightly packed hair, rather than large curl lobes.
