@@ -22,3 +22,13 @@ test('headphones layer with glasses and legacy selections migrate safely',()=>{
  assert.throws(()=>validateAvatar({...a,catInnerColor:'url(bad)'}),/catInnerColor/);
  for(const hair of ['afro','puffs','bun','curlybun','coils'])for(const extra of ['baseball','frog'])assert.match(avatarSVG({...a,hair,extra}),/clip-path="url\(#avatar-hair-/);
 });
+
+test('ear sizes survive backups and older avatars default to medium',()=>{
+ const old=defaultAvatar();delete old.earSize;assert.equal(validateAvatar(old).earSize,'medium');
+ for(const earSize of ['small','medium','big']){
+  const c=newChart();c.students=[{id:'ears',name:'Alex',avatar:{...defaultAvatar(),earSize}}];
+  const restored=validateBackup({version:1,active:c.id,charts:[c],studentLists:[]});
+  assert.equal(restored.charts[0].students[0].avatar.earSize,earSize);
+ }
+ assert.throws(()=>validateAvatar({...defaultAvatar(),earSize:'huge'}),/earSize/);
+});
