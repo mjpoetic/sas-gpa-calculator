@@ -1,6 +1,6 @@
-import {validateAvatar} from './avatars.mjs?v=20261016-release20';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261016-release20';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261016-release20';
+import {validateAvatar} from './avatars.mjs?v=20261016-release21';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261016-release21';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261016-release21';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -96,7 +96,13 @@ export function shuffle(chart, random = Math.random) {
 }
 export const teacherSeatTypes=['teacher','chair','officechair','stool','desk','pair','group','round'];
 export const teacherAvatarSize={width:64,height:80};
-export function teacherPoint(chart,point){if(!point||![point.x,point.y].every(Number.isFinite))throw new Error('Invalid teacher position.');const room=chart.room||{width:960,height:680};return {x:Math.max(32,Math.min(room.width-32,point.x)),y:Math.max(40,Math.min(room.height-40,point.y))};}
+export function teacherDimensions(teacher){const width=teacher?.size??64;return {width,height:width*1.25};}
+export function validateTeacherSize(size){if(!Number.isFinite(size)||size<32||size>192)throw new Error('Teacher avatar size must be between 50% and 300%.');return size;}
+export function resizeTeacher(chart,size){if(!chart.teacher||!Number.isFinite(size))throw new Error('Invalid teacher avatar size.');chart.teacher.size=Math.max(32,Math.min(192,size));if(chart.teacher.position)chart.teacher.position=teacherPoint(chart,chart.teacher.position);}
+export function savedTeacherProfile(state){const source=state.teacherProfile||state.charts.find(c=>c.teacher)?.teacher;return source?{name:source.name,avatar:{...structuredClone(source.avatar),enabled:true}}:null;}
+export function useSavedTeacher(state,chart){const profile=savedTeacherProfile(state);if(!profile)throw new Error('Save your teacher avatar first.');chart.teacher={...chart.teacher,...structuredClone(profile),seatId:chart.teacher?.seatId||null};}
+export function saveTeacherProfile(state,chartId,name,avatar){const owner=state.charts.find(c=>c.id===chartId);if(!owner)throw new Error('Classroom is no longer available.');if(typeof name!=='string'||!name.trim()||name.length>80)throw new Error('Invalid teacher name.');name=name.trim();const validated=validateAvatar(avatar);state.teacherProfile={name,avatar:{...validated,enabled:true}};for(const c of state.charts)if(c.teacher)c.teacher={...c.teacher,name,avatar:{...validated,enabled:c===owner?validated.enabled:c.teacher.avatar.enabled}};owner.teacher={...owner.teacher,name,avatar:validated,seatId:owner.teacher?.seatId||null};}
+export function teacherPoint(chart,point){if(!point||![point.x,point.y].every(Number.isFinite))throw new Error('Invalid teacher position.');const room=chart.room||{width:960,height:680};const {width,height}=teacherDimensions(chart.teacher);return {x:Math.max(width/2,Math.min(room.width-width/2,point.x)),y:Math.max(height/2,Math.min(room.height-height/2,point.y))};}
 export function placeTeacher(chart,itemId,position=null){if(!chart.teacher)throw new Error('Create your teacher avatar first.');if(itemId!==null&&!chart.items.some(it=>it.id===itemId&&teacherSeatTypes.includes(it.type)))throw new Error('Choose a desk or chair.');const point=itemId===null&&position!==null?teacherPoint(chart,position):null;chart.teacher.seatId=itemId;if(point)chart.teacher.position=point;else delete chart.teacher.position;}
 export function validateBackup(data) {
   if (data?.version !== 1 || !Array.isArray(data.charts) || !data.charts.length || data.charts.length > 100) throw new Error('Choose a Classroom Studio backup (version 1).');
@@ -122,14 +128,15 @@ export function validateBackup(data) {
         return {student:s.student, locked:s.locked,...(s.fontSize!==undefined?{fontSize:validateSeatFontSize(s.fontSize)}:{}),...(s.color!==undefined?{color:s.color}:{}),...(s.textColor!==undefined?{textColor:s.textColor}:{}),...(s.font!==undefined?{font:validateFont(s.font)}:{}),...(s.fontWeight!==undefined?{fontWeight:validateWeight(s.fontWeight)}:{})};
       })},room);
     });
-    let teacher;if(c.teacher!==undefined){if(c.teacher?.position!==undefined&&c.teacher.seatId!==null)throw new Error('Teacher cannot have a seat and free position.');if(!c.teacher||typeof c.teacher!=='object'||(c.teacher.seatId!==null&&typeof c.teacher.seatId!=='string'))throw new Error('Invalid teacher placement.');teacher={name:str(c.teacher.name,80).trim(),avatar:validateAvatar(c.teacher.avatar),...(c.teacher.position!==undefined?{position:teacherPoint({room},c.teacher.position)}:{}),seatId:items.some(it=>it.id===c.teacher.seatId&&teacherSeatTypes.includes(it.type))?c.teacher.seatId:null};}
+    let teacher;if(c.teacher!==undefined){if(c.teacher?.position!==undefined&&c.teacher.seatId!==null)throw new Error('Teacher cannot have a seat and free position.');if(!c.teacher||typeof c.teacher!=='object'||(c.teacher.seatId!==null&&typeof c.teacher.seatId!=='string'))throw new Error('Invalid teacher placement.');teacher={name:str(c.teacher.name,80).trim(),avatar:validateAvatar(c.teacher.avatar),...(c.teacher.size!==undefined?{size:validateTeacherSize(c.teacher.size)}:{}),...(c.teacher.position!==undefined?{position:teacherPoint({room,teacher:c.teacher},c.teacher.position)}:{}),seatId:items.some(it=>it.id===c.teacher.seatId&&teacherSeatTypes.includes(it.type))?c.teacher.seatId:null};}
     return {id:id(c.id), name:str(c.name,80), students, items,...(teacher?{teacher}:{}),...(c.room!==undefined?{room}:{}),...(c.appearance!==undefined?{appearance:validateAppearance(c.appearance)}:{})};
   });
   const studentLists=(data.studentLists||[]);
   if(!Array.isArray(studentLists)||studentLists.length>100)throw new Error('Invalid saved student lists.');
   const lists=studentLists.map(list=>{if(!Array.isArray(list.names)||list.names.length>500)throw new Error('Invalid saved student list.');return {id:id(list.id),name:str(list.name,80),names:list.names.map(n=>normalizeStudentName(str(n,80))),...(list.nicknames!==undefined?{nicknames:validateListNicknames(list.nicknames,list.names.length)}:{}),...(list.avatars!==undefined?{avatars:validateListAvatars(list.avatars,list.names.length)}:{}),...(list.avoid!==undefined?{avoid:validateListAvoid(list.avoid,list.names.length)}:{})};});
   const chartOrder=data.chartOrder;if(chartOrder!==undefined&&(!Array.isArray(chartOrder)||chartOrder.length>100||chartOrder.some(id=>typeof id!=='string')||new Set(chartOrder).size!==chartOrder.length))throw new Error('Invalid classroom order.');
-  return {version:1, ...(chartOrder?{chartOrder:chartOrder.filter(id=>charts.some(c=>c.id===id))}:{}), ...(lists.length?{studentLists:lists}:{}), charts, active:charts.some(c => c.id === data.active) ? data.active : charts[0].id};
+  const teacherProfile=data.teacherProfile===undefined?null:{name:str(data.teacherProfile?.name,80).trim(),avatar:validateAvatar(data.teacherProfile?.avatar)};
+  return {version:1,...(teacherProfile?{teacherProfile}:{}), ...(chartOrder?{chartOrder:chartOrder.filter(id=>charts.some(c=>c.id===id))}:{}), ...(lists.length?{studentLists:lists}:{}), charts, active:charts.some(c => c.id === data.active) ? data.active : charts[0].id};
 }
 
 export function footprint(it) {
@@ -173,9 +180,9 @@ export function vacantPosition(item,others,preferred={x:320,y:220}) {
 
 export function reshapeRoom(chart,width,height){
  const old=chart.room||{width:960,height:680},room=validateRoom({width,height}),scale=Math.min(1,width/old.width,height/old.height);
- chart.items.forEach(it=>{it.x*=width/old.width;it.y*=height/old.height;it.width=Math.max(['mug','mouse'].includes(it.type)?16:40,it.width*scale);it.height=Math.max(8,it.height*scale);constrain(it,room);});if(chart.teacher?.position)chart.teacher.position=teacherPoint({room},{x:chart.teacher.position.x*width/old.width,y:chart.teacher.position.y*height/old.height});chart.room=room;setRoomSize(room);
+ chart.items.forEach(it=>{it.x*=width/old.width;it.y*=height/old.height;it.width=Math.max(['mug','mouse'].includes(it.type)?16:40,it.width*scale);it.height=Math.max(8,it.height*scale);constrain(it,room);});if(chart.teacher?.position)chart.teacher.position=teacherPoint({room,teacher:chart.teacher},{x:chart.teacher.position.x*width/old.width,y:chart.teacher.position.y*height/old.height});chart.room=room;setRoomSize(room);
 }
-export function rotateRoom(chart,direction=1){const old=chart.room||{width:960,height:680},room={width:old.height,height:old.width};chart.items.forEach(it=>{const cx=it.x+it.width/2,cy=it.y+it.height/2;it.x=(direction<0?cy:old.height-cy)-it.width/2;it.y=(direction<0?old.width-cx:cx)-it.height/2;it.rotation=(it.rotation+(direction<0?270:90))%360;constrain(it,room);});if(chart.teacher?.position){const {x,y}=chart.teacher.position;chart.teacher.position=teacherPoint({room},{x:direction<0?y:old.height-y,y:direction<0?old.width-x:x});}chart.room=room;setRoomSize(room);}
+export function rotateRoom(chart,direction=1){const old=chart.room||{width:960,height:680},room={width:old.height,height:old.width};chart.items.forEach(it=>{const cx=it.x+it.width/2,cy=it.y+it.height/2;it.x=(direction<0?cy:old.height-cy)-it.width/2;it.y=(direction<0?old.width-cx:cx)-it.height/2;it.rotation=(it.rotation+(direction<0?270:90))%360;constrain(it,room);});if(chart.teacher?.position){const {x,y}=chart.teacher.position;chart.teacher.position=teacherPoint({room,teacher:chart.teacher},{x:direction<0?y:old.height-y,y:direction<0?old.width-x:x});}chart.room=room;setRoomSize(room);}
 
 function validateListAvoid(value,count){if(!Array.isArray(value)||value.length!==count||value.some((refs,i)=>!Array.isArray(refs)||refs.length>count||refs.some(n=>!Number.isInteger(n)||n<0||n>=count||n===i)))throw new Error('Invalid saved student separation preferences.');return value;}
 function seatLocations(chart){return chart.items.flatMap(item=>item.seats.map((seat,index)=>{const columns=item.seats.length===1?1:2,rows=Math.ceil(item.seats.length/columns),a=item.rotation*Math.PI/180,dx=((index%columns+.5)/columns-.5)*item.width,dy=((Math.floor(index/columns)+.5)/rows-.5)*item.height;return {seat,item,x:item.x+item.width/2+dx*Math.cos(a)-dy*Math.sin(a),y:item.y+item.height/2+dx*Math.sin(a)+dy*Math.cos(a)};}));}

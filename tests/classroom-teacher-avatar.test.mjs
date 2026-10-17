@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {defaultAvatar,validateAvatar,avatarSVG,teacherAvatarParts,randomAvatar} from '../classroom/avatars.mjs';
-import {newChart,furniture,placeTeacher,shuffle,validateBackup,rotateRoom,reshapeRoom} from '../classroom/model.mjs';
+import {newChart,furniture,placeTeacher,shuffle,validateBackup,rotateRoom,reshapeRoom,resizeTeacher,teacherDimensions,saveTeacherProfile,useSavedTeacher} from '../classroom/model.mjs';
 import {mergeDocuments} from '../classroom/sync-merge.mjs';
 const documentFor=c=>({version:1,active:c.id,charts:[c]});
 test('teacher appearance survives backups while old avatars get neutral adult defaults',()=>{
@@ -53,4 +53,16 @@ test('eye colors, glasses positions, straps and bags are safe and backward compa
  for(const key of ['eyeColor','glassesStrapColor'])assert.throws(()=>validateAvatar({...a,[key]:'red'}),new RegExp(key));
  const svg=avatarSVG(a);assert.match(svg,/data-avatar-glasses-position="head"/);assert.match(svg,/data-avatar-detail="glasses-strap"/);assert.match(svg,/data-avatar-accessory="crossbody"/);assert.match(svg,/fill="#5790bf"/);assert.deepEqual(validateAvatar(a),a);
  assert.ok(!avatarSVG({...a,eyes:'classic'}).includes('fill="#5790bf"'));assert.ok(!avatarSVG({...a,eyes:'happy'}).includes('fill="#5790bf"'));
+});
+
+test('teacher size survives backups, stays proportional, and clamps the full portrait in the room',()=>{
+ const c=newChart();c.teacher={name:'Teacher',avatar:defaultAvatar(),seatId:null};placeTeacher(c,null,{x:950,y:670});resizeTeacher(c,192);assert.deepEqual(teacherDimensions(c.teacher),{width:192,height:240});assert.deepEqual(c.teacher.position,{x:864,y:560});assert.equal(validateBackup(documentFor(c)).charts[0].teacher.size,192);
+ rotateRoom(c);assert.ok(c.teacher.position.x>=96&&c.teacher.position.y>=120);reshapeRoom(c,480,480);assert.ok(c.teacher.position.x<=384&&c.teacher.position.y<=360);
+ assert.throws(()=>validateBackup(documentFor({...c,teacher:{...c.teacher,size:193}})),/size/);assert.throws(()=>resizeTeacher(c,NaN),/size/);resizeTeacher(c,10);assert.equal(c.teacher.size,32);
+});
+test('one saved teacher profile reuses appearance while preserving layout-specific placement and size',()=>{
+ const first=newChart(),second=newChart(),d={version:1,active:first.id,charts:[first,second]};saveTeacherProfile(d,first.id,'Ms. Rivera',defaultAvatar());placeTeacher(first,null,{x:200,y:220});resizeTeacher(first,128);useSavedTeacher(d,second);assert.equal(second.teacher.name,'Ms. Rivera');assert.equal(second.teacher.position,undefined);assert.equal(second.teacher.size,undefined);
+ placeTeacher(second,null,{x:400,y:450});second.teacher.avatar.enabled=false;const firstPosition={...first.teacher.position};saveTeacherProfile(d,first.id,'Ms. Rivera',{...defaultAvatar(),hair:'bun'});assert.equal(second.teacher.avatar.hair,'bun');assert.equal(second.teacher.avatar.enabled,false);assert.equal(first.teacher.size,128);assert.deepEqual(first.teacher.position,firstPosition);assert.deepEqual(second.teacher.position,{x:400,y:450});
+ assert.deepEqual(validateBackup(d).teacherProfile,d.teacherProfile);const remote=structuredClone(d),local=structuredClone(d);resizeTeacher(local.charts[0],100);remote.charts[1].teacher.position.x=420;const merged=mergeDocuments(d,local,remote);assert.deepEqual(merged.conflicts,[]);assert.equal(merged.document.charts[0].teacher.size,100);assert.equal(merged.document.charts[1].teacher.position.x,420);assert.equal(merged.document.teacherProfile.avatar.hair,'bun');
+ delete first.teacher;delete second.teacher;useSavedTeacher(d,second);assert.equal(second.teacher.avatar.hair,'bun');assert.equal(second.teacher.avatar.enabled,true);
 });
