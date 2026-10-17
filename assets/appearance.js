@@ -1,6 +1,6 @@
-import {refreshSite} from './refresh.js?v=20261016-release21';
-import './site-menus.js?v=20261016-release21';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights,validateWeight} from './font-options.mjs?v=20261016-release21';
+import {refreshSite} from './refresh.js?v=20261016-release22';
+import './site-menus.js?v=20261016-release22';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights,validateWeight} from './font-options.mjs?v=20261016-release22';
 const KEY='sas-appearance-v1';
 const defaults=()=>({theme:'system',font:{source:'preset',family:'system'},scale:100,weight:400});
 let prefs=defaults(),internalTheme=false;
