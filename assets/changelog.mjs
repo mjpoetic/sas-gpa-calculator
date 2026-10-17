@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {version:'2026.10.17.17',changes:['Added Low taper fade with subtle fading near the ears. Smoothed the sides of Waves and Fade while preserving their gradients.']},
  {version:'2026.10.17.16',changes:['Whistle and work badge lanyards now wrap around the sides of the neck before draping over the shirt.']},
  {version:'2026.10.17.15',changes:['Refined the Hungry expression with relaxed eyes, a broad smile, and dripping drool.']},
  {version:'2026.10.17.14',changes:['Click the version number in the footer or Settings to see what changed.']},
