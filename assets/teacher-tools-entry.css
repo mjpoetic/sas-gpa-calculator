@@ -6,7 +6,21 @@
 #root header [data-testid="button-theme-toggle"]{display:none!important}
 .header-actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
 .header-actions .appearance-trigger,.header-actions .site-refresh{margin-left:0}
-.header-actions .teacher-tools-entry,.header-actions .appearance-trigger{min-height:44px;border-radius:12px;font-size:13px}
+#root .header-actions :is(.teacher-tools-entry,.appearance-trigger){
+ display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;
+ width:44px;min-width:44px;height:44px;min-height:44px;padding:10px;margin:0;
+ border:1px solid var(--glass-edge);border-radius:12px;
+ background:linear-gradient(145deg,rgba(255,255,255,.12),transparent 65%),var(--glass-surface);
+ color:#294c69;box-shadow:var(--glass-shadow);
+ -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+ transition:background-color .15s,box-shadow .15s;
+}
+#root .header-actions :is(.teacher-tools-entry,.appearance-trigger) svg{width:20px;height:20px;flex:none}
+#root .header-actions :is(.teacher-tools-entry span,.appearance-label){display:none}
+.dark #root .header-actions :is(.teacher-tools-entry,.appearance-trigger){color:#e4edf6}
+#root .header-actions :is(.teacher-tools-entry,.appearance-trigger):hover{background-color:var(--glass-selected)}
+#root .header-actions :is(.teacher-tools-entry,.appearance-trigger):focus-visible{outline:3px solid #68a7d1;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){#root .header-actions :is(.teacher-tools-entry,.appearance-trigger){transition:none}}
 [data-teacher-tools-navigation]>div:first-child{min-width:0}
 .header-tooltip{position:fixed;z-index:10000;pointer-events:none;border:1px solid #65819b;border-radius:8px;padding:7px 10px;background:#20384d;color:#fff;box-shadow:0 4px 16px #0003;font:13px/1.4 var(--site-font,Arial,sans-serif);max-width:calc(100vw - 16px)}
 @media(max-width:900px){
