@@ -1,13 +1,13 @@
-import {enableTwoFingerPan} from './touch-pan.js?v=20261016-release23';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261016-release23';
-import {openAvatarEditor} from './avatar-editor.js?v=20261016-release23';
-import {transferStudent} from './seat-transfer.mjs?v=20261016-release23';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261016-release23';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261016-release23';
-import {furnitureArt} from './furniture-art.mjs?v=20261016-release23';
-import {teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261016-release23';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261016-release23';
-import {connectCloud} from './cloud.js?v=20261016-release23';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261016-release24';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261016-release24';
+import {openAvatarEditor} from './avatar-editor.js?v=20261016-release24';
+import {transferStudent} from './seat-transfer.mjs?v=20261016-release24';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261016-release24';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261016-release24';
+import {furnitureArt} from './furniture-art.mjs?v=20261016-release24';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261016-release24';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261016-release24';
+import {connectCloud} from './cloud.js?v=20261016-release24';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -493,10 +493,40 @@ $('teacher-seat').onchange=()=>{const id=$('teacher-seat').value||null;if(id==='
 $('teacher-avatar-card').onclick=()=>{if(Date.now()>=suppressStudentClickUntil)editTeacherAvatar();};
 attachTeacherDrag($('teacher-avatar-card'));
 function attachTeacherDrag(handle){handle.addEventListener('pointerdown',e=>{
- if(e.button!==0||!chart().teacher||panMode||multiMode)return;e.stopPropagation();const start={x:e.clientX,y:e.clientY};let moved=false,ghost,target;handle.setPointerCapture(e.pointerId);
- const move=ev=>{if(!moved&&Math.hypot(ev.clientX-start.x,ev.clientY-start.y)<7)return;if(!moved){moved=true;handle.classList.add('teacher-drag-source');ghost=element('div','teacher-drag-preview');ghost.innerHTML=avatarSVG(chart().teacher.avatar);document.body.append(ghost);document.body.classList.add('teacher-dragging');document.dispatchEvent(new Event('sas-student-drag-start'));}ev.preventDefault();Object.assign(ghost.style,{left:ev.clientX+12+'px',top:ev.clientY+12+'px'});target?.classList.remove('teacher-drop-target');target=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.teacher-drop-seat');target?.classList.add('teacher-drop-target');};
- const end=ev=>{handle.removeEventListener('pointermove',move);handle.removeEventListener('pointerup',end);handle.removeEventListener('pointercancel',end);ghost?.remove();handle.classList.remove('teacher-drag-source');target?.classList.remove('teacher-drop-target');document.body.classList.remove('teacher-dragging');if(!moved)return;suppressStudentClickUntil=Date.now()+500;if(ev.type==='pointercancel')return;if(target){const id=target.dataset.id;if(chart().teacher.seatId!==id)change(()=>placeTeacher(chart(),id),'Teacher placed at furniture. Undo is available.');return;}const room=$('room'),rect=room.getBoundingClientRect();if(ev.clientX<rect.left||ev.clientX>rect.right||ev.clientY<rect.top||ev.clientY>rect.bottom)return say('Drop your avatar inside the room.');const point={x:(ev.clientX-rect.left)*WIDTH/rect.width,y:(ev.clientY-rect.top)*HEIGHT/rect.height};change(()=>placeTeacher(chart(),null,point),'Teacher position saved. Undo is available.');};
- handle.addEventListener('pointermove',move,{passive:false});handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);
+ if(e.button!==0||!chart().teacher||panMode||multiMode)return;
+ e.stopPropagation();const start={x:e.clientX,y:e.clientY};let moved=false,ghost,target,outline;
+ handle.setPointerCapture(e.pointerId);
+ const dropPoint=ev=>{const rect=$('room').getBoundingClientRect();return ev.clientX<rect.left||ev.clientX>rect.right||ev.clientY<rect.top||ev.clientY>rect.bottom?null:teacherPoint(chart(),{x:(ev.clientX-rect.left)*WIDTH/rect.width,y:(ev.clientY-rect.top)*HEIGHT/rect.height});};
+ const updateDrop=ev=>{
+  target?.classList.remove('teacher-drop-target');
+  target=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.teacher-drop-seat');
+  target?.classList.add('teacher-drop-target');
+  const point=dropPoint(ev);outline.hidden=!!target||!point;
+  if(point){const {width,height}=teacherDimensions(chart().teacher);Object.assign(outline.style,{left:point.x-width/2+'px',top:point.y-height/2+'px',width:width+'px',height:height+'px'});}
+  return point;
+ };
+ const move=ev=>{
+  if(!moved&&Math.hypot(ev.clientX-start.x,ev.clientY-start.y)<7)return;
+  if(!moved){
+   moved=true;handle.classList.add('teacher-drag-source');
+   ghost=element('div','teacher-free-placement teacher-drag-preview');ghost.inert=true;ghost.setAttribute('aria-hidden','true');
+   const portrait=createTeacherPortrait();portrait.classList.add('teacher-free-avatar');ghost.append(portrait);
+   const {width,height}=teacherDimensions(chart().teacher);Object.assign(ghost.style,{width:width+'px',height:height+'px'});ghost.style.setProperty('--teacher-scale',width/64);ghost.style.setProperty('--teacher-preview-zoom',zoom);document.body.append(ghost);
+   outline=element('div','teacher-drop-outline');outline.setAttribute('aria-hidden','true');$('room').append(outline);
+   document.body.classList.add('teacher-dragging');document.dispatchEvent(new Event('sas-student-drag-start'));
+  }
+  ev.preventDefault();Object.assign(ghost.style,{left:ev.clientX+'px',top:ev.clientY+'px'});updateDrop(ev);
+ };
+ const end=ev=>{
+  handle.removeEventListener('pointermove',move);handle.removeEventListener('pointerup',end);handle.removeEventListener('pointercancel',end);handle.removeEventListener('lostpointercapture',end);
+  const canceled=ev.type!=='pointerup',point=moved&&!canceled?updateDrop(ev):null,id=target?.dataset.id;
+  ghost?.remove();outline?.remove();handle.classList.remove('teacher-drag-source');target?.classList.remove('teacher-drop-target');document.body.classList.remove('teacher-dragging');
+  if(!moved)return;suppressStudentClickUntil=Date.now()+500;if(canceled)return;
+  if(id){if(chart().teacher.seatId!==id)change(()=>placeTeacher(chart(),id),'Teacher placed at furniture. Undo is available.');return;}
+  if(!point)return say('Drop your avatar inside the room.');
+  change(()=>placeTeacher(chart(),null,point),'Teacher position saved. Undo is available.');
+ };
+ handle.addEventListener('pointermove',move,{passive:false});handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);handle.addEventListener('lostpointercapture',end);
  });}
 
 function createTeacherPortrait(item){
