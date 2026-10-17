@@ -1,15 +1,18 @@
-import {avatarMaskSVG} from './avatar-masks.mjs?v=20261017-release4';
-import {hairColorDetails,hairOrnamentSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261017-release4';
+import {avatarMaskSVG} from './avatar-masks.mjs?v=20261017-release5';
+import {hairColorDetails,hairOrnamentSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261017-release5';
 export {supportsHairTips};
-import {teacherClothing,layeredClothingSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG} from './avatar-props.mjs?v=20261017-release4';
+import {teacherClothing,layeredClothingSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG} from './avatar-props.mjs?v=20261017-release5';
 export {teacherClothing};
 export const accessoryColorDefaults={"sunglassLensColor":"#25333e","frogEyeWhiteColor":"#ffffff","headphoneBandColor":"#3b526a","headphoneCupColor":"#8596c7","headphonePadColor":"#263445","starColor":"#f8d264","starEdgeColor":"#ba8c3f","flowerColor":"#f3c565","flowerCenterColor":"#9b673f","flowerLeafColor":"#6c9b69","flowerBandColor":"#6c8252","catBandColor":"#65517d","catEarColor":"#8a79a8","catInnerColor":"#e1a4b6","antennaStemColor":"#536c87","antennaLeftColor":"#dc8cb6","antennaRightColor":"#7baed6","crownColor":"#f4cd5d","crownEdgeColor":"#c79a3d","crownGemColor":"#d77a9e","frogColor":"#71af73","frogBrimColor":"#86c06f","frogBumpColor":"#92c783","frogEyeColor":"#334039"};
 const accessoryPalette=[['#302420','Espresso'],['#ffffff','White'],['#34445f','Navy'],['#f4ce70','Gold'],['#f09fbc','Pink'],['#438aaf','Blue'],['#228b22','Forest green']];
 const propPalette=color=>[[color,'Original'],...accessoryPalette.filter(([value])=>value!==color)];
-export const teacherAvatarParts=['facialHair','facialHairColor','wrinkles','lipstick','lipstickColor','drink','drinkColor','undershirtColor','neckwear','lanyardColor','badgeColor','teachingTool','toolColor','glassesPosition','glassesStrap','glassesStrapColor'];
+export const teacherAvatarParts=['mustache','mustacheColor','facialHair','facialHairColor','wrinkles','lipstick','lipstickColor','drink','drinkColor','undershirtColor','neckwear','lanyardColor','badgeColor','teachingTool','toolColor','glassesPosition','glassesStrap','glassesStrapColor'];
 const propDefaults={sunglassTint:'dark',mask:'none',maskColor:'#438aaf',maskAccentColor:'#f4ce70',hairHighlights:'none',hairHighlightColor:'#e7c366',hairTips:'none',hairTipColor:'#b16b32',hairAccessory:'none',hairAccessoryColor:'#da7b99',hairAccessoryAccentColor:'#f4ce70',eyeColor:'#332d35',glassesPosition:'eyes',glassesStrap:'none',glassesStrapColor:'#34445f',backpack:'none',backpackColor:'#537ea3',backpackPocketColor:'#3b5d80',backpackStrapColor:'#34445f',undershirtColor:'#f4eee3',neckwear:'none',lanyardColor:'#438aaf',badgeColor:'#f4eee3',teachingTool:'none',toolColor:'#638eb2'};
-const adultDefaults={...propDefaults,facialHair:'none',facialHairColor:'#302420',wrinkles:'none',lipstick:'none',lipstickColor:'#b95068',drink:'none',drinkColor:'#f4eee3'};
+const adultDefaults={...propDefaults,mustache:'auto',mustacheColor:'#302420',facialHair:'none',facialHairColor:'#302420',wrinkles:'none',lipstick:'none',lipstickColor:'#b95068',drink:'none',drinkColor:'#f4eee3'};
 export const avatarOptions={
+ mustache:[['auto','Match beard style'],['none','No mustache'],['classic','Classic'],['handlebar','Handlebar'],['english','English'],['horseshoe','Horseshoe'],['chevron','Chevron'],['walrus','Walrus'],['pencil','Pencil'],['imperial','Imperial'],['toothbrush','Toothbrush'],['dali','Dali'],['fumanchu','Fu Manchu']],
+ mustacheColor:[['#302420','Espresso'],['#65402c','Chestnut'],['#b16b32','Copper'],['#e7c366','Golden'],['#d8d7d0','Silver']],
+
  sunglassTint:[['dark','Opaque'],['medium','Semi-transparent'],['light','Light tint']],
  mask:[['none','No mask'],['hero','Superhero mask'],['clown','Clown mask'],['butterfly','Butterfly mask'],['robot','Robot mask'],['medical','Medical face mask']],
  maskColor:propPalette('#438aaf'),maskAccentColor:propPalette('#f4ce70'),
