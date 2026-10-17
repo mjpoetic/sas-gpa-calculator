@@ -24,15 +24,23 @@ const mustacheShapes={
  dali:'<path d="M60 57Q53 59 48 58Q41 56 37 48Q40 62 49 62Q55 63 60 60Q65 63 71 62Q80 62 83 48Q79 56 72 58Q67 59 60 57Z"/>',
  fumanchu:'<path d="M60 57Q48 56 48 63L47 79L45 82V63Q45 55 59 55ZM60 57Q72 56 72 63L73 79L75 82V63Q75 55 61 55Z"/>'
 };
+let beardTextureSequence=0;
+function beardTexture(a,markup){
+ if(!markup||!a.beardGraying||a.beardGraying==='none'||['none','mustache','chevron'].includes(a.facialHair))return markup;
+ const id='beard-gray-'+(++beardTextureSequence),gray='#d8d7d0',heavy=a.beardGraying==='heavy',amount={light:.12,medium:.45,heavy:.8}[a.beardGraying],rgb=a.facialHairColor.slice(1).match(/../g).map(v=>parseInt(v,16)),silver=[216,215,208],base='#'+rgb.map((v,i)=>Math.round(v*(1-amount)+silver[i]*amount).toString(16).padStart(2,'0')).join(''),strand=heavy?a.facialHairColor:gray;
+ const fibers=a.beardGraying==='light'?'M1 1l.3 1.5M4 3l-.2 1.3':heavy?'M1 1l.3 1.7M4 3l-.2 1.5':'M1 0l.3 2M3 2l.2 2M5 4l-.2 2M5 .2l-.2 1.2';
+ const texture=`<defs><pattern id="${id}" patternUnits="userSpaceOnUse" width="6" height="6"><rect width="6" height="6" fill="${base}"/><path d="${fibers}" fill="none" stroke="${strand}" stroke-width=".55" stroke-linecap="round"/><path d="M2.2 4l.1 1M4 .5l.1 .8" fill="none" stroke="${a.facialHairColor}" stroke-width=".45" stroke-linecap="round" opacity=".65"/></pattern></defs>`;
+ return `<g data-beard-graying="${a.beardGraying}">${texture}<g fill="url(#${id})">${markup.replaceAll(`stroke="${a.facialHairColor}"`,`stroke="url(#${id})"`)}</g></g>`;
+}
 export function facialHairSVG(a,rx){
  const mustache='<path d="M60 58q-4-4-9 1l-3 2q7 2 12-1q5 3 12 1l-3-2q-5-5-9-1Z"/>',chin='<path d="M55 69q5 2 10 0l-1 7q-4 4-8 0Z"/>',goatee='<path d="M51 66q1 8 9 8t9-8l2 8q-11 14-22 0Z"/><path d="M57 67h6l2 8H55Z"/>';
  const jaw=`M${60-rx+2} 54Q35 72 45 76Q60 86 75 76Q85 72 ${60+rx-2} 54`;
  const styles={none:'',mustache,chevron:'<path d="M48 61L52 56Q57 54 60 57Q63 54 68 56L72 61Q65 61 60 59Q55 61 48 61Z"/>',goatee:chin+mustache,classicgoatee:goatee,circle:`<path d="M49 61Q49 56 60 57Q71 56 71 61L71 72Q60 84 49 72ZM53 61v9q7 7 14 0v-9q-7-2-14 0Z" fill-rule="evenodd"/>${chin}`,muttonchops:`<path d="M${60-rx+1} 49L39 57Q39 66 49 67L50 76Q36 76 33 62ZM${60+rx-1} 49L81 57Q81 66 71 67L70 76Q84 76 87 62Z"/>`,chinstrap:`<path d="${jaw}" fill="none" stroke="${a.facialHairColor}" stroke-width="3" stroke-linecap="round"/>`,balbo:`<path d="M42 64q3 9 11 7l4 2h6l4-2q8 2 11-7l-1 11q-17 17-34 0Z"/>${mustache}${chin}`,anchor:`<path d="M58 68h4l2 7q7 0 11-7l-2 9q-13 12-26 0l-2-9q4 7 11 7Z"/>${mustache}`,shortbeard:`<path d="${jaw}L78 65Q60 80 42 65Z"/>${mustache}`,beard:`<path d="M${60-rx+2} 55Q35 70 44 76Q60 91 76 76Q85 70 ${60+rx-2} 55L79 65Q76 74 60 76Q44 74 41 65Z"/>${mustache}`,longbeard:`<path d="M${60-rx+2} 54L40 75Q44 89 60 96Q76 89 80 75L${60+rx-2} 54L78 65Q60 78 42 65Z"/>${mustache}<path d="M49 78l4 8m7-5v9m11-12-4 8" fill="none" stroke="#ffffff22" stroke-width=".8"/>`,stubble:`<g data-avatar-detail="stubble-shadow" transform="translate(0 ${a.style==='junior'?-1:a.style==='senior'?2:0})"><path d="M${60-rx+2} 52Q40 57 47 61L52 68Q60 73 68 68L73 61Q80 57 ${60+rx-2} 52Q84 69 73 75Q60 83 47 75Q36 69 ${60-rx+2} 52Z" opacity=".2"/><path d="M${60-rx+3} 57Q36 72 48 76Q60 82 72 76Q84 72 ${60+rx-3} 57" fill="none" stroke="${a.facialHairColor}" stroke-width="1.5" opacity=".35"/><g opacity=".28">${[57,61,65].flatMap((y,row)=>[0,1,2].flatMap(i=>[42-i*2+row,78+i*2-row].map(x=>`<circle cx="${x}" cy="${y}" r=".45"/>`))).join('')}${[49,53,57,61,65,69].map((x,i)=>`<circle cx="${x}" cy="${73+i%2}" r=".45"/>`).join('')}</g></g>`};
- if(a.mustache==='auto')return styles[a.facialHair];
+ if(a.mustache==='auto')return beardTexture(a,styles[a.facialHair]);
  let beard=styles[a.facialHair].replaceAll(mustache,'');
  if(['mustache','chevron'].includes(a.facialHair))beard='';
  if(a.facialHair==='circle')beard='<path d="M49 61h4v9q7 7 14 0v-9h4v11q-11 12-22 0Z"/>'+chin;
- return beard+(a.mustache==='none'?'':`<g data-avatar-detail="mustache" data-mustache="${a.mustache}" fill="${a.mustacheColor}">${mustacheShapes[a.mustache]}</g>`);
+ return beardTexture(a,beard)+(a.mustache==='none'?'':`<g data-avatar-detail="mustache" data-mustache="${a.mustache}" fill="${a.mustacheColor}">${mustacheShapes[a.mustache]}</g>`);
 }
 export function teacherPropsSVG(a){
  const neckwear=a.neckwear==='none'?'':`<g data-avatar-accessory="${a.neckwear}"><path d="M48 82L60 101L72 82" fill="none" stroke="${a.lanyardColor}" stroke-width="2" stroke-linejoin="round"/>${a.neckwear==='badge'?`<rect x="53" y="99" width="14" height="17" rx="1.5" fill="${a.badgeColor}" stroke="#536779" stroke-width=".7"/><rect x="58" y="98" width="4" height="3" rx=".5" fill="#788c9d"/><circle cx="58" cy="105" r="2" fill="#547b99"/><path d="M55 111q3-5 6 0m2-6h2m-2 3h2m-10 6h10" stroke="#547b99" fill="none" stroke-width=".8"/>`:`<path d="M57 100h9v7h-4q-7 5-8-1q-1-3 3-3Z" fill="${a.badgeColor}" stroke="#536779" stroke-width=".8"/><rect x="61" y="101" width="3" height="2" fill="#34445f"/><circle cx="58" cy="106" r="1.5" fill="#34445f"/>`}</g>`;
