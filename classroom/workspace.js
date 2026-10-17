@@ -1,5 +1,5 @@
-import './dialog-motion.js?v=20261017-release2';
-import {animateWorkspace} from './panel-motion.js?v=20261017-release2';
+import './dialog-motion.js?v=20261017-release3';
+import {animateWorkspace} from './panel-motion.js?v=20261017-release3';
 // Move existing controls into compact panels without changing their data bindings.
 const $=id=>document.getElementById(id),body=document.body;
 body.classList.add('chart-first');
@@ -60,7 +60,8 @@ document.addEventListener('pointerover',e=>{if(e.pointerType!=='touch')delayTip(
 for(const [id,text] of Object.entries({'export':'Download a backup of all classrooms and student names.','import':'Restore classrooms from a JSON backup. Export first to keep your current work.','print':'Print the current seating chart.','apply-room':'Apply the entered room dimensions. Undo can restore the previous layout.','rotate-room':'Rotate the room and all furniture clockwise by 90 degrees.','rotate-room-ccw':'Rotate the room and all furniture counterclockwise by 90 degrees.','item-color':'Set the selected furniture color. You can also double-click furniture.','duplicate-item':'Copy the selected furniture with empty seats.','delete-item':'Remove selected furniture; its students remain in the roster.','assignment':'Choose the student for this seat.','snap':'Snap movement, rotation, and nearby edges for neat alignment.'}))$(id).title=text;
 $('furniture-tab').title=tips['dock-furniture'];$('students-tab').title=tips['dock-students'];
 
-const release=document.createElement('p');release.className='hint';release.textContent='Version '+document.querySelector('meta[name=site-version]').content+' · Updated '+new Date(document.querySelector('meta[name=site-updated]').content).toLocaleString();account.append(release);
+const release=document.createElement('p');release.className='hint settings-version';release.textContent='Version '+document.querySelector('meta[name=site-version]').content+' · Updated '+new Date(document.querySelector('meta[name=site-updated]').content).toLocaleString();settings.append(release);
+const footer=document.createElement('footer');footer.className='classroom-footer';const message=$('message');message.before(footer);footer.append(message);
 
 document.addEventListener('sas-seat-details',()=>setPanel('details'));
 

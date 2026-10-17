@@ -1,12 +1,10 @@
-import {refreshSite} from './refresh.js?v=20261017-release2';
+import {refreshSite} from './refresh.js?v=20261017-release3';
 const current=document.querySelector('meta[name="site-version"]')?.content;
 const root=new URL('../',import.meta.url);
 const style=document.createElement('style');style.textContent=`.site-version{font:10px/1.4 Arial,sans-serif;color:inherit;opacity:.75;white-space:nowrap}.site-version-main{display:block;text-align:center;padding:8px}.site-update-toast{position:fixed;bottom:max(16px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:40000;max-width:calc(100vw - 24px);width:380px;box-sizing:border-box;background:#203c51f5;color:#edf6fc;border:1px solid #8cb1cb88;border-radius:16px;padding:16px;box-shadow:0 8px 32px #0004;backdrop-filter:blur(20px);font:14px/1.5 Arial,sans-serif}.site-update-toast p{margin:0 0 12px}.site-update-toast button{font:600 13px Arial,sans-serif;border:1px solid #abc5d5;border-radius:9px;background:#335b78;color:white;padding:10px 14px;margin-right:8px;cursor:pointer}.site-update-toast[hidden]{display:none}@media print{.site-update-toast,.site-version{display:none}}`;document.head.append(style);
 const label=document.createElement('span');label.className='site-version';label.textContent='v'+current;
 const date=document.querySelector('meta[name="site-updated"]')?.content;label.title='Release prepared '+new Date(date).toLocaleString();
-const host=document.querySelector('.room-footer');if(host)host.prepend(label);else{label.classList.add('site-version-main');document.body.append(label);}
-// Classroom footer is compact; version remains available beside the classroom name.
-if(host){document.querySelector('.header').insertBefore(label,document.querySelector('#workspace-save'));label.classList.add('classroom-version');}
+const host=document.querySelector('.classroom-footer')||document.querySelector('.room-footer');if(host){if(host.classList.contains('classroom-footer'))host.append(label);else host.prepend(label);}else{label.classList.add('site-version-main');document.body.append(label);}
 const toast=document.createElement('aside');toast.className='site-update-toast';toast.hidden=true;toast.setAttribute('role','status');toast.innerHTML='<p>A newer version is available. Refresh when you’re ready.</p><button type="button">Refresh now</button><button type="button">Later</button>';document.body.append(toast);
 let latest=null,dismissed=null,busy=false;
 toast.children[1].onclick=()=>refreshSite(toast.children[1]);toast.children[2].onclick=()=>{dismissed=latest;toast.hidden=true;};
