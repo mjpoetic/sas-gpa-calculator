@@ -1,5 +1,6 @@
+import {dismissNotice} from './surface-motion.js?v=20261017-release4';
 let refreshing=false;
-export function clearRefreshStatus(){document.getElementById('refresh-status')?.remove();}
+export function clearRefreshStatus(){const notice=document.getElementById('refresh-status');if(notice){notice.removeAttribute('id');dismissNotice(notice);}}
 document.addEventListener('sas-refresh-ready',clearRefreshStatus);
 export async function refreshSite(button){
  if(refreshing)return false;const classroom=location.pathname.includes('/classroom');
