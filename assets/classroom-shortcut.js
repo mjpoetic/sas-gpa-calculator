@@ -1,4 +1,4 @@
-// Keep Classroom Studio out of the main navigation during its preview.
+// Retain the original logo-hold shortcut alongside the public Teacher Tools link.
 const LOGO = '[data-achievement-logo]';
 const HOLD_MS = 1200;
 let hold = null;
