@@ -100,15 +100,14 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
   front+=twist(31,36,26,88,4.5)+twist(89,36,94,92,4.5);
  }
  if(a.hair==='braids'){
-  // The lengths gather loosely at the nape and fall behind the torso.
-  // Drawing them in the rear layer lets the neck and shoulders occlude them.
-  back=`<g data-hairstyle="gathered-braids" fill="none" stroke-linecap="round">${[0,1,2,3].map(i=>{
-   const root=34+i*4,outer=21+i*3.7,nape=52+i*2.5,tip=49+i*3.3;
-   const left=`M${root} 29C${outer} 44 ${outer+1} 61 ${outer+4} 72Q${outer+8} 82 ${nape} 86Q${tip-3} 94 ${tip} ${103+i%2*3}`;
-   const right=`M${120-root} 29C${120-outer} 44 ${119-outer} 61 ${116-outer} 72Q${112-outer} 82 ${120-nape} 86Q${123-tip} 94 ${120-tip} ${103+i%2*3}`;
-   let detail='';for(let j=0;j<10;j++){const t=(j+.5)/10,u=1-t,x=u*u*u*root+3*u*u*t*outer+3*u*t*t*(outer+1)+t*t*t*(outer+4),y=u*u*u*29+3*u*u*t*44+3*u*t*t*61+t*t*t*72;detail+=`<path d="M${x-.8} ${y-1}l1.5 1.2-1 1M${120-x+.8} ${y-1}l-1.5 1.2 1 1" stroke="${strand}" stroke-width=".65"/>`;}
+  // The braids drop vertically behind the head and torso.
+  back=`<g data-hairstyle="straight-braids" fill="none" stroke-linecap="round">${[0,1,2,3].map(i=>{
+   const root=34+i*4,x=27+i*3.7,end=104+i%2*3;
+   const left=`M${root} 29Q${x} 37 ${x} 47V${end}`;
+   const right=`M${120-root} 29Q${120-x} 37 ${120-x} 47V${end}`;
+   let detail='';for(let y=50;y<end-2;y+=4.7)detail+=`<path d="M${x-.8} ${y}l1.5 1.2-1 1M${120-x+.8} ${y}l-1.5 1.2 1 1" stroke="${strand}" stroke-width=".65"/>`;
    return `<path d="${left}" stroke="${hair}" stroke-width="2.8"/><path d="${right}" stroke="${hair}" stroke-width="2.8"/>${detail}`;
-  }).join('')}<path d="M50 86q10 3 20 0" stroke="${strand}" stroke-width="2.4"/></g>`;
+  }).join('')}</g>`;
   front='<path d="M30 42Q27 11 60 12Q93 11 90 42L83 33Q70 28 60 35Q50 28 37 33Z"/>';
   front+=`<g fill="none" stroke="${skin}" stroke-width=".75" stroke-linecap="round"><path d="M60 13v20"/>${[17,22,27].map((y,i)=>`<path d="M58 ${y+3}Q${43-i*3} ${y-1} ${34-i} ${y+12}M62 ${y+3}Q${77+i*3} ${y-1} ${86+i} ${y+12}"/>`).join('')}</g>`;
 
