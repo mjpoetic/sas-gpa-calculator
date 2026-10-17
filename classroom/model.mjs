@@ -1,6 +1,6 @@
-import {validateAvatar} from './avatars.mjs?v=20261017-release8';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261017-release8';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261017-release8';
+import {validateAvatar} from './avatars.mjs?v=20261017-release9';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261017-release9';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261017-release9';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -125,10 +125,11 @@ export function validateBackup(data) {
     const studentIds = new Set(students.map(s => s.id)), assigned = new Set();
     for(const student of students)if(student.avoid!==undefined&&(!Array.isArray(student.avoid)||student.avoid.length>500||student.avoid.some(ref=>typeof ref!=='string'||ref===student.id||!studentIds.has(ref))))throw new Error('Invalid student separation preferences.');
     const items = c.items.map(it => {
+      if(it.showLabel!==undefined&&typeof it.showLabel!=='boolean')throw new Error('Invalid furniture label visibility.');
       if(it.rugStyle!==undefined&&it.type!=='rug')throw new Error('Invalid rug style.');
       if(it.color!==undefined && !/^#[\da-f]{6}$/i.test(it.color)) throw new Error('Invalid furniture color.');
       if (!Object.hasOwn(catalog, it.type) || !Array.isArray(it.seats) || it.seats.length !== catalog[it.type].seats || (!Number.isFinite(it.rotation) || it.rotation<0 || it.rotation>=360)) throw new Error('Invalid furniture in backup.');
-      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.rugStyle!==undefined?{rugStyle:validateRugStyle(it.rugStyle)}:{}), ...(it.color!==undefined?{color:it.color}:{}),...(it.font!==undefined?{font:validateFont(it.font)}:{}),...(it.fontWeight!==undefined?{fontWeight:validateWeight(it.fontWeight)}:{}), ...(it.labelFont!==undefined?{labelFont:validateFont(it.labelFont)}:{}),...(it.labelFontSize!==undefined?{labelFontSize:validateLabelFontSize(it.labelFontSize)}:{}), ...(it.labelStyle!==undefined?{labelStyle:validateLabelStyle(it.labelStyle)}:{}), ...(it.flipX===true?{flipX:true}:{}), ...(it.flipY===true?{flipY:true}:{}), width: dimension(it.width,['mug','mouse'].includes(it.type)?16:40,400), height: dimension(it.height,8,300), x:num(it.x,-300,1900), y:num(it.y,-300,1900), rotation:it.rotation, seats:it.seats.map(s => {
+      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.showLabel!==undefined?{showLabel:it.showLabel}:{}), ...(it.rugStyle!==undefined?{rugStyle:validateRugStyle(it.rugStyle)}:{}), ...(it.color!==undefined?{color:it.color}:{}),...(it.font!==undefined?{font:validateFont(it.font)}:{}),...(it.fontWeight!==undefined?{fontWeight:validateWeight(it.fontWeight)}:{}), ...(it.labelFont!==undefined?{labelFont:validateFont(it.labelFont)}:{}),...(it.labelFontSize!==undefined?{labelFontSize:validateLabelFontSize(it.labelFontSize)}:{}), ...(it.labelStyle!==undefined?{labelStyle:validateLabelStyle(it.labelStyle)}:{}), ...(it.flipX===true?{flipX:true}:{}), ...(it.flipY===true?{flipY:true}:{}), width: dimension(it.width,['mug','mouse'].includes(it.type)?16:40,400), height: dimension(it.height,8,300), x:num(it.x,-300,1900), y:num(it.y,-300,1900), rotation:it.rotation, seats:it.seats.map(s => {
         if (typeof s.locked !== 'boolean' || (s.student !== null && (!studentIds.has(s.student) || assigned.has(s.student)))) throw new Error('Invalid student assignment in backup.');
         if (s.student) assigned.add(s.student);
         if(s.textColor!==undefined&&!/^#[\da-f]{6}$/i.test(s.textColor))throw new Error('Invalid seat text color.');

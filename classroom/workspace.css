@@ -121,3 +121,5 @@
 .appearance-settings [data-appearance-inline]{padding-top:4px}.appearance-settings label{display:block;margin:14px 0;font-size:13px}.appearance-settings p{font-size:12px;line-height:1.5;color:var(--studio-glass-muted,#70879a)}.appearance-settings input,.appearance-settings select{width:100%;margin-top:5px}.appearance-settings button{margin-top:4px}
 
 .classroom-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;min-width:0}.classroom-footer .message{min-width:0;flex:1}.classroom-footer .site-version{flex:none;padding:4px 3px}.settings-version{padding:8px 2px;line-height:1.5}.chart-tools-collapsed .classroom-footer,.chart-fullscreen .classroom-footer{display:none!important}@media print{.classroom-footer,.settings-version{display:none!important}}
+
+.item:not(.label)>.item-caption{z-index:1;pointer-events:none}
