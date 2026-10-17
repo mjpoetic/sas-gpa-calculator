@@ -1,7 +1,7 @@
-import {avatarMaskSVG} from './avatar-masks.mjs?v=20261017-release19';
-import {hairColorDetails,hairOrnamentSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261017-release19';
+import {avatarMaskSVG} from './avatar-masks.mjs?v=20261017-release20';
+import {hairColorDetails,hairOrnamentSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261017-release20';
 export {supportsHairTips};
-import {teacherClothing,layeredClothingSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG,glassesStrapSVG} from './avatar-props.mjs?v=20261017-release19';
+import {teacherClothing,layeredClothingSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG,glassesStrapSVG} from './avatar-props.mjs?v=20261017-release20';
 export {teacherClothing};
 export const accessoryColorDefaults={"sunglassLensColor":"#25333e","frogEyeWhiteColor":"#ffffff","headphoneBandColor":"#3b526a","headphoneCupColor":"#8596c7","headphonePadColor":"#263445","starColor":"#f8d264","starEdgeColor":"#ba8c3f","flowerColor":"#f3c565","flowerCenterColor":"#9b673f","flowerLeafColor":"#6c9b69","flowerBandColor":"#6c8252","catBandColor":"#65517d","catEarColor":"#8a79a8","catInnerColor":"#e1a4b6","antennaStemColor":"#536c87","antennaLeftColor":"#dc8cb6","antennaRightColor":"#7baed6","crownColor":"#f4cd5d","crownEdgeColor":"#c79a3d","crownGemColor":"#d77a9e","frogColor":"#71af73","frogBrimColor":"#86c06f","frogBumpColor":"#92c783","frogEyeColor":"#334039"};
 const accessoryPalette=[['#302420','Espresso'],['#ffffff','White'],['#34445f','Navy'],['#f4ce70','Gold'],['#f09fbc','Pink'],['#438aaf','Blue'],['#228b22','Forest green']];
@@ -39,7 +39,7 @@ export const avatarOptions={
  backpackColor:propPalette('#537ea3'),backpackPocketColor:propPalette('#3b5d80'),backpackStrapColor:propPalette('#34445f'),
  style:[['junior','Round'],['middle','Oval'],['senior','Narrow oval']],
  skin:[['#f6d7b0','Light warm'],['#edc6a4','Light tan'],['#dca878','Golden tan'],['#c78e64','Warm brown'],['#a86d49','Medium brown'],['#855337','Deep brown'],['#603d2c','Dark brown'],['#ecc5bd','Light rose']],
- hair:[['crop','Short crop'],['swoop','Side sweep'],['curls','Soft curls'],['afro','Rounded afro'],['sponge','Sponge curl high top'],['spongeafro','Sponge curl afro'],['coils','Coils'],['bob','Bob'],['long','Long hair'],['braids','Braids'],['ponytail','Ponytail'],['bun','High bun'],['curlybun','Braided curly bun'],['evencut','Even low cut'],['lowtaper','Low taper fade'],['fade','Fade'],['curlytop','Curly top'],['waves','Waves'],['cornrows','Cornrows'],['boxbraids','Box braids'],['locs','Long locs'],['shortlocs','Short locs'],['twists','Two-strand twists'],['puffs','Afro puffs'],['bald','No hair']],
+ hair:[['crop','Short crop'],['swoop','Side sweep'],['curls','Soft curls'],['afro','Rounded afro'],['sponge','Sponge curl high top'],['spongeafro','Sponge curl afro'],['coils','Coils'],['bob','Bob'],['long','Long hair'],['braids','Braids'],['ponytail','Ponytail'],['curlyponytail','Curly Ponytail'],['bun','High bun'],['curlybun','Braided curly bun'],['evencut','Even low cut'],['lowtaper','Low taper fade'],['fade','Fade'],['curlytop','Curly top'],['waves','Waves'],['cornrows','Cornrows'],['boxbraids','Box braids'],['locs','Long locs'],['shortlocs','Short locs'],['twists','Two-strand twists'],['puffs','Afro puffs'],['bald','No hair']],
  hairHighlights:[['none','No highlights'],['on','Highlights']],
  hairHighlightColor:[['#e7c366','Golden'],['#b16b32','Copper'],['#d8d7d0','Platinum'],['#da7b99','Pink'],['#9a69bc','Purple'],['#438aaf','Blue'],['#800020','Burgundy'],['#228b22','Forest green']],
  hairTips:[['none','Natural tips'],['on','Dyed tips']],
@@ -201,6 +201,18 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
    if(afro?(((x-60)/36)**2+((y-26)/24)**2>1||(y>30&&x>35&&x<85)):(Math.abs(x-60)>28-(y-7)*.23||y>29||((x-60)/30)**2+((y-22)/20)**2>1))continue;
    front+=`<circle cx="${x}" cy="${y}" r="${afro?3.6:3.3}"/><path d="M${x-1.3} ${y+.7}q-1.4-2.6 1.2-2.6q2.5.5.8 2.5" fill="none" stroke="${strand}" stroke-width=".9" stroke-linecap="round"/>`;
   }
+ }
+ // The gathered curls stay behind the head; the swept crown leaves the face clear.
+ if(a.hair==='curlyponytail'){
+  scalp='';
+  const curls=[];
+  for(let row=0;row<7;row++)for(let col=0;col<5;col++){
+   const x=80+col*6+(row%2)*2,y=20+row*7;
+   if(((x-94)/17)**2+((y-42)/29)**2>1)continue;
+   curls.push([x,y,4.5+(row+col)%3*.55]);
+  }
+  back=`<g data-hairstyle="curlyponytail" fill="${hair}"><ellipse cx="94" cy="42" rx="16" ry="28"/>${curls.map(([x,y,r],i)=>`<circle cx="${x}" cy="${y}" r="${r}"/><path d="M${x-2} ${y+1}q-2-4 2-4q4 0 3 3q-1 3-3 1" fill="none" stroke="${i%2?ridge:strand}" stroke-width="1" stroke-linecap="round"/>`).join('')}</g>`;
+  front=`<g data-hairstyle="curlyponytail-crown"><path d="M32 46Q27 16 60 14Q93 16 88 46L83 35Q60 24 37 35Z"/><g fill="none" stroke="${ridge}" stroke-width=".85" stroke-linecap="round"><path d="M35 31Q51 17 79 24M40 27Q57 17 78 20M47 22Q62 16 74 18M35 37Q58 23 83 30"/></g></g>`;
  }
  const iris=(x,y,rx,ry)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${a.eyeColor}"/><ellipse cx="${x}" cy="${y}" rx="${rx*.48}" ry="${ry*.7}" fill="#27252b"/>`;
  const baseEye=x=>a.expression==='hungry'?`<path d="M${x-4} 49q4-2.5 8 0" fill="none" stroke="#332d35" stroke-width="2.5" stroke-linecap="round"/>`:(a.eyes==='squinted')?`<path d="M${x-5} 49q5-3 10 0q-5 5-10 0Z" fill="#fffaf4" stroke="#332d35" stroke-width="1"/>${iris(x,49.5,2,1.6)}`:['satisfied','laughing'].includes(a.expression)?`<path d="M${x-4} 49q4 ${a.expression==='laughing'?-5:4} 8 0" fill="none" stroke="#332d35" stroke-width="2" stroke-linecap="round"/>`:(a.eyes==='sleepy'||['tired','annoyed'].includes(a.expression))?`<path d="M${x-5} 49q5 1 10 0q0 6-5 6t-5-6Z" fill="#fffaf4"/>${iris(x,51.5,2.4,2.5)}<path d="M${x-5} 49q5 1 10 0" fill="none" stroke="#332d35" stroke-width="1.5" stroke-linecap="round"/>`:a.eyes==='happy'?`<path d="M${x-5} 50q5-7 10 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M${x-5} 50q5-7 10 0" fill="none" stroke="#332d35" stroke-width="2" stroke-linecap="round"/>`:a.eyes==='classic'?`<ellipse cx="${x}" cy="49" rx="3" ry="5"/>`:`<ellipse cx="${x}" cy="49" rx="${a.eyes==='round'?6:5}" ry="6.5" fill="#fffaf4"/>${iris(x,49.5,3,4.5)}<circle cx="${x-1}" cy="47.5" r="1.2" fill="#fff"/>`;

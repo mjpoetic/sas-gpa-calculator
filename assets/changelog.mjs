@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {version:'2026.10.17.20',changes:['Added Curly Ponytail with gathered curls behind the head and a clean, swept hairline. Supports hair colors, highlights, and dyed tips.']},
  {version:'2026.10.17.19',changes:['Choose Small, Medium, or Big ears in the Face tab for student and teacher avatars.']},
  {version:'2026.10.17.18',changes:['Reshaped the coach’s whistle with a round chamber, extended mouthpiece, air slot, and attachment ring.']},
  {version:'2026.10.17.17',changes:['Added Low taper fade with subtle fading near the ears. Smoothed the sides of Waves and Fade while preserving their gradients.']},

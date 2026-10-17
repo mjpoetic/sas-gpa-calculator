@@ -1,13 +1,13 @@
-import {enableTwoFingerPan} from './touch-pan.js?v=20261017-release19';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261017-release19';
-import {openAvatarEditor} from './avatar-editor.js?v=20261017-release19';
-import {transferStudent} from './seat-transfer.mjs?v=20261017-release19';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261017-release19';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261017-release19';
-import {furnitureArt} from './furniture-art.mjs?v=20261017-release19';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261017-release19';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261017-release19';
-import {connectCloud} from './cloud.js?v=20261017-release19';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261017-release20';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261017-release20';
+import {openAvatarEditor} from './avatar-editor.js?v=20261017-release20';
+import {transferStudent} from './seat-transfer.mjs?v=20261017-release20';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261017-release20';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261017-release20';
+import {furnitureArt} from './furniture-art.mjs?v=20261017-release20';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261017-release20';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261017-release20';
+import {connectCloud} from './cloud.js?v=20261017-release20';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';

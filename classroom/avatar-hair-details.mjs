@@ -1,10 +1,10 @@
-export const tipHairstyles=['long','bob','braids','boxbraids','locs','shortlocs','twists','cornrows','ponytail'];
+export const tipHairstyles=['long','bob','braids','boxbraids','locs','shortlocs','twists','cornrows','ponytail','curlyponytail'];
 export const supportsHairTips=hair=>tipHairstyles.includes(hair);
 // Reuse the actual hair geometry so color never paints the face or the gaps between braids.
 export function hairColorDetails(a,front,back,id){
  if(a.hair==='bald'||(a.hairHighlights!=='on'&&!(a.hairTips==='on'&&supportsHairTips(a.hair))))return {defs:'',front:'',back:''};
  const silhouette=markup=>markup.replace(/(fill|stroke)="([^"]*)"/g,(_,attr,color)=>`${attr}="${color==='none'?'none':(color===a.skin&&color!==a.hairColor)||color==='#d994b0'?'#000':'#fff'}"`);
- const threshold={long:70,braids:73,bob:61,shortlocs:58,cornrows:64,ponytail:55}[a.hair]??85;
+ const threshold={long:70,braids:73,bob:61,shortlocs:58,cornrows:64,ponytail:55,curlyponytail:55}[a.hair]??85;
  let defs=`<defs><linearGradient id="${id}-tips" gradientUnits="userSpaceOnUse" x1="0" y1="${threshold}" x2="0" y2="${threshold+10}"><stop stop-color="${a.hairTipColor}" stop-opacity="0"/><stop offset=".4" stop-color="${a.hairTipColor}" stop-opacity=".75"/><stop offset="1" stop-color="${a.hairTipColor}"/></linearGradient>`;
  function layer(markup,part){if(!markup)return '';const mask=id+'-'+part;defs+=`<mask id="${mask}" maskUnits="userSpaceOnUse" x="-30" y="-30" width="180" height="180" style="mask-type:luminance"><g fill="#fff">${silhouette(markup)}</g></mask>`;
  const highlights=a.hairHighlights==='on'?`<g data-hair-color="highlights" fill="none" stroke="${a.hairHighlightColor}" stroke-width="3.5" stroke-linecap="round" opacity=".78"><path d="M42 1Q28 28 24 56L21 115M54 0Q40 20 38 40L34 115M72 0Q84 22 88 48L99 115M85 7Q99 33 102 69L104 115"/></g>`:'';
