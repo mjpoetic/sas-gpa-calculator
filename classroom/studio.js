@@ -1,13 +1,13 @@
-import {enableTwoFingerPan} from './touch-pan.js?v=20261016-release22';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261016-release22';
-import {openAvatarEditor} from './avatar-editor.js?v=20261016-release22';
-import {transferStudent} from './seat-transfer.mjs?v=20261016-release22';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261016-release22';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261016-release22';
-import {furnitureArt} from './furniture-art.mjs?v=20261016-release22';
-import {teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261016-release22';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261016-release22';
-import {connectCloud} from './cloud.js?v=20261016-release22';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261016-release23';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261016-release23';
+import {openAvatarEditor} from './avatar-editor.js?v=20261016-release23';
+import {transferStudent} from './seat-transfer.mjs?v=20261016-release23';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261016-release23';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261016-release23';
+import {furnitureArt} from './furniture-art.mjs?v=20261016-release23';
+import {teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261016-release23';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261016-release23';
+import {connectCloud} from './cloud.js?v=20261016-release23';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -87,6 +87,7 @@ $('chart-font-size').onchange=()=>{if(!$('chart-font-size').checkValidity() || !
 $('chart-color').onchange=()=>chartStyle(a=>{a.color=$('chart-color').value;});
 $('chart-natural').onclick=()=>chartStyle(a=>{a.color=null;},'Natural colors restored. Individual furniture colors are kept.');
 $('chart-reset').onclick=()=>change(()=>{chart().appearance=defaultAppearance();chart().items.forEach(it=>delete it.color);},'Chart fonts and colors reset. Room arrangement and students are kept.');
+for(const id of ['rug-pattern','rug-pattern-color'])$(id).onchange=()=>{const it=selected();if(it?.type==='rug')change(()=>{it.rugStyle={pattern:$('rug-pattern').value,color:$('rug-pattern-color').value};},'Rug updated.');};
 $('item-color').onchange=()=>{const it=selected();if(it)change(()=>{it.color=$('item-color').value;});};
 $('item-color-reset').onclick=()=>{const it=selected();if(it)change(()=>{delete it.color;});};
 function renderRoom() {
@@ -113,7 +114,7 @@ function renderRoom() {
     const caption=element('span','item-caption',it.label);if(it.seats.length||['rug','label'].includes(it.type))node.append(caption);
     if(it.type==='label'){caption.classList.add('editable-room-label');caption.tabIndex=0;caption.setAttribute('role','textbox');caption.setAttribute('aria-label','Room label; click to rename');caption.title='Click to rename; drag the border to move';if(it.labelFont){caption.style.fontFamily=fontCSS(it.labelFont);void loadFont(it.labelFont,it.fontWeight||400).then(async()=>{if(document.fonts?.load)await document.fonts.load(`${it.fontWeight||400} 100px ${fontCSS(it.labelFont)}`);fitCaption(caption,it);}).catch(e=>say(e.message));}const observer=new ResizeObserver(()=>fitCaption(caption,it));observer.observe(node);labelObservers.push(observer);caption.oninput=()=>fitCaption(caption,it);caption.onpointerdown=e=>e.stopPropagation();caption.onclick=e=>{e.stopPropagation();choose(it);room.querySelectorAll('.item').forEach(n=>n.classList.toggle('selected',n===node));renderInspector();caption.contentEditable='true';caption.focus();};caption.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();caption.blur();}if(e.key==='Escape'){caption.textContent=it.label;caption.blur();}};caption.onblur=()=>{caption.contentEditable='false';const value=caption.textContent.trim().slice(0,60)||'Room label';if(value!==it.label)change(()=>{it.label=value;},'Room label updated.');};}
 
-    if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type,it.height);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=HEIGHT-1||f.x+f.width>=WIDTH-1),wallFlip=it.type==='door'&&((f.y+f.height>=HEIGHT-1&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=WIDTH-1&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);if(color&&!art.innerHTML.includes('var(--furniture-color')){const rects=[...art.querySelectorAll('rect')].sort((a,b)=>Number(b.getAttribute('width'))*Number(b.getAttribute('height'))-Number(a.getAttribute('width'))*Number(a.getAttribute('height')));(rects[0]||art.querySelector('circle'))?.setAttribute('fill',color);}requestAnimationFrame(()=>fitCaption(caption,it));}
+    if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type,it.height,it.rugStyle);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=HEIGHT-1||f.x+f.width>=WIDTH-1),wallFlip=it.type==='door'&&((f.y+f.height>=HEIGHT-1&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=WIDTH-1&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);if(color&&!art.innerHTML.includes('var(--furniture-color')){const rects=[...art.querySelectorAll('rect')].sort((a,b)=>Number(b.getAttribute('width'))*Number(b.getAttribute('height'))-Number(a.getAttribute('width'))*Number(a.getAttribute('height')));(rects[0]||art.querySelector('circle'))?.setAttribute('fill',color);}requestAnimationFrame(()=>fitCaption(caption,it));}
     if(teacherSeatTypes.includes(it.type)){
       node.classList.add('teacher-drop-seat');
       if(chart().teacher?.seatId===it.id&&chart().teacher.avatar.enabled){const portrait=createTeacherPortrait(it);if(it.seats.some(s=>s.student))node.classList.add('teacher-occupied-desk');node.append(portrait);}
@@ -175,7 +176,7 @@ function renderRoom() {
         const angle=it.rotation*Math.PI/180,step=1;
         it.width=Math.max(['mug','mouse'].includes(it.type)?16:40,Math.min(400,Math.round((start.w+dx*Math.cos(angle)+dy*Math.sin(angle))/step)*step));
         it.height=Math.max(8,Math.min(300,Math.round((start.h-dx*Math.sin(angle)+dy*Math.cos(angle))/step)*step));if(['door','board','smartboard','bulletin','window'].includes(it.type))resizeFurniture(it,it.width,it.height,'width');else if(proportionalTypes.has(it.type)||it.type==='cabinet')resizeFurniture(it,it.width,it.height,Math.abs(dx*Math.cos(angle)+dy*Math.sin(angle))/start.w>=Math.abs(-dx*Math.sin(angle)+dy*Math.cos(angle))/start.h?'width':'height');else constrain(it);snapResize(it);
-        Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});if(it.type==='cabinet')node.querySelector('.furniture-art').innerHTML=furnitureArt(it.type,it.height);showGuides([it]);
+        Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});if(it.type==='cabinet')node.querySelector('.furniture-art').innerHTML=furnitureArt(it.type,it.height,it.rugStyle);showGuides([it]);
       };
       const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(['mug','mouse'].includes(it.type)?16:40,Math.min(400,Math.round(it.width/(['mug','mouse'].includes(it.type)?2:10))*(['mug','mouse'].includes(it.type)?2:10)));it.height=Math.max(8,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height);}save();render();}};
       resize.addEventListener('pointermove',move);resize.addEventListener('pointerup',end);resize.addEventListener('pointercancel',end);
@@ -220,6 +221,7 @@ function renderInspector() {
   $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-width').min=['mug','mouse'].includes(it.type)?16:40;$('item-width').step=['mug','mouse'].includes(it.type)?1:10;$('item-height').min=it.type==='powerstrip'?8:['mug','mouse'].includes(it.type)?12:['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
   $('label-font-size').value=it.labelFontSize||'';$('label-font-controls').hidden=it.type!=='label';$('label-font-source').value=it.labelFont?.source||'preset';$('label-font-family').value=it.labelFont?.family||'system';
   const style=it.labelStyle||defaultLabelStyle();for(const key of ['background','outline'])$('label-'+key).checked=style[key];for(const key of ['fill','border','text'])$('label-'+key).value=style[key];
+  $('rug-controls').hidden=it.type!=='rug';$('rug-pattern').value=it.rugStyle?.pattern||'plain';$('rug-pattern-color').value=it.rugStyle?.color||'#547b93';$('rug-pattern-color-label').hidden=($('rug-pattern').value==='plain');
   $('item-color').value=it.color || appearance().color || '#e8d7bb';
   if(selection.seat !== null) {
     const s = it.seats[selection.seat];$('seat-title').textContent = chart().students.find(st=>st.id===s.student) ? rosterName(chart().students.find(st=>st.id===s.student)) : `Empty seat ${selection.seat+1}`;

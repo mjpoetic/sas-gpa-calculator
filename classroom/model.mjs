@@ -1,6 +1,6 @@
-import {validateAvatar} from './avatars.mjs?v=20261016-release22';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261016-release22';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261016-release22';
+import {validateAvatar} from './avatars.mjs?v=20261016-release23';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261016-release23';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261016-release23';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -23,6 +23,11 @@ export const catalog = {
   computercart:{label:'Computer cart',width:120,height:85,seats:0},
   powerstrip:{label:'Power strip',width:75,height:22,seats:0},
   tvtray:{label:'TV tray table',width:90,height:65,seats:0},
+  sanitizer:{label:'Hand sanitizer',width:40,height:50,seats:0},
+  sink:{label:'Sink',width:120,height:85,seats:0},
+  counter:{label:'Counter / cabinet',width:160,height:65,seats:0},
+  petcage:{label:'Pet cage',width:120,height:85,seats:0},
+  fishbowl:{label:'Fishbowl',width:65,height:65,seats:0},
   cabinet: {label:'Filing cabinet',width:80,height:110,seats:0},
   window: {label:'Window',width:170,height:12,seats:0},
   smartboard: {label:'Smart board',width:220,height:11,seats:0},
@@ -46,6 +51,8 @@ export const catalog = {
   rug: {label: 'Reading rug', width: 180, height: 140, seats: 0},
   label: {label: 'Room label', width: 160, height: 40, seats: 0}
 };
+export const rugPatterns=['plain','dots','stripes','letters','numbers','shapes'];
+export function validateRugStyle(value){if(!value||!rugPatterns.includes(value.pattern)||!/^#[\da-f]{6}$/i.test(value.color))throw new Error('Invalid rug style.');return {pattern:value.pattern,color:value.color.toLowerCase()};}
 export const uid = () => crypto.randomUUID();
 export function furniture(type, x = 400, y = 280) {
   const spec = catalog[type];
@@ -118,9 +125,10 @@ export function validateBackup(data) {
     const studentIds = new Set(students.map(s => s.id)), assigned = new Set();
     for(const student of students)if(student.avoid!==undefined&&(!Array.isArray(student.avoid)||student.avoid.length>500||student.avoid.some(ref=>typeof ref!=='string'||ref===student.id||!studentIds.has(ref))))throw new Error('Invalid student separation preferences.');
     const items = c.items.map(it => {
+      if(it.rugStyle!==undefined&&it.type!=='rug')throw new Error('Invalid rug style.');
       if(it.color!==undefined && !/^#[\da-f]{6}$/i.test(it.color)) throw new Error('Invalid furniture color.');
       if (!Object.hasOwn(catalog, it.type) || !Array.isArray(it.seats) || it.seats.length !== catalog[it.type].seats || (!Number.isFinite(it.rotation) || it.rotation<0 || it.rotation>=360)) throw new Error('Invalid furniture in backup.');
-      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.color!==undefined?{color:it.color}:{}),...(it.font!==undefined?{font:validateFont(it.font)}:{}),...(it.fontWeight!==undefined?{fontWeight:validateWeight(it.fontWeight)}:{}), ...(it.labelFont!==undefined?{labelFont:validateFont(it.labelFont)}:{}),...(it.labelFontSize!==undefined?{labelFontSize:validateLabelFontSize(it.labelFontSize)}:{}), ...(it.labelStyle!==undefined?{labelStyle:validateLabelStyle(it.labelStyle)}:{}), ...(it.flipX===true?{flipX:true}:{}), ...(it.flipY===true?{flipY:true}:{}), width: dimension(it.width,['mug','mouse'].includes(it.type)?16:40,400), height: dimension(it.height,8,300), x:num(it.x,-300,1900), y:num(it.y,-300,1900), rotation:it.rotation, seats:it.seats.map(s => {
+      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.rugStyle!==undefined?{rugStyle:validateRugStyle(it.rugStyle)}:{}), ...(it.color!==undefined?{color:it.color}:{}),...(it.font!==undefined?{font:validateFont(it.font)}:{}),...(it.fontWeight!==undefined?{fontWeight:validateWeight(it.fontWeight)}:{}), ...(it.labelFont!==undefined?{labelFont:validateFont(it.labelFont)}:{}),...(it.labelFontSize!==undefined?{labelFontSize:validateLabelFontSize(it.labelFontSize)}:{}), ...(it.labelStyle!==undefined?{labelStyle:validateLabelStyle(it.labelStyle)}:{}), ...(it.flipX===true?{flipX:true}:{}), ...(it.flipY===true?{flipY:true}:{}), width: dimension(it.width,['mug','mouse'].includes(it.type)?16:40,400), height: dimension(it.height,8,300), x:num(it.x,-300,1900), y:num(it.y,-300,1900), rotation:it.rotation, seats:it.seats.map(s => {
         if (typeof s.locked !== 'boolean' || (s.student !== null && (!studentIds.has(s.student) || assigned.has(s.student)))) throw new Error('Invalid student assignment in backup.');
         if (s.student) assigned.add(s.student);
         if(s.textColor!==undefined&&!/^#[\da-f]{6}$/i.test(s.textColor))throw new Error('Invalid seat text color.');
@@ -159,7 +167,7 @@ export function snapGroup(items,others,grid=true) {
  }if(b.x<9)dx=-b.x;else if(WIDTH-b.x-b.width<9)dx=WIDTH-b.x-b.width;if(b.y<9)dy=-b.y;else if(HEIGHT-b.y-b.height<9)dy=HEIGHT-b.y-b.height;moveGroup(items,dx,dy);return bestX<9||bestY<9;
 }
 
-export const proportionalTypes=new Set(['computercart','powerstrip','tvtray','round','plant','laptop','keyboard','mouse','chair','stool','printer','couch','window','officechair','trash','sidetable','clock','globe','mug','bottle','sharpener','calendar']);
+export const proportionalTypes=new Set(['sanitizer','sink','petcage','fishbowl','computercart','powerstrip','tvtray','round','plant','laptop','keyboard','mouse','chair','stool','printer','couch','window','officechair','trash','sidetable','clock','globe','mug','bottle','sharpener','calendar']);
 export function resizeFurniture(it,width,height,axis='width') {
  if(it.type==='cabinet'){it.width=80;it.height=Math.max(60,Math.min(300,Math.round(height/30)*30));}
  else if(['door','board','smartboard','bulletin'].includes(it.type)){it.width=Math.max(8*(it.type==='door'?12:20),Math.min(400,axis==='height'?height*(it.type==='door'?12:20):width));it.height=it.width/(it.type==='door'?12:20);}
