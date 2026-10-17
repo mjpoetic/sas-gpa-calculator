@@ -1,4 +1,4 @@
-import {validateBackup} from './model.mjs?v=20261017-release10';
+import {validateBackup} from './model.mjs?v=20261017-release11';
 
 // Compare-and-swap prevents another browser's edits from being overwritten silently.
 export class CloudStore {
