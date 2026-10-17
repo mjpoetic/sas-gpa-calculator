@@ -29,3 +29,28 @@
 
 /* Match the saved avatar size and center the entire placement on the pointer. */
 .teacher-drag-preview{position:fixed;z-index:10000;transform:translate(-50%,-50%) scale(var(--teacher-preview-zoom,1));transform-origin:center;opacity:.82}.teacher-drag-preview,.teacher-drag-preview *{pointer-events:none!important}.teacher-drag-preview .teacher-free-avatar{position:absolute;inset:0;padding:0!important;border:0!important;box-shadow:none!important;background:transparent!important;display:grid;place-items:center;min-height:0!important}.teacher-drop-outline{position:absolute;box-sizing:border-box;z-index:2150;border:2px dashed #258ed2;border-radius:14px;background:#7cc9f329;box-shadow:0 0 0 2px #ffffffb3;pointer-events:none}.teacher-drop-outline[hidden]{display:none}@media print{.teacher-drag-preview,.teacher-drop-outline{display:none!important}}
+
+/* Keep the mobile preview and actions in view; only the options scroll. */
+@media(max-width:600px){
+ .workspace-dialog.avatar-editor{height:92dvh;max-height:92dvh;overflow:hidden;box-sizing:border-box}
+ .workspace-dialog.avatar-editor[open]{display:flex;flex-direction:column}
+ .avatar-editor .avatar-heading{flex:none;margin-bottom:10px!important}
+ .avatar-editor .avatar-heading h2{font-size:18px;margin:0}
+ .avatar-editor .avatar-editor-body{flex:1;min-height:0;grid-template-rows:auto minmax(0,1fr);gap:12px;overflow:hidden}
+ .avatar-editor .avatar-preview-column{position:static;min-width:0}
+ .avatar-editor .avatar-choices{min-height:0;overflow:auto;overscroll-behavior:contain;padding:3px;-webkit-overflow-scrolling:touch}
+ .avatar-editor .avatar-tabs{top:-3px;margin-bottom:12px;padding:6px 0}
+ .avatar-editor .avatar-footer{position:static;flex:none;margin-top:10px;padding:10px 0 0}
+}
+@media(min-width:601px) and (max-width:950px) and (max-height:500px){
+ .workspace-dialog.avatar-editor{height:92dvh;max-height:92dvh;overflow:hidden;box-sizing:border-box}
+ .workspace-dialog.avatar-editor[open]{display:flex;flex-direction:column}
+ .avatar-editor .avatar-heading{flex:none;margin-bottom:8px!important}
+ .avatar-editor .avatar-heading h2{font-size:18px;margin:0}
+ .avatar-editor .avatar-editor-body{flex:1;min-height:0;grid-template-columns:160px minmax(0,1fr);gap:16px;overflow:hidden}
+ .avatar-editor .avatar-preview-column{max-height:100%;overflow:auto;gap:6px}
+ .avatar-editor .avatar-preview{width:80px;flex:none}
+ .avatar-editor .avatar-preview-column .hint{display:none}
+ .avatar-editor .avatar-choices{min-height:0;max-height:none;overflow:auto;overscroll-behavior:contain}
+ .avatar-editor .avatar-footer{flex:none;margin-top:8px;padding-top:8px}
+}
