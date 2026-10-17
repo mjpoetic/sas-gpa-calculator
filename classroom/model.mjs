@@ -1,6 +1,6 @@
-import {validateAvatar} from './avatars.mjs?v=20261016-release16';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261016-release16';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261016-release16';
+import {validateAvatar} from './avatars.mjs?v=20261016-release17';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261016-release17';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261016-release17';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -94,6 +94,8 @@ export function shuffle(chart, random = Math.random) {
   }
   assignUnseated(chart);
 }
+export const teacherSeatTypes=['teacher','chair','officechair','stool'];
+export function placeTeacher(chart,itemId){if(!chart.teacher)throw new Error('Create your teacher avatar first.');if(itemId!==null&&!chart.items.some(it=>it.id===itemId&&teacherSeatTypes.includes(it.type)))throw new Error('Choose a teacher desk or chair.');chart.teacher.seatId=itemId;}
 export function validateBackup(data) {
   if (data?.version !== 1 || !Array.isArray(data.charts) || !data.charts.length || data.charts.length > 100) throw new Error('Choose a Classroom Studio backup (version 1).');
   const ids = new Set();
@@ -118,7 +120,8 @@ export function validateBackup(data) {
         return {student:s.student, locked:s.locked,...(s.fontSize!==undefined?{fontSize:validateSeatFontSize(s.fontSize)}:{}),...(s.color!==undefined?{color:s.color}:{}),...(s.textColor!==undefined?{textColor:s.textColor}:{}),...(s.font!==undefined?{font:validateFont(s.font)}:{}),...(s.fontWeight!==undefined?{fontWeight:validateWeight(s.fontWeight)}:{})};
       })},room);
     });
-    return {id:id(c.id), name:str(c.name,80), students, items,...(c.room!==undefined?{room}:{}),...(c.appearance!==undefined?{appearance:validateAppearance(c.appearance)}:{})};
+    let teacher;if(c.teacher!==undefined){if(!c.teacher||typeof c.teacher!=='object'||(c.teacher.seatId!==null&&typeof c.teacher.seatId!=='string'))throw new Error('Invalid teacher placement.');teacher={name:str(c.teacher.name,80).trim(),avatar:validateAvatar(c.teacher.avatar),seatId:items.some(it=>it.id===c.teacher.seatId&&teacherSeatTypes.includes(it.type))?c.teacher.seatId:null};}
+    return {id:id(c.id), name:str(c.name,80), students, items,...(teacher?{teacher}:{}),...(c.room!==undefined?{room}:{}),...(c.appearance!==undefined?{appearance:validateAppearance(c.appearance)}:{})};
   });
   const studentLists=(data.studentLists||[]);
   if(!Array.isArray(studentLists)||studentLists.length>100)throw new Error('Invalid saved student lists.');
