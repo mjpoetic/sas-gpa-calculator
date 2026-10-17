@@ -17,3 +17,9 @@
 @media print{.teacher-seat-avatar{border:0!important}.teacher-name{color:#20354e!important}.teacher-profile{display:none!important}}
 
 .teacher-dragging .furniture-actions,.teacher-dragging .resize-handle{visibility:hidden!important;pointer-events:none!important}.teacher-avatar-card,.teacher-seat-avatar{-webkit-user-select:none;user-select:none}
+
+#room .teacher-free-avatar,.print-room .teacher-free-avatar{inset:auto;position:absolute;width:64px;height:80px;z-index:2100;background:transparent!important}#room .teacher-free-avatar .teacher-portrait,.print-room .teacher-free-avatar .teacher-portrait{width:54px;height:54px;max-height:none}#room .teacher-seat-avatar{z-index:5}.teacher-occupied-desk .teacher-seat-avatar{inset:auto;left:calc(50% - 28px);top:-62px;width:56px;height:62px}.teacher-occupied-desk .teacher-name{background:#f4eee3}.teacher-free-avatar .seat-identity{width:100%}.teacher-free-avatar .teacher-name{max-width:100%}
+
+.teacher-drag-source{pointer-events:none!important;opacity:.45}
+
+.teacher-occupied-desk:has(.teacher-seat-avatar:hover) .furniture-actions,.teacher-occupied-desk:has(.teacher-seat-avatar:focus-visible) .furniture-actions{visibility:hidden!important;pointer-events:none!important}

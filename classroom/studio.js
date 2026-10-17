@@ -1,13 +1,13 @@
-import {enableTwoFingerPan} from './touch-pan.js?v=20261016-release18';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261016-release18';
-import {openAvatarEditor} from './avatar-editor.js?v=20261016-release18';
-import {transferStudent} from './seat-transfer.mjs?v=20261016-release18';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261016-release18';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261016-release18';
-import {furnitureArt} from './furniture-art.mjs?v=20261016-release18';
-import {teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261016-release18';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261016-release18';
-import {connectCloud} from './cloud.js?v=20261016-release18';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261016-release19';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261016-release19';
+import {openAvatarEditor} from './avatar-editor.js?v=20261016-release19';
+import {transferStudent} from './seat-transfer.mjs?v=20261016-release19';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261016-release19';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261016-release19';
+import {furnitureArt} from './furniture-art.mjs?v=20261016-release19';
+import {teacherAvatarSize,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261016-release19';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261016-release19';
+import {connectCloud} from './cloud.js?v=20261016-release19';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -116,7 +116,7 @@ function renderRoom() {
     if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type,it.height);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=HEIGHT-1||f.x+f.width>=WIDTH-1),wallFlip=it.type==='door'&&((f.y+f.height>=HEIGHT-1&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=WIDTH-1&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);if(color&&!art.innerHTML.includes('var(--furniture-color')){const rects=[...art.querySelectorAll('rect')].sort((a,b)=>Number(b.getAttribute('width'))*Number(b.getAttribute('height'))-Number(a.getAttribute('width'))*Number(a.getAttribute('height')));(rects[0]||art.querySelector('circle'))?.setAttribute('fill',color);}requestAnimationFrame(()=>fitCaption(caption,it));}
     if(teacherSeatTypes.includes(it.type)){
       node.classList.add('teacher-drop-seat');
-      if(chart().teacher?.seatId===it.id&&chart().teacher.avatar.enabled){const teacher=chart().teacher,portrait=element('button','teacher-seat-avatar');portrait.type='button';portrait.dataset.glyphDone='true';portrait.setAttribute('aria-label','Edit teacher avatar for '+teacher.name);const identity=element('span','seat-identity');identity.style.transform=`rotate(${-it.rotation}deg)`;const art=element('span','teacher-portrait');art.innerHTML=avatarSVG(teacher.avatar);identity.append(art,element('span','teacher-name',teacher.name));portrait.append(identity);portrait.onclick=e=>{e.stopPropagation();if(Date.now()>=suppressStudentClickUntil)editTeacherAvatar();};portrait.ondblclick=e=>{e.preventDefault();e.stopPropagation();};attachTeacherDrag(portrait);node.append(portrait);}
+      if(chart().teacher?.seatId===it.id&&chart().teacher.avatar.enabled){const portrait=createTeacherPortrait(it);if(it.seats.some(s=>s.student))node.classList.add('teacher-occupied-desk');node.append(portrait);}
     }
     node.title=it.label;
     if(it.seats.length) {
@@ -206,6 +206,7 @@ function renderRoom() {
       if(prior?.active)node.classList.add('settling');
     }
   }
+  if(chart().teacher?.position&&chart().teacher.avatar.enabled){const portrait=createTeacherPortrait();portrait.classList.add('teacher-free-avatar');const point=chart().teacher.position;Object.assign(portrait.style,{left:(point.x-teacherAvatarSize.width/2)+'px',top:(point.y-teacherAvatarSize.height/2)+'px'});room.append(portrait);}
   if(selectedItems().length>1)renderGroupControls();updateZoom();updateObjectControls();
 }
 function renderInspector() {
@@ -250,7 +251,7 @@ function orderedCharts(){const order=state.chartOrder||[];return [...state.chart
 document.addEventListener('sas-chart-order',e=>{const {id,direction,alphabetical}=e.detail;const list=orderedCharts();if(alphabetical)list.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));else{const i=list.findIndex(c=>c.id===id),j=i+direction;if(i<0||j<0||j>=list.length)return;[list[i],list[j]]=[list[j],list[i]];}change(()=>{state.chartOrder=list.map(c=>c.id);},'Classroom order saved. Undo is available.');});
 $('charts').onchange = () => {state.active = $('charts').value;selection=null;save();render();};
 $('name').onchange = () => change(() => {chart().name = $('name').value.trim() || 'Untitled classroom';});
-$('new-chart').onclick = () => {if(state.charts.length >= 100) return say('You can keep up to 100 charts.');change(() => {const c = newChart(`Classroom ${state.charts.length+1}`);if(chart().teacher)c.teacher={...structuredClone(chart().teacher),seatId:null};state.charts.push(c);state.active=c.id;selection=null;},'New chart created.');};
+$('new-chart').onclick = () => {if(state.charts.length >= 100) return say('You can keep up to 100 charts.');change(() => {const c = newChart(`Classroom ${state.charts.length+1}`);if(chart().teacher){c.teacher={...structuredClone(chart().teacher),seatId:null};delete c.teacher.position;}state.charts.push(c);state.active=c.id;selection=null;},'New chart created.');};
 $('copy-chart').onclick = () => {if(state.charts.length >= 100) return say('You can keep up to 100 charts.');change(() => {
   const c = structuredClone(chart());c.id=uid();c.name=`${c.name.slice(0,73)} (copy)`;const map = new Map();c.students.forEach(s => {const old=s.id;s.id=uid();map.set(old,s.id);});c.items.forEach(it => {const previousId=it.id;it.id=uid();if(c.teacher?.seatId===previousId)c.teacher.seatId=it.id;it.seats.forEach(s => {s.student=map.get(s.student)||null;});});state.charts.push(c);state.active=c.id;selection=null;
 },'Chart duplicated with its roster and assignments.');};
@@ -479,19 +480,25 @@ function editStudentNickname(student){const chartId=chart().id,d=element('dialog
 
 function editTeacherAvatar(){
  const chartId=chart().id,profile=chart().teacher||state.charts.find(c=>c.teacher)?.teacher,teacher=profile?structuredClone(profile):{name:'Teacher',avatar:{...defaultAvatar(),style:'senior',clothing:'polo'},seatId:null};
- openAvatarEditor(teacher,{teacher:true,removable:!!chart().teacher,onSave:(avatar,_show,name)=>{const owner=state.charts.find(c=>c.id===chartId);if(!owner)return say('This classroom is no longer available.');change(()=>{owner.teacher={name,avatar,seatId:owner.teacher?.seatId||null};},'Teacher avatar saved. Drag yourself onto your teacher desk or chair.');},onRemove:()=>{const owner=state.charts.find(c=>c.id===chartId);if(owner)change(()=>{delete owner.teacher;},'Teacher avatar removed. Undo is available.');}});
+ openAvatarEditor(teacher,{teacher:true,removable:!!chart().teacher,onSave:(avatar,_show,name)=>{const owner=state.charts.find(c=>c.id===chartId);if(!owner)return say('This classroom is no longer available.');change(()=>{owner.teacher={...owner.teacher,name,avatar,seatId:owner.teacher?.seatId||null};},'Teacher avatar saved. Drag yourself anywhere in the room or onto a desk or chair.');},onRemove:()=>{const owner=state.charts.find(c=>c.id===chartId);if(owner)change(()=>{delete owner.teacher;},'Teacher avatar removed. Undo is available.');}});
 }
 function renderTeacherProfile(){
  const teacher=chart().teacher,card=$('teacher-avatar-card');card.hidden=!teacher;$('teacher-placement').hidden=!teacher;$('teacher-avatar-edit').textContent=teacher?'Edit my avatar':'Create my avatar';
- if(teacher){card.querySelector('.teacher-portrait').innerHTML=avatarSVG(teacher.avatar);card.querySelector('.teacher-display-name').textContent=teacher.name;card.setAttribute('aria-label','Drag '+teacher.name+' to a teacher desk or chair');$('teacher-seat').replaceChildren(option('','Not placed in room'),...chart().items.filter(it=>teacherSeatTypes.includes(it.type)).map((it,i)=>option(it.id,it.label+' ('+(i+1)+')')));$('teacher-seat').value=teacher.seatId||'';}
+ if(teacher){card.querySelector('.teacher-portrait').innerHTML=avatarSVG(teacher.avatar);card.querySelector('.teacher-display-name').textContent=teacher.name;card.setAttribute('aria-label','Drag '+teacher.name+' anywhere in the room');$('teacher-seat').replaceChildren(option('','Not placed in room'),...(teacher.position?[option('@floor','Free position in room')]:[]),...chart().items.filter(it=>teacherSeatTypes.includes(it.type)).map((it,i)=>option(it.id,it.label+' ('+(i+1)+')')));$('teacher-seat').value=teacher.seatId||(teacher.position?'@floor':'');$('teacher-position-controls').hidden=!teacher.position;if(teacher.position){$('teacher-x').value=Math.round(teacher.position.x);$('teacher-y').value=Math.round(teacher.position.y);}}
 }
 $('teacher-avatar-edit').onclick=editTeacherAvatar;
-$('teacher-seat').onchange=()=>{const id=$('teacher-seat').value||null;change(()=>placeTeacher(chart(),id),'Teacher seat updated. Undo is available.');};
+$('teacher-seat').onchange=()=>{const id=$('teacher-seat').value||null;if(id==='@floor')return;change(()=>placeTeacher(chart(),id),'Teacher seat updated. Undo is available.');};
 $('teacher-avatar-card').onclick=()=>{if(Date.now()>=suppressStudentClickUntil)editTeacherAvatar();};
 attachTeacherDrag($('teacher-avatar-card'));
 function attachTeacherDrag(handle){handle.addEventListener('pointerdown',e=>{
  if(e.button!==0||!chart().teacher||panMode||multiMode)return;e.stopPropagation();const start={x:e.clientX,y:e.clientY};let moved=false,ghost,target;handle.setPointerCapture(e.pointerId);
- const move=ev=>{if(!moved&&Math.hypot(ev.clientX-start.x,ev.clientY-start.y)<7)return;if(!moved){moved=true;ghost=element('div','teacher-drag-preview');ghost.innerHTML=avatarSVG(chart().teacher.avatar);document.body.append(ghost);document.body.classList.add('teacher-dragging');document.dispatchEvent(new Event('sas-student-drag-start'));}ev.preventDefault();Object.assign(ghost.style,{left:ev.clientX+12+'px',top:ev.clientY+12+'px'});target?.classList.remove('teacher-drop-target');target=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.teacher-drop-seat');target?.classList.add('teacher-drop-target');};
- const end=ev=>{handle.removeEventListener('pointermove',move);handle.removeEventListener('pointerup',end);handle.removeEventListener('pointercancel',end);ghost?.remove();target?.classList.remove('teacher-drop-target');document.body.classList.remove('teacher-dragging');if(!moved)return;suppressStudentClickUntil=Date.now()+500;if(ev.type==='pointercancel')return;if(!target)return say('Drop your avatar onto a teacher desk or chair, or choose My seat.');const id=target.dataset.id;if(chart().teacher.seatId!==id)change(()=>placeTeacher(chart(),id),'Teacher seated. Undo is available.');};
+ const move=ev=>{if(!moved&&Math.hypot(ev.clientX-start.x,ev.clientY-start.y)<7)return;if(!moved){moved=true;handle.classList.add('teacher-drag-source');ghost=element('div','teacher-drag-preview');ghost.innerHTML=avatarSVG(chart().teacher.avatar);document.body.append(ghost);document.body.classList.add('teacher-dragging');document.dispatchEvent(new Event('sas-student-drag-start'));}ev.preventDefault();Object.assign(ghost.style,{left:ev.clientX+12+'px',top:ev.clientY+12+'px'});target?.classList.remove('teacher-drop-target');target=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.teacher-drop-seat');target?.classList.add('teacher-drop-target');};
+ const end=ev=>{handle.removeEventListener('pointermove',move);handle.removeEventListener('pointerup',end);handle.removeEventListener('pointercancel',end);ghost?.remove();handle.classList.remove('teacher-drag-source');target?.classList.remove('teacher-drop-target');document.body.classList.remove('teacher-dragging');if(!moved)return;suppressStudentClickUntil=Date.now()+500;if(ev.type==='pointercancel')return;if(target){const id=target.dataset.id;if(chart().teacher.seatId!==id)change(()=>placeTeacher(chart(),id),'Teacher placed at furniture. Undo is available.');return;}const room=$('room'),rect=room.getBoundingClientRect();if(ev.clientX<rect.left||ev.clientX>rect.right||ev.clientY<rect.top||ev.clientY>rect.bottom)return say('Drop your avatar inside the room.');const point={x:(ev.clientX-rect.left)*WIDTH/rect.width,y:(ev.clientY-rect.top)*HEIGHT/rect.height};change(()=>placeTeacher(chart(),null,point),'Teacher position saved. Undo is available.');};
  handle.addEventListener('pointermove',move,{passive:false});handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);
  });}
+
+function createTeacherPortrait(item){
+ const teacher=chart().teacher,portrait=element('button','teacher-seat-avatar');portrait.type='button';portrait.dataset.glyphDone='true';portrait.setAttribute('aria-label','Teacher avatar for '+teacher.name+'; drag to move, click to edit');const identity=element('span','seat-identity');identity.style.transform=`rotate(${-(item?.rotation||0)}deg)`;const art=element('span','teacher-portrait');art.innerHTML=avatarSVG(teacher.avatar);identity.append(art,element('span','teacher-name',teacher.name));portrait.append(identity);portrait.onclick=e=>{e.stopPropagation();if(Date.now()>=suppressStudentClickUntil)editTeacherAvatar();};portrait.ondblclick=e=>{e.preventDefault();e.stopPropagation();};
+ portrait.onkeydown=e=>{const delta={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!delta)return;e.preventDefault();e.stopPropagation();const p=chart().teacher.position||{x:item.x+item.width/2,y:item.y+item.height/2},step=e.shiftKey?1:20;change(()=>placeTeacher(chart(),null,{x:p.x+delta[0]*step,y:p.y+delta[1]*step}),'Teacher position updated.');$('room').querySelector('.teacher-free-avatar')?.focus();};attachTeacherDrag(portrait);return portrait;
+}
+for(const axis of ['x','y'])$('teacher-'+axis).onchange=()=>{if(!chart().teacher?.position)return;const point={x:Number($('teacher-x').value),y:Number($('teacher-y').value)};if(!Number.isFinite(point.x)||!Number.isFinite(point.y))return;change(()=>placeTeacher(chart(),null,point),'Teacher position updated.');};

@@ -7,6 +7,7 @@ export function layeredClothingSVG(a){
 }
 export function backpackSVG(a){
  if(a.backpack==='none')return {rear:'',straps:''};
+ if(['purse','crossbody'].includes(a.backpack))return {rear:'',straps:`<g data-avatar-accessory="${a.backpack}"><path d="${a.backpack==='crossbody'?'M39 82Q62 96 91 108':'M81 83Q101 83 99 104M85 84Q93 86 91 103'}" fill="none" stroke="${a.backpackStrapColor}" stroke-width="3"/><path d="M85 99h22l4 18q-15 5-29 0Z" fill="${a.backpackColor}" stroke="#00000040" stroke-width=".8"/><path d="M85 100h22l-2 10H86Z" fill="${a.backpackPocketColor}" stroke="#00000030" stroke-width=".6"/><rect x="93" y="107" width="5" height="4" rx="1" fill="#d8bd79"/><path d="M87 114h17" stroke="#ffffff55" stroke-width=".6"/></g>`};
  return {rear:`<g data-avatar-accessory="backpack"><path d="M24 95Q20 84 33 83H87Q100 84 96 95L106 120H14Z" fill="${a.backpackColor}" stroke="#00000030" stroke-width="1"/><path d="M18 98h14v20H16Zm70 0h14l2 20H88Z" fill="${a.backpackPocketColor}" stroke="#00000030" stroke-width=".8"/><path d="M20 103h9m62 0h9" stroke="#ffffff88" stroke-width="1"/></g>`,straps:`<g data-avatar-detail="backpack-straps"><path d="M37 83Q27 92 33 118h7q-6-27 3-36ZM83 83Q93 92 87 118h-7q6-27-3-36Z" fill="${a.backpackStrapColor}" stroke="#00000035" stroke-width=".6"/><path d="M33 105h7v5h-7Zm47 0h7v5h-7Z" fill="${a.backpackPocketColor}" stroke="#ffffff88" stroke-width=".6"/></g>`};
 }
 export function facialHairSVG(a,rx){
@@ -24,4 +25,12 @@ export function teacherPropsSVG(a){
  if(a.drink==='coffee')drink=`<g data-avatar-accessory="coffee" transform="translate(77 95)"><path d="M19 4h3q6 0 6 5t-7 5h-2" fill="none" stroke="${a.drinkColor}" stroke-width="3"/><path d="M1 3h20v14q0 6-10 6T1 17Z" fill="${a.drinkColor}" stroke="#00000030" stroke-width=".7"/><ellipse cx="11" cy="3" rx="10" ry="2.5" fill="#fff"/><ellipse cx="11" cy="3" rx="8" ry="1.6" fill="#66402b"/><path d="M7-1q-3-3 0-6m7 6q3-3 0-6" fill="none" stroke="#ffffff" stroke-width="1" opacity=".7"/></g>`;
  if(a.drink==='tumbler')drink=`<g data-avatar-accessory="tumbler" transform="translate(79 85)"><path d="M17 8h5q5 0 5 5v7q0 4-7 4" fill="none" stroke="${a.drinkColor}" stroke-width="3"/><path d="M1 5h20l-3 25q0 3-7 3t-7-3Z" fill="${a.drinkColor}" stroke="#00000030" stroke-width=".8"/><rect x="0" y="3" width="22" height="4" rx="1.5" fill="#a5b4bb"/><path d="M13 4V-4" stroke="#dce5e7" stroke-width="2" stroke-linecap="round"/><path d="m5 9 2 18" stroke="#ffffff70" stroke-width="1.2"/></g>`;
  return {neckwear,tool,drink};
+}
+
+export function positionGlassesSVG(a,frames,hairTransform){
+ if(!frames)return '';
+ const bulky=['afro','coils','curls','sponge','spongeafro','puffs','curlytop'].includes(a.hair),headY=bulky?9:23;
+ const transform=a.glassesPosition==='head'?`translate(60 ${headY}) scale(.92 .68) translate(-60 -50)`:a.glassesPosition==='neck'?`translate(60 ${a.neckwear==='none'?103:93}) scale(.56 .56) translate(-60 -50)`:'';
+ const strap=(a.glassesStrap==='on'||a.glassesPosition==='neck')?`<path data-avatar-detail="glasses-strap" d="${a.glassesPosition==='neck'?`M31 54Q31 80 47 ${a.neckwear==='none'?101:91}M89 54Q89 80 73 ${a.neckwear==='none'?101:91}`:a.glassesPosition==='head'?`M30 ${headY}Q22 65 42 85M90 ${headY}Q98 65 78 85`:'M32 49Q21 77 43 91Q60 102 77 91Q99 77 88 49'}" fill="none" stroke="${a.glassesStrapColor}" stroke-width="1.7" stroke-linecap="round"/>`:'';
+ return `${strap}<g data-avatar-glasses-position="${a.glassesPosition}"${a.glassesPosition==='head'?` transform="${hairTransform}"`:''}><g${transform?` transform="${transform}"`:''}>${frames}</g></g>`;
 }
