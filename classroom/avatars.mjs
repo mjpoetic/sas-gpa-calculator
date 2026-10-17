@@ -132,7 +132,7 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
   const braid=(x,y,endX,endY)=>{const steps=Math.round((endY-y)/4),point=t=>({x:x+(endX-x)*t,y:y+(endY-y)*t});return `<path d="M${x} ${y}L${endX} ${endY}" fill="none" stroke="${hair}" stroke-width="4.5" stroke-linecap="round"/>`+Array.from({length:steps},(_,i)=>{const p=point((i+.5)/steps);return `<path d="m${p.x-1.2} ${p.y-1.2} 2.4 1.2-2.4 1.2" fill="none" stroke="${strand}" stroke-width="1" stroke-linecap="round"/>`;}).join('');};
   back=[ [35,25,19,99],[39,22,26,105],[44,24,33,100],[48,25,40,95],[72,25,80,96],[76,24,87,103],[81,22,94,106],[85,25,101,99] ].map(p=>braid(...p)).join('');
   front=closeCap+`<g fill="none" stroke="${skin}" stroke-width="1.2" stroke-linecap="round"><path d="M60 12v20M46 15l-4 19m32-19 4 19M35 24q25-10 50 0M32 34q28-10 56 0"/></g>`;
-  front+=[ [42,22,30,43],[52,28,43,39],[68,28,77,39],[78,22,90,43],[32,35,26,96],[88,35,94,100] ].map(p=>braid(...p)).join('');
+  front+=[ [42,22,30,43],[78,22,90,43],[32,35,26,96],[88,35,94,100] ].map(p=>braid(...p)).join('');
  }
  if(['locs','shortlocs'].includes(a.hair)){
   const long=a.hair==='locs',end=long?105:72;
