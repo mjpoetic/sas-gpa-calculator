@@ -51,7 +51,7 @@ test('eye colors, glasses positions, straps and bags are safe and backward compa
  const a={...defaultAvatar(),accessory:'glasses',glassesPosition:'head',glassesStrap:'on',glassesStrapColor:'#123abc',eyeColor:'#5790bf',backpack:'crossbody',backpackColor:'#654321'};
  const old=defaultAvatar();for(const k of ['eyeColor','glassesPosition','glassesStrap','glassesStrapColor'])delete old[k];assert.equal(validateAvatar(old).glassesPosition,'eyes');assert.equal(validateAvatar(old).eyeColor,'#332d35');
  for(const key of ['eyeColor','glassesStrapColor'])assert.throws(()=>validateAvatar({...a,[key]:'red'}),new RegExp(key));
- const svg=avatarSVG(a);assert.match(svg,/data-avatar-glasses-position="head"/);assert.match(svg,/data-avatar-detail="glasses-strap"/);assert.match(svg,/data-avatar-accessory="crossbody"/);assert.match(svg,/fill="#5790bf"/);assert.deepEqual(validateAvatar(a),a);
+ const svg=avatarSVG(a);assert.match(svg,/data-avatar-glasses-position="head"/);assert.doesNotMatch(svg,/data-avatar-detail="glasses-strap"/);assert.match(svg,/data-avatar-accessory="crossbody"/);assert.match(svg,/fill="#5790bf"/);assert.deepEqual(validateAvatar(a),a);
  assert.ok(!avatarSVG({...a,eyes:'classic'}).includes('fill="#5790bf"'));assert.ok(!avatarSVG({...a,eyes:'happy'}).includes('fill="#5790bf"'));
 });
 

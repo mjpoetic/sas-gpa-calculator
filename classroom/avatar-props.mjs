@@ -59,12 +59,9 @@ export function positionGlassesSVG(a,frames,hairTransform){
  const transform=a.glassesPosition==='head'?`translate(60 ${headY}) scale(.92 .68) translate(-60 -50)`:a.glassesPosition==='neck'?`translate(60 ${a.neckwear==='none'?103:93}) scale(.56 .56) translate(-60 -50)`:'';
  return `<g data-avatar-glasses-position="${a.glassesPosition}"${a.glassesPosition==='head'?` transform="${hairTransform}"`:''}><g${transform?` transform="${transform}"`:''}>${frames}</g></g>`;
 }
+// Optional retention straps are disabled; retain the supporting cord for neck-worn glasses.
 export function glassesStrapSVG(a){
- if(a.accessory==='none'||(a.glassesStrap!=='on'&&a.glassesPosition!=='neck'))return {rear:'',front:''};
- const left=a.accessory==='round'?35:31,right=a.accessory==='round'?86:89,templeY=a.accessory==='round'?50:46;
- const path=(d,marker='')=>`<path ${marker} d="${d}" fill="none" stroke="${a.glassesStrapColor}" stroke-width="1.5" stroke-linecap="round"/>`;
- if(a.glassesPosition==='neck'){const y=a.neckwear==='none'?103:93,lx=60+(left-60)*.56,rx=60+(right-60)*.56,cy=y+(templeY-50)*.56;return {rear:'',front:path(`M51 79Q45 85 ${lx} ${cy}M69 79Q75 85 ${rx} ${cy}`,'data-avatar-detail="glasses-strap"')};}
- const bulky=['afro','coils','curls','sponge','spongeafro','puffs','curlytop'].includes(a.hair),headY=bulky?9:23,scale=a.style==='junior'?30/28:a.style==='senior'?26/28:1,dy=a.style==='junior'?-1:a.style==='senior'?2:0;
- const onHead=a.glassesPosition==='head',lx=onHead?60+(left-60)*.92*scale:left,rx=onHead?60+(right-60)*.92*scale:right,cy=onHead?headY+(templeY-50)*.68+dy:templeY;
- return {rear:path(`M${lx} ${cy}Q23 50 29 64Q34 77 46 84M${rx} ${cy}Q97 50 91 64Q86 77 74 84`,'data-avatar-detail="glasses-strap"'),front:path('M46 84Q60 95 74 84','data-avatar-detail="glasses-cord"')};
+ if(a.accessory==='none'||a.glassesPosition!=='neck')return {rear:'',front:''};
+ const left=a.accessory==='round'?35:31,right=a.accessory==='round'?86:89,templeY=a.accessory==='round'?50:46,y=a.neckwear==='none'?103:93,lx=60+(left-60)*.56,rx=60+(right-60)*.56,cy=y+(templeY-50)*.56;
+ return {rear:'',front:`<path data-avatar-detail="glasses-strap" d="M51 79Q45 85 ${lx} ${cy}M69 79Q75 85 ${rx} ${cy}" fill="none" stroke="${a.glassesStrapColor}" stroke-width="1.5" stroke-linecap="round"/>`};
 }
