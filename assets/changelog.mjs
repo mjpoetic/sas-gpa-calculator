@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {version:'2026.10.17.15',changes:['Refined the Hungry expression with relaxed eyes, a broad smile, and dripping drool.']},
  {version:'2026.10.17.14',changes:['Click the version number in the footer or Settings to see what changed.']},
  {version:'2026.10.17.13',changes:['Added Even low cut: a uniform buzz cut with a defined hairline and no fade.']},
  {version:'2026.10.17.12',changes:['Disabled optional glasses retention straps. Neck-worn glasses keep their supporting cord.']},
