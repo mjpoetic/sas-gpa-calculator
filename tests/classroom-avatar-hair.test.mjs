@@ -28,3 +28,7 @@ test('caps tuck hair under their curved crowns without cropping side hair',()=>{
   assert.ok(!svg.includes('scale(.9 1)'));
  }
 });
+test('short curly afro saves for students, assistants and personal teacher profiles',()=>{
+ assert.ok(avatarOptions.hair.some(([id,label])=>id==='shortafro'&&label==='Short curly afro'));
+ const a={...defaultAvatar(),hair:'shortafro',hairHighlights:'on'},c=newChart();c.students=[{id:'shortfro-student',name:'Alex',avatar:a}];c.assistants=[{id:'shortfro-assistant',name:'Ms. Chen',avatar:a,seatId:null}];const doc={version:1,active:c.id,charts:[c]};saveTeacherProfile(doc,c.id,'Teacher',a);const saved=validateBackup(doc);assert.equal(saved.charts[0].students[0].avatar.hair,'shortafro');assert.equal(saved.charts[0].assistants[0].avatar.hair,'shortafro');assert.equal(saved.teacherProfile.avatar.hair,'shortafro');assert.match(avatarSVG(a),/data-hairstyle="shortafro"/);
+});

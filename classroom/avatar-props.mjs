@@ -1,5 +1,10 @@
 // Geometry for avatar clothing and props. Call only with a validated avatar.
 export const teacherClothing=['denim','labcoat','dress','blouse','suit','blazer','dressshirt','vest','turtleneck'];
+// The sleeve hem meets the elbow; the exposed forearm continues below it.
+export function shortSleevesSVG(a){
+ if(!['tee','polo','dressshirt'].includes(a.clothing))return '';
+ return `<g data-avatar-detail="short-sleeves"><path data-avatar-detail="bare-forearms" d="M18 111L33 114L32 126H18ZM102 111L87 114L88 126H102Z" fill="${a.skin}"/><path d="M19 111l14 3m54 0 14-3" fill="none" stroke="#00000030" stroke-width="1"/><path d="M20 109l13 3m54 0 13-3" fill="none" stroke="#ffffff26" stroke-width=".8"/></g>`;
+}
 export function layeredClothingSVG(a){
  if(!teacherClothing.includes(a.clothing))return '';
  const color=a.clothingColor,detail=a.undershirtColor;
@@ -8,7 +13,7 @@ export function layeredClothingSVG(a){
  const collar=`<path d="M47 79L60 89L54 97L43 84ZM73 79L60 89L66 97L77 84Z" fill="${color}" stroke="#00000035" stroke-width=".8"/><path d="M60 91v35" stroke="#00000028" stroke-width=".8"/>`;
  if(a.clothing==='dress')return wrap(`<path d="M43 80Q60 103 77 80L70 108L79 126H41L50 108Z" fill="${color}"/><path d="M47 81Q60 98 73 81" fill="none" stroke="${detail}" stroke-width="3"/><path d="M48 108h24v5H48Z" fill="${detail}"/><path d="m51 115-4 11m22-11 4 11" stroke="#00000025" stroke-width="1"/>`);
  if(a.clothing==='blouse')return wrap(`<path d="M47 80Q60 95 73 80L68 93Q60 102 52 93Z" fill="${a.skin}"/><path d="M47 81Q60 97 73 81" fill="none" stroke="${detail}" stroke-width="2"/><path d="M59 94Q44 89 48 98Q53 103 60 95Q76 88 72 98Q67 103 60 95M60 96l-5 12m5-12 5 12" fill="${detail}" stroke="#00000025" stroke-width=".7"/><path d="M33 92q-6 10-3 20m57-20q6 10 3 20M24 114l11 2m50 0 11-2" fill="none" stroke="#00000025" stroke-width="1"/>`);
- if(a.clothing==='dressshirt')return wrap(collar+buttons+`<path d="M76 99h12v10H76ZM23 117h12m50 0h12" fill="none" stroke="${detail}" stroke-width="1.3"/>`);
+ if(a.clothing==='dressshirt')return wrap(collar+buttons+`<path d="M76 99h12v10H76Z" fill="none" stroke="${detail}" stroke-width="1.3"/>`);
  if(a.clothing==='turtleneck')return wrap(`<path d="M49 73h22v14Q60 94 49 87Z" fill="${color}"/><path d="M50 77q10 5 20 0m-20 6q10 5 20 0M24 116h72" fill="none" stroke="${detail}" stroke-width="1" opacity=".7"/>`);
  if(['suit','blazer','vest'].includes(a.clothing)){
  const suit=a.clothing==='suit',vest=a.clothing==='vest';
