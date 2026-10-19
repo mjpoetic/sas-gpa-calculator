@@ -9,9 +9,22 @@ test('hair colors and ornaments survive student lists, shared teacher profiles a
  for(const key of ['hairHighlightColor','hairTipColor','hairAccessoryColor','hairAccessoryAccentColor'])assert.throws(()=>validateAvatar({...a,[key]:'url(bad)'}),new RegExp(key));assert.throws(()=>validateAvatar({...a,hairAccessory:'bad'}),/hairAccessory/);
 });
 test('hair color masks have unique IDs and remain compatible with hairstyles, head shapes and hats',()=>{
- const ids=new Set();for(const [hair] of avatarOptions.hair)for(const [style] of avatarOptions.style)for(const extra of ['none','baseball']){
+ const ids=new Set();for(const [hair] of avatarOptions.hair)for(const [style] of avatarOptions.style)for(const extra of ['none','baseball','frog']){
  const svg=avatarSVG({...defaultAvatar(),...details,hair,style,extra});assert.ok(!/undefined|NaN|<image|<script|href=/.test(svg));const own=[...svg.matchAll(/ id="([^"]+)"/g)].map(m=>m[1]);for(const id of own){assert.ok(!ids.has(id));ids.add(id);}for(const [,ref] of svg.matchAll(/url\(#([^\)]+)\)/g))assert.ok(own.includes(ref));
  if(hair==='bald')assert.ok(!svg.includes('data-hair-color='));else assert.ok(svg.includes('data-hair-color="highlights"'));
  assert.equal(svg.includes('data-hair-color="tips"'),supportsHairTips(hair));
+ }
+});
+
+test('caps tuck hair under their curved crowns without cropping side hair',()=>{
+ for(const [hair] of avatarOptions.hair)for(const extra of ['baseball','frog']){
+  const svg=avatarSVG({...defaultAvatar(),hair,extra});
+  const clip=svg.match(/<clipPath id="avatar-hair-\d+"[^>]*>(.*?)<\/clipPath>/)[1];
+  assert.match(clip,/clip-rule="evenodd"/);
+  assert.match(clip,/M-60-60H180V180H-60Z /);
+  assert.ok(clip.includes(extra==='baseball'?'M30 34L33 19C35 11':'M25 35Q25 14 60 13'));
+  assert.ok(!svg.includes('M31 34H89V52'));
+  assert.ok(!svg.includes('scale(.78 1)'));
+  assert.ok(!svg.includes('scale(.9 1)'));
  }
 });

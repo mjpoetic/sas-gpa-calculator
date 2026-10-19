@@ -270,9 +270,13 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
  let hairClip=cutDefs+colorDetails.defs;
  if(['baseball','frog'].includes(a.extra)){
   const clipId='avatar-hair-'+(++avatarClipSequence);
-  hairClip+=`<defs><clipPath id="${clipId}" clipPathUnits="userSpaceOnUse"><path d="M31 34H89V52H120V120H0V52H31Z"/></clipPath></defs>`;
+  // Only tuck hair beneath the cap itself. A shared rectangular crop used to
+  // shear off ponytails, curls and side hair well beyond the edge of the brim.
+  const crown=a.extra==='baseball'
+   ?'M30 34L33 19C35 11 47 7 60 7S85 11 87 19L90 34Q60 29 30 34Z'
+   :'M25 35Q25 14 60 13Q95 14 95 35Z';
+  hairClip+=`<defs><clipPath id="${clipId}" clipPathUnits="userSpaceOnUse"><path clip-rule="evenodd" d="M-60-60H180V180H-60Z ${crown}"/></clipPath></defs>`;
   const underHat=markup=>`<g clip-path="url(#${clipId})">${markup}</g>`;
-  if(bulky){back=`<g transform="translate(60 48) scale(.78 1) translate(-60 -48)">${back}</g>`;front=`<g transform="translate(60 48) scale(.9 1) translate(-60 -48)">${front}</g>`;}
   back=underHat(back);front=underHat(scalp+front);scalp='';
  }
  const clothing=teacherClothing.includes(a.clothing)?layeredClothingSVG(a):a.clothing==='polo'?`<g data-avatar-clothing="polo"><path d="M49 80Q60 89 71 80L67 87L60 94L53 87Z" fill="#00000028"/><path d="M58 90h4v16h-4Z" fill="#ffffff20"/><path d="M62 92v14h-4" fill="none" stroke="#00000025" stroke-width=".7"/><path d="M48 79L51 80Q54 86 60 89L54 96L44 85ZM72 79L69 80Q66 86 60 89L66 96L76 85Z" fill="${shirt}"/><path d="M48 79L51 80Q54 86 60 89L54 96L44 85ZM72 79L69 80Q66 86 60 89L66 96L76 85Z" fill="#ffffff20" stroke="#00000024" stroke-width=".65" stroke-linejoin="round"/><path d="M47 83l7 10 4-4M73 83l-7 10-4-4" fill="none" stroke="#ffffff1c" stroke-width=".6"/><g fill="#f4f0e7" stroke="#00000035" stroke-width=".45"><circle cx="60" cy="96" r="1"/><circle cx="60" cy="102" r="1"/></g><path d="M35 86Q30 97 33 111M85 86Q90 97 87 111M21 108l12 3m54 0 12-3M34 112v14m52-14v14" fill="none" stroke="#0000001d" stroke-width=".8"/><path d="m22 106 10 3m56 0 10-3" stroke="#ffffff22" stroke-width=".8"/></g>`:a.clothing==='hoodie'?'<path d="M42 79Q60 99 78 79L71 101H49Z" fill="#ffffff28"/><path d="m50 90-1 19m21-19 1 19" stroke="#f4f1e5" stroke-width="2"/><path d="M43 113h34" stroke="#0002" stroke-width="2"/>':a.clothing==='cardigan'?'<path d="m45 79 15 16 15-16-8 41H53Z" fill="#f6eee0"/><path d="M60 94v26" stroke="#8a8279" stroke-width="2"/>':a.clothing==='sweater'?'<path d="M43 81Q60 96 77 81M25 115h70" fill="none" stroke="#ffffff66" stroke-width="4"/>':'<path d="M46 80Q60 93 74 80" fill="none" stroke="#ffffff66" stroke-width="4"/>';
