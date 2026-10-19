@@ -1,13 +1,13 @@
-import {enableTwoFingerPan} from './touch-pan.js?v=20261017-release21';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261017-release21';
-import {openAvatarEditor} from './avatar-editor.js?v=20261017-release21';
-import {transferStudent} from './seat-transfer.mjs?v=20261017-release21';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261017-release21';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261017-release21';
-import {furnitureArt} from './furniture-art.mjs?v=20261017-release21';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261017-release21';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261017-release21';
-import {connectCloud} from './cloud.js?v=20261017-release21';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261019-release1';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261019-release1';
+import {openAvatarEditor} from './avatar-editor.js?v=20261019-release1';
+import {transferStudent} from './seat-transfer.mjs?v=20261019-release1';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261019-release1';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261019-release1';
+import {furnitureArt} from './furniture-art.mjs?v=20261019-release1';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261019-release1';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261019-release1';
+import {connectCloud} from './cloud.js?v=20261019-release1';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -33,7 +33,7 @@ const appearance = () => chart().appearance || defaultAppearance();
 const say = text => {$('message').textContent = text;};
 let exportedSnapshot=null;
 function save() {
-  for(const c of state.charts)if(c.teacher?.seatId&&!c.items.some(it=>it.id===c.teacher.seatId))c.teacher.seatId=null;
+  for(const c of state.charts)for(const person of [c.teacher,...(c.assistants||[])].filter(Boolean))if(person.seatId&&!c.items.some(it=>it.id===person.seatId))person.seatId=null;
   try {const serialized=JSON.stringify(state),changed=localStorage.getItem(KEY)!==serialized;localStorage.setItem(KEY, serialized); $('save-state').textContent = '✓ Saved in this browser';const stamp=new Date().toISOString();$('save-state').dataset.savedAt=stamp;localStorage.setItem(KEY+'-saved-at',stamp);if(changed)document.dispatchEvent(new Event('sas-chart-edited'));return true;}
   catch {$('save-state').textContent = 'Save unavailable — export a backup'; say('Browser storage is unavailable or full. Export a backup to preserve your work.');return false;}
 }
@@ -42,9 +42,8 @@ function change(fn, message) {checkpoint();fn();save();render();if(message) say(
 function element(tag, className, text) {const el = document.createElement(tag);if(className) el.className = className;if(text !== undefined) el.textContent = text;return el;}
 function option(value, text) {const el = element('option','',text);el.value = value;return el;}
 function tab(students) {
-  $('students-panel').hidden = !students; $('furniture-panel').hidden = students;
-  $('students-tab').setAttribute('aria-selected',String(students));$('furniture-tab').setAttribute('aria-selected',String(!students));
-  $('students-tab').tabIndex = students ? 0 : -1; $('furniture-tab').tabIndex = students ? -1 : 0;
+ const active=students==='teachers'?'teachers':students?'students':'furniture';
+ for(const name of ['furniture','students','teachers']){const selected=name===active;$(name+'-panel').hidden=!selected;$(name+'-tab').setAttribute('aria-selected',String(selected));$(name+'-tab').tabIndex=selected?0:-1;}
 }
 for (const [type,spec] of Object.entries(catalog)) {
   const btn = element('button'),mini=element('span',`mini ${type}`);if(furnitureArt(type))mini.innerHTML=furnitureArt(type);btn.append(mini,element('span','',spec.label));
@@ -118,7 +117,7 @@ function renderRoom() {
     if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type,it.height,it.rugStyle);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=HEIGHT-1||f.x+f.width>=WIDTH-1),wallFlip=it.type==='door'&&((f.y+f.height>=HEIGHT-1&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=WIDTH-1&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);if(color&&!art.innerHTML.includes('var(--furniture-color')){const rects=[...art.querySelectorAll('rect')].sort((a,b)=>Number(b.getAttribute('width'))*Number(b.getAttribute('height'))-Number(a.getAttribute('width'))*Number(a.getAttribute('height')));(rects[0]||art.querySelector('circle'))?.setAttribute('fill',color);}requestAnimationFrame(()=>fitCaption(caption,it));}
     if(teacherSeatTypes.includes(it.type)){
       node.classList.add('teacher-drop-seat');
-      if(chart().teacher?.seatId===it.id&&chart().teacher.avatar.enabled){const portrait=createTeacherPortrait(it);if(it.seats.some(s=>s.student))node.classList.add('teacher-occupied-desk');node.append(portrait);}
+      for(const person of [chart().teacher,...(chart().assistants||[])].filter(Boolean))if(person.seatId===it.id&&person.avatar.enabled){const portrait=createTeacherPortrait(it,person.id||null);if(it.seats.some(s=>s.student))node.classList.add('teacher-occupied-desk');node.append(portrait);}
     }
     node.title=it.label;
     if(it.seats.length) {
@@ -208,7 +207,7 @@ function renderRoom() {
       if(prior?.active)node.classList.add('settling');
     }
   }
-  if(chart().teacher?.position&&chart().teacher.avatar.enabled){const wrapper=element('div','teacher-free-placement'),portrait=createTeacherPortrait();portrait.classList.add('teacher-free-avatar');wrapper.append(portrait);paintTeacherSize(wrapper);attachTeacherResize(wrapper);room.append(wrapper);}
+  for(const person of [chart().teacher,...(chart().assistants||[])].filter(Boolean))if(person.position&&person.avatar.enabled){const wrapper=element('div','teacher-free-placement'),portrait=createTeacherPortrait(undefined,person.id||null);portrait.classList.add('teacher-free-avatar');wrapper.append(portrait);paintTeacherSize(wrapper,person.id||null);attachTeacherResize(wrapper,person.id||null);room.append(wrapper);}
   if(selectedItems().length>1)renderGroupControls();updateZoom();updateObjectControls();
 }
 function renderInspector() {
@@ -249,15 +248,16 @@ function renderRoster() {
   if(!$('roster').children.length)$('roster').append(element('p','hint',chart().students.length?'Everyone has a seat.':'Add students or load a saved list.'));
 }
 $('furniture-tab').onclick = () => tab(false);$('students-tab').onclick = () => tab(true);
-for(const id of ['furniture-tab','students-tab']) $(id).onkeydown = e => {if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) {e.preventDefault();const show = e.key === 'Home' ? false : e.key === 'End' ? true : id === 'furniture-tab';tab(show);$(show?'students-tab':'furniture-tab').focus();}};
+$('teachers-tab').onclick=()=>tab('teachers');
+for(const [index,name] of ['furniture','students','teachers'].entries()) $(name+'-tab').onkeydown=e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key))return;e.preventDefault();const names=['furniture','students','teachers'],next=e.key==='Home'?0:e.key==='End'?2:(index+(['ArrowLeft','ArrowUp'].includes(e.key)?2:1))%3;$(names[next]+'-tab').click();$(names[next]+'-tab').focus();};
 
 function orderedCharts(){const order=state.chartOrder||[];return [...state.charts].sort((a,b)=>{const ai=order.indexOf(a.id),bi=order.indexOf(b.id);return (ai<0?order.length:ai)-(bi<0?order.length:bi);});}
 document.addEventListener('sas-chart-order',e=>{const {id,direction,alphabetical}=e.detail;const list=orderedCharts();if(alphabetical)list.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));else{const i=list.findIndex(c=>c.id===id),j=i+direction;if(i<0||j<0||j>=list.length)return;[list[i],list[j]]=[list[j],list[i]];}change(()=>{state.chartOrder=list.map(c=>c.id);},'Classroom order saved. Undo is available.');});
 $('charts').onchange = () => {state.active = $('charts').value;selection=null;save();render();};
 $('name').onchange = () => change(() => {chart().name = $('name').value.trim() || 'Untitled classroom';});
-$('new-chart').onclick = () => {if(state.charts.length >= 100) return say('You can keep up to 100 charts.');change(() => {const c = newChart(`Classroom ${state.charts.length+1}`);if(savedTeacherProfile(state))useSavedTeacher(state,c);state.charts.push(c);state.active=c.id;selection=null;},'New chart created.');};
+$('new-chart').onclick = () => {if(state.charts.length >= 100) return say('You can keep up to 100 charts.');change(() => {const c = newChart(`Classroom ${state.charts.length+1}`);if(savedTeacherProfile(state))useSavedTeacher(state,c);c.assistants?.forEach(person=>person.id=uid());state.charts.push(c);state.active=c.id;selection=null;},'New chart created.');};
 $('copy-chart').onclick = () => {if(state.charts.length >= 100) return say('You can keep up to 100 charts.');change(() => {
-  const c = structuredClone(chart());c.id=uid();c.name=`${c.name.slice(0,73)} (copy)`;const map = new Map();c.students.forEach(s => {const old=s.id;s.id=uid();map.set(old,s.id);});c.items.forEach(it => {const previousId=it.id;it.id=uid();if(c.teacher?.seatId===previousId)c.teacher.seatId=it.id;it.seats.forEach(s => {s.student=map.get(s.student)||null;});});state.charts.push(c);state.active=c.id;selection=null;
+  const c = structuredClone(chart());c.id=uid();c.name=`${c.name.slice(0,73)} (copy)`;const map = new Map();c.students.forEach(s => {const old=s.id;s.id=uid();map.set(old,s.id);});c.items.forEach(it => {const previousId=it.id;it.id=uid();for(const person of [c.teacher,...(c.assistants||[])].filter(Boolean))if(person.seatId===previousId)person.seatId=it.id;it.seats.forEach(s => {s.student=map.get(s.student)||null;});});c.assistants?.forEach(person=>person.id=uid());state.charts.push(c);state.active=c.id;selection=null;
 },'Chart duplicated with its roster and assignments.');};
 $('delete-chart').onclick = () => {if(state.charts.length<2 || !confirm(`Delete “${chart().name}”? Undo will restore it.`)) return;change(() => {state.charts=state.charts.filter(c => c.id !== state.active);if(state.chartOrder)state.chartOrder=state.chartOrder.filter(id=>id!==state.active);state.active=state.charts[0].id;selection=null;},'Chart deleted. Undo is available.');};
 $('apply-preset').onclick = () => {if(!confirm('Replace the room furniture with this layout? Your student list stays. Undo will restore the previous room.')) return;change(() => {chart().items=layout($('preset').value);assignUnseated(chart());selection=null;},'Layout applied. Students seated in roster order.');};
@@ -487,6 +487,7 @@ function editTeacherAvatar(){
  openAvatarEditor(teacher,{teacher:true,removable:!!chart().teacher,onSave:(avatar,_show,name)=>{const owner=state.charts.find(c=>c.id===chartId);if(!owner)return say('This classroom is no longer available.');change(()=>{saveTeacherProfile(state,chartId,name,avatar);},'Teacher avatar saved. Drag yourself anywhere in the room or onto a desk or chair.');},onRemove:()=>{const owner=state.charts.find(c=>c.id===chartId);if(owner)change(()=>{delete owner.teacher;},'Teacher avatar removed. Undo is available.');}});
 }
 function renderTeacherProfile(){
+ renderAssistants();
  const teacher=chart().teacher,card=$('teacher-avatar-card');card.hidden=!teacher;$('teacher-placement').hidden=!teacher;$('teacher-avatar-reuse').hidden=!!teacher||!savedTeacherProfile(state);$('teacher-avatar-edit').textContent=teacher?'Edit my avatar':'Create my avatar';
  if(teacher){card.querySelector('.teacher-portrait').innerHTML=avatarSVG(teacher.avatar);card.querySelector('.teacher-display-name').textContent=teacher.name;card.setAttribute('aria-label','Drag '+teacher.name+' anywhere in the room');$('teacher-seat').replaceChildren(option('','Not placed in room'),...(teacher.position?[option('@floor','Free position in room')]:[]),...chart().items.filter(it=>teacherSeatTypes.includes(it.type)).map((it,i)=>option(it.id,it.label+' ('+(i+1)+')')));$('teacher-seat').value=teacher.seatId||(teacher.position?'@floor':'');$('teacher-position-controls').hidden=!teacher.position;if(teacher.position){$('teacher-x').value=Math.round(teacher.position.x);$('teacher-y').value=Math.round(teacher.position.y);$('teacher-size').value=Math.round((teacher.size||64)/64*100);}}
 }
@@ -494,17 +495,17 @@ $('teacher-avatar-edit').onclick=editTeacherAvatar;
 $('teacher-seat').onchange=()=>{const id=$('teacher-seat').value||null;if(id==='@floor')return;change(()=>placeTeacher(chart(),id),'Teacher seat updated. Undo is available.');};
 $('teacher-avatar-card').onclick=()=>{if(Date.now()>=suppressStudentClickUntil)editTeacherAvatar();};
 attachTeacherDrag($('teacher-avatar-card'));
-function attachTeacherDrag(handle){handle.addEventListener('pointerdown',e=>{
- if(e.button!==0||!chart().teacher||panMode||multiMode)return;
+function attachTeacherDrag(handle,personId=null){const context=()=>teacherContext(personId);handle.addEventListener('pointerdown',e=>{
+ if(e.button!==0||!context().teacher||panMode||multiMode)return;
  e.stopPropagation();const start={x:e.clientX,y:e.clientY};let moved=false,ghost,target,outline;
  handle.setPointerCapture(e.pointerId);
- const dropPoint=ev=>{const rect=$('room').getBoundingClientRect();return ev.clientX<rect.left||ev.clientX>rect.right||ev.clientY<rect.top||ev.clientY>rect.bottom?null:teacherPoint(chart(),{x:(ev.clientX-rect.left)*WIDTH/rect.width,y:(ev.clientY-rect.top)*HEIGHT/rect.height});};
+ const dropPoint=ev=>{const rect=$('room').getBoundingClientRect();return ev.clientX<rect.left||ev.clientX>rect.right||ev.clientY<rect.top||ev.clientY>rect.bottom?null:teacherPoint(context(),{x:(ev.clientX-rect.left)*WIDTH/rect.width,y:(ev.clientY-rect.top)*HEIGHT/rect.height});};
  const updateDrop=ev=>{
   target?.classList.remove('teacher-drop-target');
   target=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.teacher-drop-seat');
   target?.classList.add('teacher-drop-target');
   const point=dropPoint(ev);outline.hidden=!!target||!point;
-  if(point){const {width,height}=teacherDimensions(chart().teacher);Object.assign(outline.style,{left:point.x-width/2+'px',top:point.y-height/2+'px',width:width+'px',height:height+'px'});}
+  if(point){const {width,height}=teacherDimensions(context().teacher);Object.assign(outline.style,{left:point.x-width/2+'px',top:point.y-height/2+'px',width:width+'px',height:height+'px'});}
   return point;
  };
  const move=ev=>{
@@ -512,8 +513,8 @@ function attachTeacherDrag(handle){handle.addEventListener('pointerdown',e=>{
   if(!moved){
    moved=true;handle.classList.add('teacher-drag-source');
    ghost=element('div','teacher-free-placement teacher-drag-preview');ghost.inert=true;ghost.setAttribute('aria-hidden','true');
-   const portrait=createTeacherPortrait();portrait.classList.add('teacher-free-avatar');ghost.append(portrait);
-   const {width,height}=teacherDimensions(chart().teacher);Object.assign(ghost.style,{width:width+'px',height:height+'px'});ghost.style.setProperty('--teacher-scale',width/64);ghost.style.setProperty('--teacher-preview-zoom',zoom);document.body.append(ghost);
+   const portrait=createTeacherPortrait(undefined,personId);portrait.classList.add('teacher-free-avatar');ghost.append(portrait);
+   const {width,height}=teacherDimensions(context().teacher);Object.assign(ghost.style,{width:width+'px',height:height+'px'});ghost.style.setProperty('--teacher-scale',width/64);ghost.style.setProperty('--teacher-preview-zoom',zoom);document.body.append(ghost);
    outline=element('div','teacher-drop-outline');outline.setAttribute('aria-hidden','true');$('room').append(outline);
    document.body.classList.add('teacher-dragging');document.dispatchEvent(new Event('sas-student-drag-start'));
   }
@@ -524,27 +525,47 @@ function attachTeacherDrag(handle){handle.addEventListener('pointerdown',e=>{
   const canceled=ev.type!=='pointerup',point=moved&&!canceled?updateDrop(ev):null,id=target?.dataset.id;
   ghost?.remove();outline?.remove();handle.classList.remove('teacher-drag-source');target?.classList.remove('teacher-drop-target');document.body.classList.remove('teacher-dragging');
   if(!moved)return;suppressStudentClickUntil=Date.now()+500;if(canceled)return;
-  if(id){if(chart().teacher.seatId!==id)change(()=>placeTeacher(chart(),id),'Teacher placed at furniture. Undo is available.');return;}
+  if(id){if(context().teacher.seatId!==id)change(()=>placeTeacher(context(),id),'Teacher placed at furniture. Undo is available.');return;}
   if(!point)return say('Drop your avatar inside the room.');
-  change(()=>placeTeacher(chart(),null,point),'Teacher position saved. Undo is available.');
+  change(()=>placeTeacher(context(),null,point),'Teacher position saved. Undo is available.');
  };
  handle.addEventListener('pointermove',move,{passive:false});handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);handle.addEventListener('lostpointercapture',end);
  });}
 
-function createTeacherPortrait(item){
- const teacher=chart().teacher,portrait=element('button','teacher-seat-avatar');portrait.type='button';portrait.dataset.glyphDone='true';portrait.setAttribute('aria-label','Teacher avatar for '+teacher.name+'; drag to move, click to edit');const identity=element('span','seat-identity');identity.style.transform=`rotate(${-(item?.rotation||0)}deg)`;const art=element('span','teacher-portrait');art.innerHTML=avatarSVG(teacher.avatar);identity.append(art,element('span','teacher-name',teacher.name));portrait.append(identity);portrait.onclick=e=>{e.stopPropagation();if(Date.now()>=suppressStudentClickUntil)editTeacherAvatar();};portrait.ondblclick=e=>{e.preventDefault();e.stopPropagation();};
- portrait.onkeydown=e=>{const delta={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!delta)return;e.preventDefault();e.stopPropagation();const p=chart().teacher.position||{x:item.x+item.width/2,y:item.y+item.height/2},step=e.shiftKey?1:20;change(()=>placeTeacher(chart(),null,{x:p.x+delta[0]*step,y:p.y+delta[1]*step}),'Teacher position updated.');$('room').querySelector('.teacher-free-avatar')?.focus();};attachTeacherDrag(portrait);return portrait;
+function createTeacherPortrait(item,personId=null){const context=()=>teacherContext(personId);
+ const teacher=context().teacher,portrait=element('button','teacher-seat-avatar');portrait.type='button';portrait.dataset.glyphDone='true';portrait.setAttribute('aria-label','Teacher avatar for '+teacher.name+'; drag to move, click to edit');const identity=element('span','seat-identity');identity.style.transform=`rotate(${-(item?.rotation||0)}deg)`;const art=element('span','teacher-portrait');art.innerHTML=avatarSVG(teacher.avatar);identity.append(art,element('span','teacher-name',teacher.name));portrait.append(identity);portrait.onclick=e=>{e.stopPropagation();if(Date.now()>=suppressStudentClickUntil)personId?editAssistant(personId):editTeacherAvatar();};portrait.ondblclick=e=>{e.preventDefault();e.stopPropagation();};
+ portrait.onkeydown=e=>{const delta={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!delta)return;e.preventDefault();e.stopPropagation();const p=context().teacher.position||{x:item.x+item.width/2,y:item.y+item.height/2},step=e.shiftKey?1:20;change(()=>placeTeacher(context(),null,{x:p.x+delta[0]*step,y:p.y+delta[1]*step}),'Teacher position updated.');$('room').querySelector('.teacher-free-avatar')?.focus();};attachTeacherDrag(portrait,personId);return portrait;
 }
 for(const axis of ['x','y'])$('teacher-'+axis).onchange=()=>{if(!chart().teacher?.position)return;const point={x:Number($('teacher-x').value),y:Number($('teacher-y').value)};if(!Number.isFinite(point.x)||!Number.isFinite(point.y))return;change(()=>placeTeacher(chart(),null,point),'Teacher position updated.');};
 
 $('teacher-avatar-reuse').onclick=()=>change(()=>useSavedTeacher(state,chart()),'Saved teacher avatar added. Drag it into this classroom.');
 $('teacher-size').onchange=()=>{if(!$('teacher-size').checkValidity()||!$('teacher-size').value)return;change(()=>resizeTeacher(chart(),Number($('teacher-size').value)*.64),'Teacher avatar resized. Undo is available.');};
-function paintTeacherSize(wrapper){const teacher=chart().teacher,{width,height}=teacherDimensions(teacher),point=teacher.position;Object.assign(wrapper.style,{left:(point.x-width/2)+'px',top:(point.y-height/2)+'px',width:width+'px',height:height+'px'});wrapper.style.setProperty('--teacher-scale',width/64);wrapper.style.setProperty('--teacher-handle-size',Math.max(22,30/zoom)+'px');}
-function attachTeacherResize(wrapper){
+function paintTeacherSize(wrapper,personId=null){const context=()=>teacherContext(personId);const teacher=context().teacher,{width,height}=teacherDimensions(teacher),point=teacher.position;Object.assign(wrapper.style,{left:(point.x-width/2)+'px',top:(point.y-height/2)+'px',width:width+'px',height:height+'px'});wrapper.style.setProperty('--teacher-scale',width/64);wrapper.style.setProperty('--teacher-handle-size',Math.max(22,30/zoom)+'px');}
+function attachTeacherResize(wrapper,personId=null){const context=()=>teacherContext(personId);
  const handle=element('button','teacher-avatar-resize resize-handle');handle.type='button';handle.dataset.glyphDone='true';handle.setAttribute('aria-label','Resize teacher avatar');handle.title='Drag to resize; use arrow keys for smaller or larger';controlGlyph(handle,'M4 9V4h5m6 0h5v5M4 15v5h5m6 0h5v-5M4 4l6 6m10-6-6 6M4 20l6-6m10 6-6-6');wrapper.append(handle);
- handle.onclick=e=>{e.stopPropagation();};handle.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();e.stopPropagation();const delta=['ArrowLeft','ArrowDown'].includes(e.key)?-1:1;change(()=>resizeTeacher(chart(),(chart().teacher.size||64)+delta*(e.shiftKey?1:8)),'Teacher avatar resized.');$('room').querySelector('.teacher-avatar-resize')?.focus();};
- handle.onpointerdown=e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();const original=structuredClone(chart().teacher),priorHistory=[...history],priorRedo=[...redoHistory],start={x:e.clientX,y:e.clientY},initial=original.size||64;let moved=false;handle.setPointerCapture(e.pointerId);
- const move=ev=>{const dx=(ev.clientX-start.x)/zoom,dy=(ev.clientY-start.y)/zoom;if(!moved&&Math.hypot(dx,dy)<3)return;if(!moved){checkpoint();moved=true;}chart().teacher.position={...original.position};resizeTeacher(chart(),initial+(dx+dy*1.25)/2.5625*2);paintTeacherSize(wrapper);$('teacher-size').value=Math.round((chart().teacher.size||64)/64*100);};
- const end=ev=>{handle.removeEventListener('pointermove',move);handle.removeEventListener('pointerup',end);handle.removeEventListener('pointercancel',end);if(!moved)return;if(ev.type==='pointercancel'){chart().teacher=original;history=priorHistory;redoHistory=priorRedo;render();return;}save();render();say('Teacher avatar resized. Undo is available.');};handle.addEventListener('pointermove',move);handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);
+ handle.onclick=e=>{e.stopPropagation();};handle.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();e.stopPropagation();const delta=['ArrowLeft','ArrowDown'].includes(e.key)?-1:1;change(()=>resizeTeacher(context(),(context().teacher.size||64)+delta*(e.shiftKey?1:8)),'Teacher avatar resized.');$('room').querySelector('.teacher-avatar-resize')?.focus();};
+ handle.onpointerdown=e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();const original=structuredClone(context().teacher),priorHistory=[...history],priorRedo=[...redoHistory],start={x:e.clientX,y:e.clientY},initial=original.size||64;let moved=false;handle.setPointerCapture(e.pointerId);
+ const move=ev=>{const dx=(ev.clientX-start.x)/zoom,dy=(ev.clientY-start.y)/zoom;if(!moved&&Math.hypot(dx,dy)<3)return;if(!moved){checkpoint();moved=true;}context().teacher.position={...original.position};resizeTeacher(context(),initial+(dx+dy*1.25)/2.5625*2);paintTeacherSize(wrapper,personId);if(!personId)$('teacher-size').value=Math.round((context().teacher.size||64)/64*100);};
+ const end=ev=>{handle.removeEventListener('pointermove',move);handle.removeEventListener('pointerup',end);handle.removeEventListener('pointercancel',end);if(!moved)return;if(ev.type==='pointercancel'){context().teacher=original;history=priorHistory;redoHistory=priorRedo;render();return;}save();render();say('Teacher avatar resized. Undo is available.');};handle.addEventListener('pointermove',move);handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);
  };
+}
+
+function teacherContext(personId){
+ const owner=chart();if(!personId)return owner;
+ return {items:owner.items,room:owner.room,get teacher(){return owner.assistants?.find(p=>p.id===personId);},set teacher(value){const index=owner.assistants.findIndex(p=>p.id===personId);owner.assistants[index]=value;}};
+}
+function editAssistant(personId=null){
+ if(!personId&&(chart().assistants||[]).length>=100)return say('This classroom already has 100 additional adults.');
+ const chartId=chart().id,existing=chart().assistants?.find(p=>p.id===personId),person=existing||{name:'Assistant',avatar:{...defaultAvatar(),style:'senior',clothing:'polo'},seatId:null};
+ openAvatarEditor(person,{teacher:true,assistant:true,removable:!!existing,onSave:(avatar,_show,name)=>{const owner=state.charts.find(c=>c.id===chartId);if(!owner)return;change(()=>{owner.assistants??=[];const current=owner.assistants.find(p=>p.id===personId);if(current)Object.assign(current,{name,avatar});else owner.assistants.push({id:uid(),name,avatar,seatId:null});},'Teacher / assistant avatar saved.');},onRemove:()=>{const owner=state.charts.find(c=>c.id===chartId);if(owner)change(()=>{owner.assistants=owner.assistants.filter(p=>p.id!==personId);},'Teacher / assistant removed. Undo is available.');}});
+}
+$('assistant-add').onclick=()=>editAssistant();
+function renderAssistants(){
+ const list=$('assistant-list');list.replaceChildren();
+ for(const person of chart().assistants||[]){
+ const section=element('section','teacher-profile'),card=element('button','teacher-avatar-card');card.type='button';const portrait=element('span','teacher-portrait');portrait.innerHTML=avatarSVG(person.avatar);card.append(portrait,element('span','teacher-display-name',person.name));card.setAttribute('aria-label','Edit or drag '+person.name);card.onclick=()=>{if(Date.now()>=suppressStudentClickUntil)editAssistant(person.id);};attachTeacherDrag(card,person.id);section.append(card);
+ const label=element('label','','Seat'),select=element('select');select.append(option('','Not placed in room'),option('@floor','Free position in room'),...chart().items.filter(it=>teacherSeatTypes.includes(it.type)).map((it,i)=>option(it.id,it.label+' ('+(i+1)+')')));select.value=person.seatId||(person.position?'@floor':'');select.onchange=()=>change(()=>placeTeacher(teacherContext(person.id),select.value==='@floor'?null:select.value||null,select.value==='@floor'?{x:200,y:200}:null),'Teacher / assistant placement saved.');label.append(select);section.append(label);
+ if(person.position){for(const [key,title,min,max] of [['size','Avatar size (%)',50,300],['x','Room X',0,1600],['y','Room Y',0,1600]]){const field=element('label','',title),input=element('input');input.type='number';input.min=min;input.max=max;input.step=1;input.value=key==='size'?Math.round((person.size||64)/.64):Math.round(person.position[key]);input.onchange=()=>{if(!input.value||!input.checkValidity())return;change(()=>{const context=teacherContext(person.id);if(key==='size')resizeTeacher(context,Number(input.value)*.64);else placeTeacher(context,null,{...context.teacher.position,[key]:Number(input.value)});},'Teacher / assistant updated.');};field.append(input);section.append(field);}}
+ list.append(section);
+ }
 }

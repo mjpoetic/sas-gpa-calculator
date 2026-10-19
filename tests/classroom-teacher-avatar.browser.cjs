@@ -6,7 +6,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
  p.on('pageerror',e=>{errors.push(e.message);console.error('Page error:',e.message);});p.on('dialog',d=>d.accept());
  await p.route('https://esm.sh/**',r=>r.fulfill({contentType:'application/javascript',body:'export function createClient(){return {auth:{onAuthStateChange(cb){setTimeout(()=>cb("INITIAL_SESSION",null),0)},getSession:async()=>({error:null})}}}'}));
  await p.goto(process.env.CLASSROOM_URL||'http://127.0.0.1:4173/classroom/');await p.locator('.seat').first().waitFor();
- if(!await p.locator('#teacher-avatar-edit').isVisible())await p.locator('#dock-students').click();await p.locator('#teacher-avatar-edit').click();
+ if(!await p.locator('#teacher-avatar-edit').isVisible())await p.locator('#dock-students').click();await p.locator('#teachers-tab').click();await p.locator('#teacher-avatar-edit').click();
  assert.equal(await p.locator('.avatar-heading h2').textContent(),'Create your teacher avatar');
  await p.locator('.teacher-avatar-name').fill('Mr. Rivera');
  const choose=(part,value)=>p.locator(`.avatar-choice[data-part="${part}"][data-value="${value}"]`),field=key=>p.locator(`[data-color-for="${key}"]`);
@@ -22,7 +22,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
  await p.locator('#undo').click();assert.equal(active(await state()).teacher.seatId,null);await p.locator('#redo').click();await p.locator('.teacher-seat-avatar').waitFor();
  await p.screenshot({path:'/tmp/teacher-avatar-seated.png'});await p.evaluate(()=>window.dispatchEvent(new Event('beforeprint')));assert.equal(await p.locator('#chart-print-sheet .teacher-seat-avatar svg').count(),1);await p.evaluate(()=>window.dispatchEvent(new Event('afterprint')));
  await p.reload();await p.locator('.teacher-seat-avatar').waitFor();assert.equal(active(await state()).teacher.avatar.wrinkles,'defined');
- if(!await p.locator('#teacher-avatar-edit').isVisible())await p.locator('#dock-students').click();await p.getByRole('button',{name:'My seat',exact:true}).click();await p.getByRole('option',{name:'Not placed in room',exact:true}).click();assert.equal(await p.locator('.teacher-seat-avatar').count(),0);
+ if(!await p.locator('#teacher-avatar-edit').isVisible())await p.locator('#dock-students').click();await p.locator('#teachers-tab').click();await p.getByRole('button',{name:'My seat',exact:true}).click();await p.getByRole('option',{name:'Not placed in room',exact:true}).click();assert.equal(await p.locator('.teacher-seat-avatar').count(),0);
  c=active(await state());const deskId=c.items.find(it=>it.type==='teacher').id;await p.getByRole('button',{name:'My seat',exact:true}).focus();await p.keyboard.press('ArrowDown');await p.keyboard.press('Home');await p.keyboard.press('ArrowDown');await p.keyboard.press('Enter');assert.equal(active(await state()).teacher.seatId,deskId);
  // Student creation still uses the original editor and has no adult controls.
  await p.locator('#roster-add-open').click();await p.locator('#student-names').fill('Alex Smith');await p.locator('#add-students button').click();await p.locator('.student-menu').first().click();await p.getByRole('button',{name:'Edit avatar for Alex S.',exact:true}).click();assert.equal(await choose('facialHair','beard').count(),0);await p.locator('.avatar-cancel').click();

@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {version:'2026.10.19.1',changes:['People now opens the student list, with a separate Teachers tab for your avatar and additional teachers or assistants. Customize and place adult avatars without needing another account.']},
  {version:'2026.10.17.21',changes:['The coach’s whistle now hangs downward naturally from its lanyard ring.']},
  {version:'2026.10.17.20',changes:['Added Curly Ponytail with gathered curls behind the head and a clean, swept hairline. Supports hair colors, highlights, and dyed tips.']},
  {version:'2026.10.17.19',changes:['Choose Small, Medium, or Big ears in the Face tab for student and teacher avatars.']},

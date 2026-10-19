@@ -54,3 +54,5 @@
  .avatar-editor .avatar-choices{min-height:0;max-height:none;overflow:auto;overscroll-behavior:contain}
  .avatar-editor .avatar-footer{flex:none;margin-top:8px;padding-top:8px}
 }
+
+#assistant-list .teacher-profile{margin-top:18px;padding-top:14px;border-top:1px solid #829eaf44}#assistant-list .teacher-avatar-card{margin-bottom:12px}

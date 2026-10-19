@@ -13,7 +13,7 @@ const{chromium}=require('playwright'),assert=require('node:assert/strict');
  // Desk/chair snap targets replace the free-position outline.
  for(const type of ['teacher','chair']){const target=p.locator(`.item.${type}`),box=await target.boundingBox();await begin(p.locator('#room .teacher-seat-avatar'),{x:box.x+box.width/2,y:box.y+box.height/2});assert.equal(await target.evaluate(e=>e.classList.contains('teacher-drop-target')),true);assert.equal(await p.locator('.teacher-drop-outline').isVisible(),false);await p.mouse.up();assert.equal((await teacher()).seatId,await target.getAttribute('data-id'));}
  // Zoomed preview matches the final footprint when dragged from the profile card.
- await p.locator('#dock-students').click();const card=p.locator('#teacher-avatar-card');await card.scrollIntoViewIfNeeded();r=await room();await begin(card,{x:r.x+r.width*.7,y:r.y+r.height*.75});await landing();
+ await p.locator('#dock-students').click();await p.locator('#teachers-tab').click();const card=p.locator('#teacher-avatar-card');await card.scrollIntoViewIfNeeded();r=await room();await begin(card,{x:r.x+r.width*.7,y:r.y+r.height*.75});await landing();
  // Emulated touch follows the same centered pointer path.
  const cdp=await p.context().newCDPSession(p);await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true});
  const source=await p.locator('#room .teacher-free-avatar').boundingBox();r=await room();const finger={x:r.x+r.width*.55,y:r.y+r.height*.8};

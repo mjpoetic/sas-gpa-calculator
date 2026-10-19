@@ -1,6 +1,6 @@
-import {validateAvatar} from './avatars.mjs?v=20261017-release21';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261017-release21';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261017-release21';
+import {validateAvatar} from './avatars.mjs?v=20261019-release1';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261019-release1';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261019-release1';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -137,8 +137,11 @@ export function validateBackup(data) {
         return {student:s.student, locked:s.locked,...(s.fontSize!==undefined?{fontSize:validateSeatFontSize(s.fontSize)}:{}),...(s.color!==undefined?{color:s.color}:{}),...(s.textColor!==undefined?{textColor:s.textColor}:{}),...(s.font!==undefined?{font:validateFont(s.font)}:{}),...(s.fontWeight!==undefined?{fontWeight:validateWeight(s.fontWeight)}:{})};
       })},room);
     });
-    let teacher;if(c.teacher!==undefined){if(c.teacher?.position!==undefined&&c.teacher.seatId!==null)throw new Error('Teacher cannot have a seat and free position.');if(!c.teacher||typeof c.teacher!=='object'||(c.teacher.seatId!==null&&typeof c.teacher.seatId!=='string'))throw new Error('Invalid teacher placement.');teacher={name:str(c.teacher.name,80).trim(),avatar:validateAvatar(c.teacher.avatar),...(c.teacher.size!==undefined?{size:validateTeacherSize(c.teacher.size)}:{}),...(c.teacher.position!==undefined?{position:teacherPoint({room,teacher:c.teacher},c.teacher.position)}:{}),seatId:items.some(it=>it.id===c.teacher.seatId&&teacherSeatTypes.includes(it.type))?c.teacher.seatId:null};}
-    return {id:id(c.id), name:str(c.name,80), students, items,...(teacher?{teacher}:{}),...(c.room!==undefined?{room}:{}),...(c.appearance!==undefined?{appearance:validateAppearance(c.appearance)}:{})};
+    const validatePerson=person=>{if(person?.position!==undefined&&person.seatId!==null)throw new Error('Teacher cannot have a seat and free position.');if(!person||typeof person!=='object'||(person.seatId!==null&&typeof person.seatId!=='string'))throw new Error('Invalid teacher placement.');return {name:str(person.name,80).trim(),avatar:validateAvatar(person.avatar),...(person.size!==undefined?{size:validateTeacherSize(person.size)}:{}),...(person.position!==undefined?{position:teacherPoint({room,teacher:person},person.position)}:{}),seatId:items.some(it=>it.id===person.seatId&&teacherSeatTypes.includes(it.type))?person.seatId:null};};
+    const teacher=c.teacher===undefined?null:validatePerson(c.teacher);
+    if(c.assistants!==undefined&&(!Array.isArray(c.assistants)||c.assistants.length>100))throw new Error('Invalid teachers / assistants.');
+    const assistants=c.assistants?.map(person=>({id:id(person?.id),...validatePerson(person)}));
+    return {id:id(c.id), name:str(c.name,80), students, items,...(assistants?{assistants}:{}),...(teacher?{teacher}:{}),...(c.room!==undefined?{room}:{}),...(c.appearance!==undefined?{appearance:validateAppearance(c.appearance)}:{})};
   });
   const studentLists=(data.studentLists||[]);
   if(!Array.isArray(studentLists)||studentLists.length>100)throw new Error('Invalid saved student lists.');
@@ -189,9 +192,9 @@ export function vacantPosition(item,others,preferred={x:320,y:220}) {
 
 export function reshapeRoom(chart,width,height){
  const old=chart.room||{width:960,height:680},room=validateRoom({width,height}),scale=Math.min(1,width/old.width,height/old.height);
- chart.items.forEach(it=>{it.x*=width/old.width;it.y*=height/old.height;it.width=Math.max(['mug','mouse'].includes(it.type)?16:40,it.width*scale);it.height=Math.max(8,it.height*scale);constrain(it,room);});if(chart.teacher?.position)chart.teacher.position=teacherPoint({room,teacher:chart.teacher},{x:chart.teacher.position.x*width/old.width,y:chart.teacher.position.y*height/old.height});chart.room=room;setRoomSize(room);
+ chart.items.forEach(it=>{it.x*=width/old.width;it.y*=height/old.height;it.width=Math.max(['mug','mouse'].includes(it.type)?16:40,it.width*scale);it.height=Math.max(8,it.height*scale);constrain(it,room);});for(const person of [chart.teacher,...(chart.assistants||[])].filter(Boolean))if(person.position)person.position=teacherPoint({room,teacher:person},{x:person.position.x*width/old.width,y:person.position.y*height/old.height});chart.room=room;setRoomSize(room);
 }
-export function rotateRoom(chart,direction=1){const old=chart.room||{width:960,height:680},room={width:old.height,height:old.width};chart.items.forEach(it=>{const cx=it.x+it.width/2,cy=it.y+it.height/2;it.x=(direction<0?cy:old.height-cy)-it.width/2;it.y=(direction<0?old.width-cx:cx)-it.height/2;it.rotation=(it.rotation+(direction<0?270:90))%360;constrain(it,room);});if(chart.teacher?.position){const {x,y}=chart.teacher.position;chart.teacher.position=teacherPoint({room,teacher:chart.teacher},{x:direction<0?y:old.height-y,y:direction<0?old.width-x:x});}chart.room=room;setRoomSize(room);}
+export function rotateRoom(chart,direction=1){const old=chart.room||{width:960,height:680},room={width:old.height,height:old.width};chart.items.forEach(it=>{const cx=it.x+it.width/2,cy=it.y+it.height/2;it.x=(direction<0?cy:old.height-cy)-it.width/2;it.y=(direction<0?old.width-cx:cx)-it.height/2;it.rotation=(it.rotation+(direction<0?270:90))%360;constrain(it,room);});for(const person of [chart.teacher,...(chart.assistants||[])].filter(Boolean))if(person.position){const {x,y}=person.position;person.position=teacherPoint({room,teacher:person},{x:direction<0?y:old.height-y,y:direction<0?old.width-x:x});}chart.room=room;setRoomSize(room);}
 
 function validateListAvoid(value,count){if(!Array.isArray(value)||value.length!==count||value.some((refs,i)=>!Array.isArray(refs)||refs.length>count||refs.some(n=>!Number.isInteger(n)||n<0||n>=count||n===i)))throw new Error('Invalid saved student separation preferences.');return value;}
 function seatLocations(chart){return chart.items.flatMap(item=>item.seats.map((seat,index)=>{const columns=item.seats.length===1?1:2,rows=Math.ceil(item.seats.length/columns),a=item.rotation*Math.PI/180,dx=((index%columns+.5)/columns-.5)*item.width,dy=((Math.floor(index/columns)+.5)/rows-.5)*item.height;return {seat,item,x:item.x+item.width/2+dx*Math.cos(a)-dy*Math.sin(a),y:item.y+item.height/2+dx*Math.sin(a)+dy*Math.cos(a)};}));}
