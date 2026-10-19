@@ -1,13 +1,13 @@
-import {enableTwoFingerPan} from './touch-pan.js?v=20261019-release7';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261019-release7';
-import {openAvatarEditor} from './avatar-editor.js?v=20261019-release7';
-import {transferStudent} from './seat-transfer.mjs?v=20261019-release7';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261019-release7';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261019-release7';
-import {furnitureArt} from './furniture-art.mjs?v=20261019-release7';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261019-release7';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261019-release7';
-import {connectCloud} from './cloud.js?v=20261019-release7';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261019-release8';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261019-release8';
+import {openAvatarEditor} from './avatar-editor.js?v=20261019-release8';
+import {transferStudent} from './seat-transfer.mjs?v=20261019-release8';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261019-release8';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261019-release8';
+import {furnitureArt} from './furniture-art.mjs?v=20261019-release8';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261019-release8';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261019-release8';
+import {connectCloud} from './cloud.js?v=20261019-release8';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -477,6 +477,7 @@ function editStudentAvatar(student){const chartId=chart().id;const current=()=>s
 
 $('show-avatars').onchange=()=>chartStyle(a=>{a.showAvatars=$('show-avatars').checked;},'Student avatar display updated.');
 $('seat-student-avatar').onclick=()=>{const st=chart().students.find(s=>s.id===selected()?.seats[selection?.seat]?.student);if(st)editStudentAvatar(st);};
+$('seat-student-avatar-pass').onclick=()=>{const st=chart().students.find(s=>s.id===selected()?.seats[selection?.seat]?.student);if(st)document.dispatchEvent(new CustomEvent('sas-avatar-pass',{detail:{chartId:chart().id,studentId:st.id,name:rosterName(st)}}));};
 
 $('seat-student-nickname').onchange=()=>{const student=chart().students.find(s=>s.id===selected()?.seats[selection?.seat]?.student),nickname=normalizeStudentName($('seat-student-nickname').value);if(student&&nickname.length<=80&&nickname!==(student.nickname||''))change(()=>{if(nickname)student.nickname=nickname;else delete student.nickname;},'Preferred name updated. Actual name kept.');};
 $('seat-student-nickname').onkeydown=$('seat-student-name').onkeydown;
