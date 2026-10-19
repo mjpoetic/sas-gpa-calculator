@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {version:'2026.10.19.6',changes:['New Body tab: mix Slim, Medium, or Broad builds with Short, Medium, or Tall heights. These choices are independent of head shape and available for students, teachers, and assistants.']},
  {version:'2026.10.19.5',changes:['Added Long curly hair with a swept curly crown and loose ringlets past the shoulders. Supports highlights, dyed tips, hats, and avatar accessories.']},
  {version:'2026.10.19.4',changes:['Neck headphones now rest on top of bag straps, lanyards, glasses, and other paired accessories. The band still wraps behind the neck.']},
  {version:'2026.10.19.3',changes:['Hair highlights now softly blend your chosen highlight color into the base hair color, with gradients shaped for flowing hair and curls.']},

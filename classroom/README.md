@@ -266,3 +266,7 @@ Additional expressions include Silly (tongue-out wink), Confused (uneven brows a
 ### Teachers and assistants
 
 The People footer button opens Students by default. Choose Teachers below Students to manage your personal teacher avatar and add other teachers or assistants. Additional adults have the full teacher avatar editor and independent desk/chair or free room placement, size, and drag controls. They do not need an account or access to Classroom Studio. Their avatars belong to the classroom and survive backups, duplication, room changes, and cloud document merging; they do not change your reusable personal teacher profile. Removal supports Undo.
+
+### Body build and height
+
+The avatar editor’s Body tab offers Slim, Medium, and Broad builds plus Short, Medium, and Tall heights. Mix the choices independently of head shape for students, teachers, and assistants. These portrait avatars express height through torso length and head-to-body proportions. Older saved avatars default to Medium for both settings, preserving their existing appearance. Body choices are retained in saved lists, backups, and teacher profiles.
