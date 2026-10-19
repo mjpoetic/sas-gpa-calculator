@@ -1,8 +1,9 @@
-import {createMFA} from './mfa.js?v=20261019-release6';
-import {migrateTabSession} from './auth-session.mjs?v=20261019-release6';
-import {mergeDocuments} from './sync-merge.mjs?v=20261019-release6';
-import {cloudConfig} from './cloud-config.js?v=20261019-release6';
-import {CloudStore} from './cloud-store.mjs?v=20261019-release6';
+import {setupAvatarPasses} from './avatar-passes.js?v=20261019-release7';
+import {createMFA} from './mfa.js?v=20261019-release7';
+import {migrateTabSession} from './auth-session.mjs?v=20261019-release7';
+import {mergeDocuments} from './sync-merge.mjs?v=20261019-release7';
+import {cloudConfig} from './cloud-config.js?v=20261019-release7';
+import {CloudStore} from './cloud-store.mjs?v=20261019-release7';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
@@ -12,6 +13,24 @@ export async function connectCloud({getState,applyState,notify}) {
   let backedUpFingerprint=null;
   let autoReady=false,dirty=false,autoTimer,editVersion=0,picker,pendingPicker=false,pickerTimer;
   let mfa,mfaLocked=false,client, store, busy=false, accountRequest=0, accountEpoch=0, recovery=false;
+  setupAvatarPasses(async(action,params)=>{
+    if(!store||mfaLocked)throw new Error('Sign in to your teacher account in Account to manage avatar passes.');
+    const epoch=accountEpoch,owner=store.userId;
+    if(action==='create'){
+      if(!autoReady||busy||pulling||conflictOpen||picker?.open)throw new Error('Finish synchronizing your cloud classroom before creating a pass.');
+      await flush();
+      if(dirty||!autoReady||epoch!==accountEpoch)throw new Error('Your latest classroom must finish saving to cloud. Please try again.');
+    }
+    let result;
+    if(action==='create')result=await client.rpc('create_classroom_avatar_pass',params);
+    else if(action==='list')result=await client.from('classroom_avatar_passes').select('id,expires_at,revoked_at,saved_at').eq('owner_id',owner).eq('chart_id',params.p_chart).eq('student_id',params.p_student).order('created_at',{ascending:false}).limit(10);
+    else if(action==='revoke')result=await client.from('classroom_avatar_passes').update({revoked_at:new Date().toISOString()}).eq('owner_id',owner).eq('id',params.id).select('id').maybeSingle();
+    else throw new Error('Unknown avatar pass action.');
+    if(epoch!==accountEpoch)throw new Error('Your account changed. Reopen avatar passes.');
+    if(result.error)throw result.error;
+    if(action==='revoke'&&!result.data)throw new Error('Could not close this pass. Refresh and try again.');
+    return result.data;
+  });
   let passwordSetup=new URL(location.href).searchParams.has('code') || new URLSearchParams(location.hash.slice(1)).has('access_token'),callbackFailed=false;
   const fingerprint=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
   const markerKey=id=>'sas-cloud-baseline-'+id;

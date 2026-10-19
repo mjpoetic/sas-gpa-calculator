@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {version:'2026.10.19.7',changes:['Give students temporary avatar passes from People → student Options → Avatar pass. Share a private link or QR code, choose 15 minutes to 24 hours, and close access anytime. Students need no account and can edit only their own avatar.']},
  {version:'2026.10.19.6',changes:['New Body tab: mix Slim, Medium, or Broad builds with Short, Medium, or Tall heights. These choices are independent of head shape and available for students, teachers, and assistants.']},
  {version:'2026.10.19.5',changes:['Added Long curly hair with a swept curly crown and loose ringlets past the shoulders. Supports highlights, dyed tips, hats, and avatar accessories.']},
  {version:'2026.10.19.4',changes:['Neck headphones now rest on top of bag straps, lanyards, glasses, and other paired accessories. The band still wraps behind the neck.']},
