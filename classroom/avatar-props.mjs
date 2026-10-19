@@ -1,7 +1,19 @@
 // Geometry for avatar clothing and props. Call only with a validated avatar.
-export const teacherClothing=['denim','labcoat'];
+export const teacherClothing=['denim','labcoat','dress','blouse','suit','blazer','dressshirt','vest','turtleneck'];
 export function layeredClothingSVG(a){
  if(!teacherClothing.includes(a.clothing))return '';
+ const color=a.clothingColor,detail=a.undershirtColor;
+ const wrap=body=>`<g data-avatar-clothing="${a.clothing}">${body}</g>`;
+ const buttons=`<g fill="${detail}" stroke="#00000035" stroke-width=".5"><circle cx="60" cy="99" r="1"/><circle cx="60" cy="107" r="1"/><circle cx="60" cy="115" r="1"/></g>`;
+ const collar=`<path d="M47 79L60 89L54 97L43 84ZM73 79L60 89L66 97L77 84Z" fill="${color}" stroke="#00000035" stroke-width=".8"/><path d="M60 91v35" stroke="#00000028" stroke-width=".8"/>`;
+ if(a.clothing==='dress')return wrap(`<path d="M43 80Q60 103 77 80L70 108L79 126H41L50 108Z" fill="${color}"/><path d="M47 81Q60 98 73 81" fill="none" stroke="${detail}" stroke-width="3"/><path d="M48 108h24v5H48Z" fill="${detail}"/><path d="m51 115-4 11m22-11 4 11" stroke="#00000025" stroke-width="1"/>`);
+ if(a.clothing==='blouse')return wrap(`<path d="M47 80Q60 95 73 80L68 93Q60 102 52 93Z" fill="${a.skin}"/><path d="M47 81Q60 97 73 81" fill="none" stroke="${detail}" stroke-width="2"/><path d="M59 94Q44 89 48 98Q53 103 60 95Q76 88 72 98Q67 103 60 95M60 96l-5 12m5-12 5 12" fill="${detail}" stroke="#00000025" stroke-width=".7"/><path d="M33 92q-6 10-3 20m57-20q6 10 3 20M24 114l11 2m50 0 11-2" fill="none" stroke="#00000025" stroke-width="1"/>`);
+ if(a.clothing==='dressshirt')return wrap(collar+buttons+`<path d="M76 99h12v10H76ZM23 117h12m50 0h12" fill="none" stroke="${detail}" stroke-width="1.3"/>`);
+ if(a.clothing==='turtleneck')return wrap(`<path d="M49 73h22v14Q60 94 49 87Z" fill="${color}"/><path d="M50 77q10 5 20 0m-20 6q10 5 20 0M24 116h72" fill="none" stroke="${detail}" stroke-width="1" opacity=".7"/>`);
+ if(['suit','blazer','vest'].includes(a.clothing)){
+ const suit=a.clothing==='suit',vest=a.clothing==='vest';
+ return wrap(`<path d="M44 79L60 86L76 79L80 126H40Z" fill="${detail}"/><path d="m48 79 12 8-7 9-9-13m28-4-12 8 7 9 9-13" fill="#ffffff35" stroke="#00000025" stroke-width=".6"/>${suit?`<path d="m60 87-4 6 2 5-4 17 6 7 6-7-4-17 2-5Z" fill="${color}"/>`:''}<path d="M44 79L58 113V126H${vest?'33V96':'18V108Q18 86'}44ZM76 79L62 113V126H${vest?'87V96':'102V108Q102 86'}76Z" fill="${color}"/><path d="m44 79 11 9-5 8 8 17-17-18 4-7-6-4m37-5-11 9 5 8-8 17 17-18-4-7 6-4" fill="#ffffff1b" stroke="#00000035" stroke-width=".8"/><path d="M35 110h13m24 0h13M77 96h10" stroke="${detail}" stroke-width="1.2"/><circle cx="60" cy="117" r="1.3" fill="${detail}"/>`);
+ }
  const denim=a.clothing==='denim',seam=denim?'#ffffff80':'#53677970';
  return `<g data-avatar-clothing="${a.clothing}"><path d="M48 79Q60 88 72 79L72 120H48Z" fill="${a.undershirtColor}"/><path d="M50 81Q60 91 70 81" fill="none" stroke="#00000025" stroke-width="1.4"/><path d="M46 79L53 83L51 120H18V108Q18 85 46 79ZM74 79L67 83L69 120H102V108Q102 85 74 79Z" fill="${a.clothingColor}"/><path d="M47 79L54 83L50 94L42 85ZM73 79L66 83L70 94L78 85Z" fill="${a.clothingColor}" stroke="${seam}" stroke-width=".8"/><path d="M49 94v26m22-26v26M32 98v22m56-22v22" fill="none" stroke="${seam}" stroke-width=".7"/>${denim?`<path d="M34 95h12v12q-6 4-12 0ZM74 95h12v12q-6 4-12 0Z" fill="#ffffff12" stroke="${seam}" stroke-width=".7"/><path d="m34 96 6 4 6-4m28 0 6 4 6-4M20 116h29m22 0h29" fill="none" stroke="${seam}" stroke-width=".8"/><g fill="#cfb483"><circle cx="50" cy="99" r="1"/><circle cx="50" cy="109" r="1"/><circle cx="40" cy="99" r=".7"/><circle cx="80" cy="99" r=".7"/></g>`:`<path d="M34 105h12v13H34ZM75 105h12v13H75ZM76 91h10v8H76Z" fill="#ffffff1c" stroke="${seam}" stroke-width=".7"/><path d="M79 88v6m3-7v7" stroke="#4283ac" stroke-width="1.2"/><g fill="#9ba7af"><circle cx="70" cy="100" r=".8"/><circle cx="70" cy="109" r=".8"/><circle cx="70" cy="118" r=".8"/></g>`}</g>`;
 }
