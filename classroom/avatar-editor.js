@@ -1,4 +1,4 @@
-import {supportsHairTips,teacherClothing,teacherAvatarParts,accessoryColorDefaults,avatarOptions,defaultAvatar,validateAvatar,randomAvatar,avatarSVG} from './avatars.mjs?v=20261019-release3';
+import {supportsHairTips,teacherClothing,teacherAvatarParts,accessoryColorDefaults,avatarOptions,defaultAvatar,validateAvatar,randomAvatar,avatarSVG} from './avatars.mjs?v=20261019-release4';
 export function openAvatarEditor(student,{showAvatars,firstAvatar,onSave,onRemove,teacher=false,assistant=false,removable=!!student.avatar}){
  // A double-click can emit both our rapid-tap fallback and native dblclick.
  const existing=document.querySelector('.avatar-editor[open]');if(existing)return;
