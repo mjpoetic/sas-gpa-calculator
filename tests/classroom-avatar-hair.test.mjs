@@ -32,3 +32,10 @@ test('short curly afro saves for students, assistants and personal teacher profi
  assert.ok(avatarOptions.hair.some(([id,label])=>id==='shortafro'&&label==='Short curly afro'));
  const a={...defaultAvatar(),hair:'shortafro',hairHighlights:'on'},c=newChart();c.students=[{id:'shortfro-student',name:'Alex',avatar:a}];c.assistants=[{id:'shortfro-assistant',name:'Ms. Chen',avatar:a,seatId:null}];const doc={version:1,active:c.id,charts:[c]};saveTeacherProfile(doc,c.id,'Teacher',a);const saved=validateBackup(doc);assert.equal(saved.charts[0].students[0].avatar.hair,'shortafro');assert.equal(saved.charts[0].assistants[0].avatar.hair,'shortafro');assert.equal(saved.teacherProfile.avatar.hair,'shortafro');assert.match(avatarSVG(a),/data-hairstyle="shortafro"/);
 });
+test('highlight gradients blend selected color with hair and stay inside the existing masks',()=>{
+ for(const hair of ['long','shortafro','afro','boxbraids','evencut']){
+  const a={...defaultAvatar(),hair,hairHighlights:'on',hairHighlightColor:'#d3ab72'},svg=avatarSVG(a);
+  assert.match(svg,/data-highlight-style="blended-gradient"/);assert.match(svg,/<radialGradient[^>]+gradientTransform="matrix\(/);assert.match(svg,/stop-color="#d3ab72" stop-opacity="0"/);assert.match(svg,/<g mask="url\(#avatar-hair-color-/);assert.ok(!svg.includes('stroke-width="3.5" stroke-linecap="round" opacity=".78"'));
+  assert.ok(!avatarSVG({...a,hairHighlights:'none'}).includes('data-highlight-style='));
+ }
+});

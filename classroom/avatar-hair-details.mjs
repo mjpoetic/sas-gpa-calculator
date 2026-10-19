@@ -6,8 +6,21 @@ export function hairColorDetails(a,front,back,id){
  const silhouette=markup=>markup.replace(/(fill|stroke)="([^"]*)"/g,(_,attr,color)=>`${attr}="${color==='none'?'none':(color===a.skin&&color!==a.hairColor)||color==='#d994b0'?'#000':'#fff'}"`);
  const threshold={long:70,braids:73,bob:61,shortlocs:58,cornrows:64,ponytail:55,curlyponytail:55}[a.hair]??85;
  let defs=`<defs><linearGradient id="${id}-tips" gradientUnits="userSpaceOnUse" x1="0" y1="${threshold}" x2="0" y2="${threshold+10}"><stop stop-color="${a.hairTipColor}" stop-opacity="0"/><stop offset=".4" stop-color="${a.hairTipColor}" stop-opacity=".75"/><stop offset="1" stop-color="${a.hairTipColor}"/></linearGradient>`;
+ // Overlapping, feathered color ribbons blend with the base hair. Their gradients
+ // stay in hair coordinates, then the real front/rear silhouettes clip them.
+ const flowing=['long','bob','braids','boxbraids','locs','shortlocs','twists','cornrows','ponytail','curlyponytail'].includes(a.hair);
+ const full=['afro','coils','spongeafro','puffs'].includes(a.hair);
+ const ribbons=flowing?[[34,60,9,64,-11,.76],[45,55,7,57,-3,.58],[77,58,9,65,10,.72],[94,64,8,56,4,.68],[62,19,16,22,5,.40]]:
+ full?[[30,41,15,33,-5,.62],[52,21,14,23,-3,.48],[79,35,15,33,5,.68],[96,59,11,30,3,.58]]:
+ [[38,29,11,24,-5,.66],[58,16,12,16,0,.36],[77,28,11,25,5,.70]];
+ let highlightPaint='';
+ if(a.hairHighlights==='on')for(const [index,[x,y,width,height,lean,opacity]] of ribbons.entries()){
+  const gradient=id+'-highlight-'+index;
+  defs+=`<radialGradient id="${gradient}" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" gradientTransform="matrix(${width} 0 ${lean} ${height} ${x} ${y})"><stop stop-color="${a.hairHighlightColor}" stop-opacity="${opacity}"/><stop offset=".35" stop-color="${a.hairHighlightColor}" stop-opacity="${opacity*.82}"/><stop offset=".72" stop-color="${a.hairHighlightColor}" stop-opacity="${opacity*.32}"/><stop offset="1" stop-color="${a.hairHighlightColor}" stop-opacity="0"/></radialGradient>`;
+  highlightPaint+=`<rect x="-30" y="-30" width="180" height="180" fill="url(#${gradient})"/>`;
+ }
  function layer(markup,part){if(!markup)return '';const mask=id+'-'+part;defs+=`<mask id="${mask}" maskUnits="userSpaceOnUse" x="-30" y="-30" width="180" height="180" style="mask-type:luminance"><g fill="#fff">${silhouette(markup)}</g></mask>`;
- const highlights=a.hairHighlights==='on'?`<g data-hair-color="highlights" fill="none" stroke="${a.hairHighlightColor}" stroke-width="3.5" stroke-linecap="round" opacity=".78"><path d="M42 1Q28 28 24 56L21 115M54 0Q40 20 38 40L34 115M72 0Q84 22 88 48L99 115M85 7Q99 33 102 69L104 115"/></g>`:'';
+ const highlights=a.hairHighlights==='on'?`<g data-hair-color="highlights" data-highlight-style="blended-gradient">${highlightPaint}</g>`:'';
  const tips=a.hairTips==='on'&&supportsHairTips(a.hair)?`<rect data-hair-color="tips" x="-20" y="${threshold}" width="160" height="${140-threshold}" fill="url(#${id}-tips)" opacity=".92"/>`:'';
  return `<g mask="url(#${mask})">${highlights}${tips}</g>`;
  }

@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {version:'2026.10.19.3',changes:['Hair highlights now softly blend your chosen highlight color into the base hair color, with gradients shaped for flowing hair and curls.']},
  {version:'2026.10.19.2',changes:['Neck headphones now wrap behind the neck. T-shirts, polos, and dress shirts have short sleeves reaching the elbows. Added Short curly afro, a compact curly style just above Even low cut.']},
  {version:'2026.10.19.1',changes:['People now opens the student list, with a separate Teachers tab for your avatar and additional teachers or assistants. Customize and place adult avatars without needing another account.']},
  {version:'2026.10.17.21',changes:['The coach’s whistle now hangs downward naturally from its lanyard ring.']},
