@@ -1,6 +1,6 @@
-import {cloudConfig} from './cloud-config.js?v=20261019-release8';
-import {avatarSVG,defaultAvatar,validateAvatar} from './avatars.mjs?v=20261019-release8';
-import {openAvatarEditor} from './avatar-editor.js?v=20261019-release8';
+import {cloudConfig} from './cloud-config.js?v=20261019-release9';
+import {avatarSVG,defaultAvatar,validateAvatar} from './avatars.mjs?v=20261019-release9';
+import {openAvatarEditor} from './avatar-editor.js?v=20261019-release9';
 const status=document.getElementById('pass-status'),edit=document.getElementById('pass-edit'),portrait=document.getElementById('pass-portrait'),expiry=document.getElementById('pass-expiry');
 // Fragment credentials stay out of HTTP paths, referrers and server access logs.
 const token=location.hash.slice(1);
