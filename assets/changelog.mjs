@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {version:'2026.10.19.5',changes:['Added Long curly hair with a swept curly crown and loose ringlets past the shoulders. Supports highlights, dyed tips, hats, and avatar accessories.']},
  {version:'2026.10.19.4',changes:['Neck headphones now rest on top of bag straps, lanyards, glasses, and other paired accessories. The band still wraps behind the neck.']},
  {version:'2026.10.19.3',changes:['Hair highlights now softly blend your chosen highlight color into the base hair color, with gradients shaped for flowing hair and curls.']},
  {version:'2026.10.19.2',changes:['Neck headphones now wrap behind the neck. T-shirts, polos, and dress shirts have short sleeves reaching the elbows. Added Short curly afro, a compact curly style just above Even low cut.']},

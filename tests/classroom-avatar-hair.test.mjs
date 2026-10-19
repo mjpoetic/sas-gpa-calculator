@@ -39,3 +39,7 @@ test('highlight gradients blend selected color with hair and stay inside the exi
   assert.ok(!avatarSVG({...a,hairHighlights:'none'}).includes('data-highlight-style='));
  }
 });
+test('long curly hair supports highlights and tips and survives saved lists, teachers and assistants',()=>{
+ const a={...defaultAvatar(),...details,hair:'longcurly'},c=newChart();c.students=[{id:'curly-student',name:'Alex',avatar:a}];c.assistants=[{id:'curly-assistant',name:'Assistant',avatar:a,seatId:null}];const document={version:1,active:c.id,charts:[c],studentLists:[{id:'curly-list',name:'Class',names:['Alex'],avatars:[a]}]};saveTeacherProfile(document,c.id,'Teacher',a);const saved=validateBackup(document);assert.deepEqual(saved.charts[0].students[0].avatar,a);assert.deepEqual(saved.charts[0].assistants[0].avatar,a);assert.deepEqual(saved.teacherProfile.avatar,a);assert.deepEqual(saved.studentLists[0].avatars[0],a);assert.equal(supportsHairTips('longcurly'),true);
+ for(const [style] of avatarOptions.style){const svg=avatarSVG({...a,style});assert.match(svg,/data-hairstyle="longcurly"/);assert.match(svg,/data-hairstyle="longcurly-rear"/);assert.match(svg,/data-hair-color="highlights"/);assert.match(svg,/data-hair-color="tips"/);}
+});

@@ -1,7 +1,7 @@
-import {avatarMaskSVG} from './avatar-masks.mjs?v=20261019-release4';
-import {hairColorDetails,hairOrnamentSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261019-release4';
+import {avatarMaskSVG} from './avatar-masks.mjs?v=20261019-release5';
+import {hairColorDetails,hairOrnamentSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261019-release5';
 export {supportsHairTips};
-import {teacherClothing,layeredClothingSVG,shortSleevesSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG,glassesStrapSVG} from './avatar-props.mjs?v=20261019-release4';
+import {teacherClothing,layeredClothingSVG,shortSleevesSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG,glassesStrapSVG} from './avatar-props.mjs?v=20261019-release5';
 export {teacherClothing};
 export const accessoryColorDefaults={"sunglassLensColor":"#25333e","frogEyeWhiteColor":"#ffffff","headphoneBandColor":"#3b526a","headphoneCupColor":"#8596c7","headphonePadColor":"#263445","starColor":"#f8d264","starEdgeColor":"#ba8c3f","flowerColor":"#f3c565","flowerCenterColor":"#9b673f","flowerLeafColor":"#6c9b69","flowerBandColor":"#6c8252","catBandColor":"#65517d","catEarColor":"#8a79a8","catInnerColor":"#e1a4b6","antennaStemColor":"#536c87","antennaLeftColor":"#dc8cb6","antennaRightColor":"#7baed6","crownColor":"#f4cd5d","crownEdgeColor":"#c79a3d","crownGemColor":"#d77a9e","frogColor":"#71af73","frogBrimColor":"#86c06f","frogBumpColor":"#92c783","frogEyeColor":"#334039"};
 const accessoryPalette=[['#302420','Espresso'],['#ffffff','White'],['#34445f','Navy'],['#f4ce70','Gold'],['#f09fbc','Pink'],['#438aaf','Blue'],['#228b22','Forest green']];
@@ -39,7 +39,7 @@ export const avatarOptions={
  backpackColor:propPalette('#537ea3'),backpackPocketColor:propPalette('#3b5d80'),backpackStrapColor:propPalette('#34445f'),
  style:[['junior','Round'],['middle','Oval'],['senior','Narrow oval']],
  skin:[['#f6d7b0','Light warm'],['#edc6a4','Light tan'],['#dca878','Golden tan'],['#c78e64','Warm brown'],['#a86d49','Medium brown'],['#855337','Deep brown'],['#603d2c','Dark brown'],['#ecc5bd','Light rose']],
- hair:[['crop','Short crop'],['swoop','Side sweep'],['curls','Soft curls'],['afro','Rounded afro'],['sponge','Sponge curl high top'],['spongeafro','Sponge curl afro'],['coils','Coils'],['bob','Bob'],['long','Long hair'],['braids','Braids'],['ponytail','Ponytail'],['curlyponytail','Curly Ponytail'],['bun','High bun'],['curlybun','Braided curly bun'],['evencut','Even low cut'],['shortafro','Short curly afro'],['lowtaper','Low taper fade'],['fade','Fade'],['curlytop','Curly top'],['waves','Waves'],['cornrows','Cornrows'],['boxbraids','Box braids'],['locs','Long locs'],['shortlocs','Short locs'],['twists','Two-strand twists'],['puffs','Afro puffs'],['bald','No hair']],
+ hair:[['crop','Short crop'],['swoop','Side sweep'],['curls','Soft curls'],['afro','Rounded afro'],['sponge','Sponge curl high top'],['spongeafro','Sponge curl afro'],['coils','Coils'],['bob','Bob'],['long','Long hair'],['longcurly','Long curly hair'],['braids','Braids'],['ponytail','Ponytail'],['curlyponytail','Curly Ponytail'],['bun','High bun'],['curlybun','Braided curly bun'],['evencut','Even low cut'],['shortafro','Short curly afro'],['lowtaper','Low taper fade'],['fade','Fade'],['curlytop','Curly top'],['waves','Waves'],['cornrows','Cornrows'],['boxbraids','Box braids'],['locs','Long locs'],['shortlocs','Short locs'],['twists','Two-strand twists'],['puffs','Afro puffs'],['bald','No hair']],
  hairHighlights:[['none','No highlights'],['on','Highlights']],
  hairHighlightColor:[['#e7c366','Golden'],['#b16b32','Copper'],['#d8d7d0','Platinum'],['#da7b99','Pink'],['#9a69bc','Purple'],['#438aaf','Blue'],['#800020','Burgundy'],['#228b22','Forest green']],
  hairTips:[['none','Natural tips'],['on','Dyed tips']],
@@ -203,6 +203,21 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
   }
  }
  // The gathered curls stay behind the head; the swept crown leaves the face clear.
+ if(a.hair==='longcurly'){
+  scalp='';
+  // Loose ringlets fall past the shoulders, with a swept crown and uneven ends.
+  const ringlet=(x,y,length,width)=>{
+   const turns=Math.ceil(length/13);let d=`M${x} ${y}`;
+   for(let i=0;i<turns;i++){const top=y+i*13,end=Math.min(y+length,top+13),reach=width*(1-i/turns*.3);d+=`C${x-reach*1.5} ${top+3} ${x+reach*1.5} ${end-3} ${x} ${end}`;}
+   return `<path d="${d}" fill="none" stroke="${strand}" stroke-width="${width+2}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${hair}" stroke-width="${width}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${ridge}" stroke-width=".85" stroke-linecap="round"/>`;
+  };
+  back=`<g data-hairstyle="longcurly-rear" fill="${hair}"><path d="M23 40Q15 23 34 14Q45 2 61 9Q85 3 96 26Q107 40 101 60L108 95Q111 113 96 114L86 106H34L24 115Q9 112 13 96L19 63Z"/>${[[21,35,73,6.4],[29,28,80,6.2],[92,30,80,6.5],[101,42,68,5.8]].map(args=>ringlet(...args)).join('')}</g>`;
+  front=`<g data-hairstyle="longcurly"><path d="M29 45Q22 28 33 18Q45 5 62 10Q82 5 91 23Q98 34 90 46L83 35Q77 24 68 25Q56 28 47 33Q38 36 33 49Z"/>`;
+  for(const [x,y,r] of [[32,28,7],[37,20,7],[46,15,7],[57,13,7],[69,14,7],[80,18,7],[88,27,7],[37,31,6],[48,25,6],[60,22,6],[76,27,6]]){
+   front+=`<circle cx="${x}" cy="${y}" r="${r}"/><path d="M${x-3} ${y+2}q-3-5 1-6q6-2 6 3q0 4-4 3q-2-1 0-3" fill="none" stroke="${ridge}" stroke-width="1" stroke-linecap="round"/>`;
+  }
+  front+=[[28,38,69,6],[21,54,58,5],[33,64,43,4.5],[92,37,72,6],[99,55,58,5],[86,67,42,4.5]].map(args=>ringlet(...args)).join('')+'</g>';
+ }
  if(a.hair==='curlyponytail'){
   scalp='';
   const curls=[];
