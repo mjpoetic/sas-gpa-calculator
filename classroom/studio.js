@@ -586,9 +586,9 @@ function cleanerDate(week){return new Date(week+'T12:00:00').toLocaleDateString(
 function renderJobs(){
  if(!$('jobs-week').value)$('jobs-week').value=weekStart();
  const c=chart(),jobs=c.weeklyJobs||{count:3,weeks:[]},entry=jobs.weeks.find(w=>w.week===jobsWeek()),pool=cleanerPool(eligibleStudents(c,'cleaners'),jobs);
- $('jobs-count').value=jobs.count;$('jobs-pick').disabled=!!entry||!eligibleStudents(c,'cleaners').length;$('jobs-clear').disabled=!entry;$('jobs-manual').disabled=!c.students.length;$('jobs-manual').textContent=entry?'Edit cleaners manually':'Choose cleaners manually';
- $('jobs-status').textContent=entry?'Saved for the week of '+cleanerDate(entry.week)+'.':c.students.length?'Ready to choose '+Math.min(jobs.count,pool.length)+' cleaners.':'Add students in the Students tab to get started.';
- $('jobs-rotation-status').textContent=pool.length+' of '+c.students.length+' students eligible before the next round. Last groups may be smaller to avoid repeats.';
+ $('jobs-count').value=jobs.count;$('jobs-pick').disabled=!!entry||!eligibleStudents(c,'cleaners').length;$('jobs-clear').disabled=!entry;$('jobs-manual').disabled=!c.students.length;$('jobs-manual').textContent=entry?'Edit manually':'Choose manually';
+ $('jobs-status').textContent=entry?'Saved':c.students.length?Math.min(jobs.count,pool.length)+' ready to choose':'Add students to start.';
+ $('jobs-rotation-status').textContent=pool.length+' eligible this round';
  $('jobs-restart').disabled=!cleanerHistory(jobs).slice(jobs.rotationStart||0).length&&!jobs.rotationSeen?.length;$('jobs-delete-history').disabled=!cleanerHistory(jobs).length&&!jobs.weeks.some(w=>w.week<weekStart());
  $('jobs-cleaners').replaceChildren(...(entry?.students||[]).map(id=>{
   const row=element('li'),identity=cleanerIdentity(c,id),swap=element('button','','Swap');swap.type='button';swap.setAttribute('aria-label','Swap '+identity.textContent);
@@ -596,11 +596,24 @@ function renderJobs(){
   swap.disabled=!candidates().length;
   swap.onclick=()=>{const next=candidates()[0];if(next)change(()=>{recordCleaners(jobs,c.students,jobsWeek(),[next]);entry.students[entry.students.indexOf(id)]=next;},'Cleaner swapped. Previous picks remain in history.');};row.append(identity,swap);return row;
  }));
- $('jobs-history').replaceChildren(...[...cleanerHistory(jobs)].reverse().map(draw=>{const group=element('section','cleaner-history-entry'),list=element('ul');group.append(element('h3','','Week of '+cleanerDate(draw.week)));list.append(...draw.students.map((id,i)=>{const row=element('li');row.append(cleanerIdentity(c,id,draw.names?.[i]));return row;}));group.append(list);return group;}));
+ renderCleanerArchive();
  let summary=$('jobs-current-summary');if(!summary){summary=element('button','jobs-current-summary');summary.id='jobs-current-summary';summary.type='button';summary.onclick=()=>{if(document.querySelector('.library').hidden)$('dock-students').click();$('jobs-tab').click();};document.querySelector('.room-scroll').before(summary);}
  const current=jobs.weeks.find(w=>w.week===weekStart());summary.hidden=!current?.students.length;
  summary.replaceChildren();if(current?.students.length){summary.append(element('strong','','This week’s lunch cleaners'),...current.students.map(id=>cleanerIdentity(c,id)));summary.setAttribute('aria-label','This week’s lunch cleaners: '+current.students.map(id=>{const student=c.students.find(s=>s.id===id);return student?seatName(student,c.students):'Removed student';}).join(', ')+'. Open Weekly Jobs');}
 }
+function renderCleanerArchive(){
+ const d=$('jobs-archive-dialog');if(!d.open)return;
+ const c=chart(),draws=cleanerHistory(c.weeklyJobs||{weeks:[]}),pages=Math.max(1,Math.ceil(draws.length/50)),page=Math.min(Number(d.dataset.page)||0,pages-1);d.dataset.page=page;
+ const start=draws.length-page*50,end=Math.max(0,start-50);
+ $('jobs-history').replaceChildren(...draws.slice(end,start).reverse().map(draw=>{const group=element('section','cleaner-history-entry'),list=element('ul');group.append(element('h3','','Week of '+cleanerDate(draw.week)));list.append(...draw.students.map((id,i)=>{const row=element('li');row.append(cleanerIdentity(c,id,draw.names?.[i]));return row;}));group.append(list);return group;}));
+ $('jobs-archive-count').textContent=draws.length?`${draws.length} records · Page ${page+1} of ${pages}`:'No history yet.';
+ $('jobs-archive-prev').disabled=page===0;$('jobs-archive-next').disabled=page===pages-1;
+}
+$('jobs-archive-open').onclick=()=>{$('jobs-archive-dialog').dataset.page=0;$('jobs-archive-dialog').showModal();renderCleanerArchive();};
+for(const [id,delta] of [['jobs-archive-prev',-1],['jobs-archive-next',1]])$(id).onclick=()=>{const d=$('jobs-archive-dialog');d.dataset.page=Number(d.dataset.page||0)+delta;renderCleanerArchive();d.scrollTop=0;};
+$('jobs-archive-dialog').addEventListener('close',()=>{$('jobs-history').replaceChildren();$('jobs-archive-open').focus();});
+$('jobs-help-open').onclick=()=>$('jobs-help-dialog').showModal();
+$('jobs-help-dialog').addEventListener('close',()=>$('jobs-help-open').focus());
 $('jobs-week').onchange=()=>{if(!$('jobs-week').value)return;const date=$('jobs-week').value;if(!Number.isFinite(Date.parse(date+'T12:00:00')))return;$('jobs-week').value=weekStart(date);renderJobs();};
 $('jobs-count').onchange=()=>{const input=$('jobs-count');if(!input.value||!input.checkValidity()){renderJobs();return;}change(()=>{chart().weeklyJobs||={count:3,weeks:[]};chart().weeklyJobs.count=Number(input.value);},'Cleaner count saved for future picks.');};
 $('jobs-pick').onclick=()=>{const c=chart(),week=jobsWeek();if(!eligibleStudents(c,'cleaners').length||c.weeklyJobs?.weeks.some(w=>w.week===week))return;change(()=>{c.weeklyJobs||={count:3,weeks:[]};const jobs=c.weeklyJobs,ids=pickCleaners(eligibleStudents(c,'cleaners'),jobs.weeks,week,jobs.count,[],Math.random,jobs);recordCleaners(jobs,c.students,week,ids);jobs.weeks.push({week,students:ids});jobs.weeks.sort((a,b)=>a.week.localeCompare(b.week));jobs.weeks=jobs.weeks.slice(-520);},'Lunch cleaners saved for the week.');};
@@ -609,7 +622,7 @@ $('jobs-manual').onclick=()=>{
  const c=chart(),week=jobsWeek(),jobs=c.weeklyJobs||{count:3,weeks:[]},entry=jobs.weeks.find(w=>w.week===week),eligible=new Set([...cleanerPool(eligibleStudents(c,'cleaners'),jobs).map(s=>s.id),...(entry?.students||[])]);
  const d=element('dialog','workspace-dialog manual-cleaners');d.id='jobs-manual-dialog';d.setAttribute('aria-labelledby','jobs-manual-title');
  const heading=element('form');heading.method='dialog';const title=element('h2','','Choose lunch cleaners');title.id='jobs-manual-title';const close=element('button','','×');close.setAttribute('aria-label','Close manual cleaner selection');heading.append(title,close);
- const help=element('p','hint','Week of '+cleanerDate(week)+'. Choose up to '+jobs.count+' cleaners. Students who have already served are unavailable until the round is complete.'),list=element('div','manual-cleaner-list'),status=element('p','hint');status.id='jobs-manual-status';status.setAttribute('role','status');
+ const help=element('p','hint','Week of '+cleanerDate(week)+' · Choose up to '+jobs.count+'.'),list=element('div','manual-cleaner-list'),status=element('p','hint');status.id='jobs-manual-status';status.setAttribute('role','status');
  const saveButton=element('button','primary','Save cleaners');saveButton.id='jobs-manual-save';saveButton.type='button';
  function selected(){return [...list.querySelectorAll('input:checked')].map(input=>input.value);}
  function update(){const count=selected().length;saveButton.disabled=!count||count>jobs.count;status.textContent=count+' of '+jobs.count+' selected'+(count>jobs.count?' — remove a student to save.':'.');}
