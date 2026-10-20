@@ -1,6 +1,6 @@
-import {releases} from './changelog.mjs?v=20261019-release9';
-import './dialog-motion.js?v=20261019-release9';
-import './disclosure-preferences.js?v=20261019-release9';
+import {releases} from './changelog.mjs?v=20261020-release1';
+import './dialog-motion.js?v=20261020-release1';
+import './disclosure-preferences.js?v=20261020-release1';
 const style=document.createElement('style');style.textContent=`
 button.site-version,.release-notes-trigger{background:transparent!important;border:0!important;box-shadow:none!important;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;white-space:nowrap}
 button.site-version{font:10px/1.4 Arial,sans-serif!important;min-height:24px;padding:4px 3px!important;border-radius:4px!important}

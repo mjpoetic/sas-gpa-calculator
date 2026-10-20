@@ -1,4 +1,4 @@
-import {dismissNotice} from './surface-motion.js?v=20261019-release9';
+import {dismissNotice} from './surface-motion.js?v=20261020-release1';
 let refreshing=false;
 export function clearRefreshStatus(){const notice=document.getElementById('refresh-status');if(notice){notice.removeAttribute('id');dismissNotice(notice);}}
 document.addEventListener('sas-refresh-ready',clearRefreshStatus);
