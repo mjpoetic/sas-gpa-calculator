@@ -19,3 +19,16 @@ test('weekly assignments survive backup validation, including removed students',
  assert.deepEqual(validateBackup(doc).charts[0].weeklyJobs,c.weeklyJobs);
  c.weeklyJobs.weeks[0].students.push('removed-student');assert.throws(()=>validateBackup(doc));
 });
+
+test('odd roster sizes exhaust the round before repeating, with persistent dated history',async()=>{
+ const {recordCleaners,cleanerHistory,cleanerPool}=await import('../classroom/weekly-jobs.mjs');
+ const students=Array.from({length:7},(_,i)=>({id:String(i),name:'Student '+i})),jobs={count:3,weeks:[]},chosen=[];
+ for(const week of ['2026-10-19','2026-10-26','2026-11-02']){
+  const ids=pickCleaners(students,jobs.weeks,week,3,[],()=>.5,jobs);chosen.push(...ids);recordCleaners(jobs,students,week,ids);jobs.weeks.push({week,students:ids});
+ }
+ assert.equal(new Set(chosen).size,7);assert.equal(chosen.length,7);assert.deepEqual(jobs.weeks.map(w=>w.students.length),[3,3,1]);
+ assert.equal(cleanerPool(students,jobs).length,7);
+ jobs.weeks=[];assert.equal(cleanerHistory(jobs).length,3,'Clearing assignments keeps history');
+ const c=newChart();c.students=students;c.weeklyJobs=jobs;const restored=validateBackup({version:1,active:c.id,charts:[c]}).charts[0].weeklyJobs;assert.deepEqual(restored,jobs);
+ recordCleaners(jobs,students,'2026-11-09',['0']);assert.equal(cleanerPool(students,jobs).length,6);jobs.rotationStart=jobs.draws.length;assert.equal(cleanerPool(students,jobs).length,7);assert.equal(cleanerHistory(jobs).length,4);
+});

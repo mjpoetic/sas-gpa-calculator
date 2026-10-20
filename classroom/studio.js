@@ -1,5 +1,5 @@
 import {setupRandomPicker} from './random-picker.js?v=20261020-picker3';
-import {weekStart,pickCleaners} from './weekly-jobs.mjs?v=20261020-jobs1';
+import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners} from './weekly-jobs.mjs?v=20261020-jobs2';
 import {enableTwoFingerPan} from './touch-pan.js?v=20261019-release9';
 import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261019-release9';
 import {openAvatarEditor} from './avatar-editor.js?v=20261019-release9';
@@ -7,9 +7,9 @@ import {transferStudent} from './seat-transfer.mjs?v=20261019-release9';
 import {controlSize,placeControls} from './control-placement.mjs?v=20261019-release9';
 import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261019-release9';
 import {furnitureArt} from './furniture-art.mjs?v=20261019-release9';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-jobs1';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-jobs2';
 import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261019-release9';
-import {connectCloud} from './cloud.js?v=20261020-jobs1';
+import {connectCloud} from './cloud.js?v=20261020-jobs2';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -575,22 +575,33 @@ function renderAssistants(){
 }
 
 function jobsWeek(){return $('jobs-week').value || weekStart();}
+function cleanerIdentity(c,id,fallback){
+ const student=c.students.find(s=>s.id===id),identity=element('span','cleaner-identity'),portrait=element('span','cleaner-avatar');portrait.setAttribute('aria-hidden','true');portrait.innerHTML=avatarSVG(student?.avatar||defaultAvatar());
+ identity.append(portrait,element('span','cleaner-name',student?rosterName(student):fallback||'Removed student'));return identity;
+}
+function cleanerDate(week){return new Date(week+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
 function renderJobs(){
-  if(!$('jobs-week').value)$('jobs-week').value=weekStart();
-  const c=chart(),jobs=c.weeklyJobs||{count:3,weeks:[]},entry=jobs.weeks.find(w=>w.week===jobsWeek());
-  $('jobs-count').value=jobs.count;
-  $('jobs-pick').disabled=!!entry||!c.students.length;
-  $('jobs-status').textContent=entry?'Saved for this week.':c.students.length?'Ready to choose from '+c.students.length+' students.':'Add students in the Students tab to get started.';
-  $('jobs-cleaners').replaceChildren(...(entry?.students||[]).map(id=>{
-    const row=element('li'),name=element('span','',c.students.find(s=>s.id===id)?.name||'Student removed from roster'),swap=element('button','','Swap');
-    swap.type='button';swap.setAttribute('aria-label','Swap '+name.textContent);
-    swap.disabled=!c.students.some(s=>!entry.students.includes(s.id));
-    swap.onclick=()=>{const next=pickCleaners(c.students,jobs.weeks,jobsWeek(),1,entry.students)[0];if(next)change(()=>{entry.students[entry.students.indexOf(id)]=next;},'Cleaner swapped.');};
-    row.append(name,swap);return row;
-  }));
+ if(!$('jobs-week').value)$('jobs-week').value=weekStart();
+ const c=chart(),jobs=c.weeklyJobs||{count:3,weeks:[]},entry=jobs.weeks.find(w=>w.week===jobsWeek()),pool=cleanerPool(c.students,jobs);
+ $('jobs-count').value=jobs.count;$('jobs-pick').disabled=!!entry||!c.students.length;$('jobs-clear').disabled=!entry;
+ $('jobs-status').textContent=entry?'Saved for the week of '+cleanerDate(entry.week)+'.':c.students.length?'Ready to choose '+Math.min(jobs.count,pool.length)+' cleaners.':'Add students in the Students tab to get started.';
+ $('jobs-rotation-status').textContent=pool.length+' of '+c.students.length+' students eligible before the next round. Last groups may be smaller to avoid repeats.';
+ $('jobs-restart').disabled=!cleanerHistory(jobs).slice(jobs.rotationStart||0).length;
+ $('jobs-cleaners').replaceChildren(...(entry?.students||[]).map(id=>{
+  const row=element('li'),identity=cleanerIdentity(c,id),swap=element('button','','Swap');swap.type='button';swap.setAttribute('aria-label','Swap '+identity.textContent);
+  const candidates=()=>pickCleaners(c.students,jobs.weeks,jobsWeek(),1,entry.students,Math.random,jobs);
+  swap.disabled=!candidates().length;
+  swap.onclick=()=>{const next=candidates()[0];if(next)change(()=>{recordCleaners(jobs,c.students,jobsWeek(),[next]);entry.students[entry.students.indexOf(id)]=next;},'Cleaner swapped. Previous picks remain in history.');};row.append(identity,swap);return row;
+ }));
+ $('jobs-history').replaceChildren(...[...cleanerHistory(jobs)].reverse().map(draw=>{const group=element('section','cleaner-history-entry'),list=element('ul');group.append(element('h3','','Week of '+cleanerDate(draw.week)));list.append(...draw.students.map((id,i)=>{const row=element('li');row.append(cleanerIdentity(c,id,draw.names?.[i]));return row;}));group.append(list);return group;}));
+ let summary=$('jobs-current-summary');if(!summary){summary=element('button','jobs-current-summary');summary.id='jobs-current-summary';summary.type='button';summary.onclick=()=>{if(document.querySelector('.library').hidden)$('dock-students').click();$('jobs-tab').click();};document.querySelector('.room-scroll').before(summary);}
+ const current=jobs.weeks.find(w=>w.week===weekStart());summary.hidden=!current?.students.length;
+ summary.replaceChildren();if(current?.students.length){summary.append(element('strong','','This week’s lunch cleaners'),...current.students.map(id=>cleanerIdentity(c,id)));summary.setAttribute('aria-label','This week’s lunch cleaners: '+current.students.map(id=>c.students.find(s=>s.id===id)?.name||'Removed student').join(', ')+'. Open Weekly Jobs');}
 }
 $('jobs-week').onchange=()=>{if(!$('jobs-week').value)return;const date=$('jobs-week').value;if(!Number.isFinite(Date.parse(date+'T12:00:00')))return;$('jobs-week').value=weekStart(date);renderJobs();};
 $('jobs-count').onchange=()=>{const input=$('jobs-count');if(!input.value||!input.checkValidity()){renderJobs();return;}change(()=>{chart().weeklyJobs||={count:3,weeks:[]};chart().weeklyJobs.count=Number(input.value);},'Cleaner count saved for future picks.');};
-$('jobs-pick').onclick=()=>{const c=chart(),week=jobsWeek();if(!c.students.length||c.weeklyJobs?.weeks.some(w=>w.week===week))return;change(()=>{c.weeklyJobs||={count:3,weeks:[]};c.weeklyJobs.weeks.push({week,students:pickCleaners(c.students,c.weeklyJobs.weeks,week,c.weeklyJobs.count)});c.weeklyJobs.weeks.sort((a,b)=>a.week.localeCompare(b.week));c.weeklyJobs.weeks=c.weeklyJobs.weeks.slice(-520);},'Lunch cleaners saved for the week.');};
+$('jobs-pick').onclick=()=>{const c=chart(),week=jobsWeek();if(!c.students.length||c.weeklyJobs?.weeks.some(w=>w.week===week))return;change(()=>{c.weeklyJobs||={count:3,weeks:[]};const jobs=c.weeklyJobs,ids=pickCleaners(c.students,jobs.weeks,week,jobs.count,[],Math.random,jobs);recordCleaners(jobs,c.students,week,ids);jobs.weeks.push({week,students:ids});jobs.weeks.sort((a,b)=>a.week.localeCompare(b.week));jobs.weeks=jobs.weeks.slice(-520);},'Lunch cleaners saved for the week.');};
+$('jobs-clear').onclick=()=>{if(!chart().weeklyJobs)return;change(()=>{const jobs=chart().weeklyJobs;jobs.draws??=cleanerHistory(jobs).map(w=>structuredClone(w));jobs.weeks=jobs.weeks.filter(w=>w.week!==jobsWeek());},'This week’s cleaners cleared. History and rotation are kept. Undo is available.');};
+$('jobs-restart').onclick=()=>{if(!chart().weeklyJobs)return;change(()=>{const jobs=chart().weeklyJobs;jobs.draws??=cleanerHistory(jobs).map(w=>structuredClone(w));jobs.rotationStart=jobs.draws.length;},'Rotation restarted. Everyone is eligible; dated history is kept.');};
 
 setupRandomPicker(chart);
