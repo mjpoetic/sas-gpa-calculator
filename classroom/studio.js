@@ -1,4 +1,4 @@
-import {setupRandomPicker} from './random-picker.js?v=20261020-picker2';
+import {setupRandomPicker} from './random-picker.js?v=20261020-picker3';
 import {weekStart,pickCleaners} from './weekly-jobs.mjs?v=20261020-jobs1';
 import {enableTwoFingerPan} from './touch-pan.js?v=20261019-release9';
 import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261019-release9';

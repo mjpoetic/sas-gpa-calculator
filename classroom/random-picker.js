@@ -26,6 +26,7 @@ export function setupRandomPicker(getChart) {
   const showLabel=make('label','check'),showChosen=make('input');showChosen.type='checkbox';showChosen.id='random-picker-show-chosen';showChosen.checked=true;
   try{showChosen.checked=localStorage.getItem('sas-classroom-picker-show-chosen')!=='off';}catch{}
   showLabel.append(showChosen,document.createTextNode('Show chosen students'));controls.insertBefore(showLabel,pick);
+  const reset=make('button','random-picker-reset','Reset round');reset.id='random-picker-reset';reset.type='button';reset.title='Clear chosen students and make everyone eligible again';controls.append(reset);
   dialog.append(header,classroom,content,status,controls);document.body.append(dialog);
   let timer,audio,busy=false,run=0;
   const rounds=new Map(),roundKey=id=>'sas-classroom-picker-round-'+id;
@@ -38,7 +39,7 @@ export function setupRandomPicker(getChart) {
   function renderChosen(c){
     chosenPanel.hidden=!showChosen.checked;content.classList.toggle('show-chosen',showChosen.checked);
     const ids=seenIds(c);chosenList.replaceChildren(...ids.map(id=>make('li','',rosterName(c.students.find(s=>s.id===id)))));chosenEmpty.hidden=!!ids.length;
-    chosenTitle.textContent=`Already chosen (${ids.length})`;
+    chosenTitle.textContent=`Already chosen (${ids.length})`;reset.disabled=!ids.length;
   }
   showChosen.onchange=()=>{try{localStorage.setItem('sas-classroom-picker-show-chosen',showChosen.checked?'on':'off');}catch{}renderChosen(getChart());};
   function remember(c,id){
@@ -84,6 +85,12 @@ export function setupRandomPicker(getChart) {
       tone();step++;timer=setTimeout(tick,reduced?160:55+Math.pow(step/total,3)*280);
     }
     dialog.classList.remove('has-winner');tick();
+  };
+  reset.onclick=()=>{
+    stop();const c=getChart();rounds.set(c.id,[]);
+    try{localStorage.setItem(roundKey(c.id),'[]');}catch{}
+    renderChosen(c);placeholder();name.textContent=c.students.length?'Who will it be?':'Add students to get started';dialog.classList.remove('has-winner');
+    status.textContent=`Round reset · All ${c.students.length} students are eligible again.`;pick.textContent='Pick a student';pick.disabled=!c.students.length;
   };
   close.onclick=()=>dialog.close();
   dialog.addEventListener('close',()=>{stop();dialog.classList.remove('has-winner');launch.focus();});
