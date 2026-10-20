@@ -1,3 +1,4 @@
+import {weekStart,pickCleaners} from './weekly-jobs.mjs?v=20261020-jobs1';
 import {enableTwoFingerPan} from './touch-pan.js?v=20261019-release9';
 import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261019-release9';
 import {openAvatarEditor} from './avatar-editor.js?v=20261019-release9';
@@ -5,9 +6,9 @@ import {transferStudent} from './seat-transfer.mjs?v=20261019-release9';
 import {controlSize,placeControls} from './control-placement.mjs?v=20261019-release9';
 import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261019-release9';
 import {furnitureArt} from './furniture-art.mjs?v=20261019-release9';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261019-release9';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-jobs1';
 import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261019-release9';
-import {connectCloud} from './cloud.js?v=20261019-release9';
+import {connectCloud} from './cloud.js?v=20261020-jobs1';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -42,8 +43,8 @@ function change(fn, message) {checkpoint();fn();save();render();if(message) say(
 function element(tag, className, text) {const el = document.createElement(tag);if(className) el.className = className;if(text !== undefined) el.textContent = text;return el;}
 function option(value, text) {const el = element('option','',text);el.value = value;return el;}
 function tab(students) {
- const active=students==='teachers'?'teachers':students?'students':'furniture';
- for(const name of ['furniture','students','teachers']){const selected=name===active;$(name+'-panel').hidden=!selected;$(name+'-tab').setAttribute('aria-selected',String(selected));$(name+'-tab').tabIndex=selected?0:-1;}
+ const active=students==='jobs'?'jobs':students==='teachers'?'teachers':students?'students':'furniture';
+ for(const name of ['furniture','students','jobs','teachers']){const selected=name===active;$(name+'-panel').hidden=!selected;$(name+'-tab').setAttribute('aria-selected',String(selected));$(name+'-tab').tabIndex=selected?0:-1;}
 }
 for (const [type,spec] of Object.entries(catalog)) {
   const btn = element('button'),mini=element('span',`mini ${type}`);if(furnitureArt(type))mini.innerHTML=furnitureArt(type);btn.append(mini,element('span','',spec.label));
@@ -67,7 +68,7 @@ function render() {
   $('undo').disabled = !history.length;$('redo').disabled=!redoHistory.length;$('delete-chart').disabled = state.charts.length === 1;
   if(!selection){selectedIds.clear();selectedSeatKeys.clear();}else if(!selectedIds.has(selection.id))selectedIds=new Set([selection.id]);
   renderRoom();renderInspector();renderRoster();renderTeacherProfile();
-  renderAppearance();
+  renderAppearance();renderJobs();
 }
 function renderAppearance() {
   const a=appearance();$('chart-font-preview').style.fontFamily=fontCSS(a.font);$('chart-font-preview').style.fontWeight=a.weight||400;$('chart-font-weight').value=a.weight||400;$('chart-font-source').value=a.font.source;$('chart-font').value=a.font.source==='preset'?a.font.family:'system';
@@ -249,7 +250,8 @@ function renderRoster() {
 }
 $('furniture-tab').onclick = () => tab(false);$('students-tab').onclick = () => tab(true);
 $('teachers-tab').onclick=()=>tab('teachers');
-for(const [index,name] of ['furniture','students','teachers'].entries()) $(name+'-tab').onkeydown=e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key))return;e.preventDefault();const names=['furniture','students','teachers'],next=e.key==='Home'?0:e.key==='End'?2:(index+(['ArrowLeft','ArrowUp'].includes(e.key)?2:1))%3;$(names[next]+'-tab').click();$(names[next]+'-tab').focus();};
+$('jobs-tab').onclick=()=>{tab('jobs');renderJobs();};
+for(const [index,name] of ['furniture','students','jobs','teachers'].entries()) $(name+'-tab').onkeydown=e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key))return;e.preventDefault();const names=['furniture','students','jobs','teachers'],next=e.key==='Home'?0:e.key==='End'?3:(index+(['ArrowLeft','ArrowUp'].includes(e.key)?3:1))%4;$(names[next]+'-tab').click();$(names[next]+'-tab').focus();};
 
 function orderedCharts(){const order=state.chartOrder||[];return [...state.charts].sort((a,b)=>{const ai=order.indexOf(a.id),bi=order.indexOf(b.id);return (ai<0?order.length:ai)-(bi<0?order.length:bi);});}
 document.addEventListener('sas-chart-order',e=>{const {id,direction,alphabetical}=e.detail;const list=orderedCharts();if(alphabetical)list.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));else{const i=list.findIndex(c=>c.id===id),j=i+direction;if(i<0||j<0||j>=list.length)return;[list[i],list[j]]=[list[j],list[i]];}change(()=>{state.chartOrder=list.map(c=>c.id);},'Classroom order saved. Undo is available.');});
@@ -570,3 +572,22 @@ function renderAssistants(){
  list.append(section);
  }
 }
+
+function jobsWeek(){return $('jobs-week').value || weekStart();}
+function renderJobs(){
+  if(!$('jobs-week').value)$('jobs-week').value=weekStart();
+  const c=chart(),jobs=c.weeklyJobs||{count:3,weeks:[]},entry=jobs.weeks.find(w=>w.week===jobsWeek());
+  $('jobs-count').value=jobs.count;
+  $('jobs-pick').disabled=!!entry||!c.students.length;
+  $('jobs-status').textContent=entry?'Saved for this week.':c.students.length?'Ready to choose from '+c.students.length+' students.':'Add students in the Students tab to get started.';
+  $('jobs-cleaners').replaceChildren(...(entry?.students||[]).map(id=>{
+    const row=element('li'),name=element('span','',c.students.find(s=>s.id===id)?.name||'Student removed from roster'),swap=element('button','','Swap');
+    swap.type='button';swap.setAttribute('aria-label','Swap '+name.textContent);
+    swap.disabled=!c.students.some(s=>!entry.students.includes(s.id));
+    swap.onclick=()=>{const next=pickCleaners(c.students,jobs.weeks,jobsWeek(),1,entry.students)[0];if(next)change(()=>{entry.students[entry.students.indexOf(id)]=next;},'Cleaner swapped.');};
+    row.append(name,swap);return row;
+  }));
+}
+$('jobs-week').onchange=()=>{if(!$('jobs-week').value)return;const date=$('jobs-week').value;if(!Number.isFinite(Date.parse(date+'T12:00:00')))return;$('jobs-week').value=weekStart(date);renderJobs();};
+$('jobs-count').onchange=()=>{const input=$('jobs-count');if(!input.value||!input.checkValidity()){renderJobs();return;}change(()=>{chart().weeklyJobs||={count:3,weeks:[]};chart().weeklyJobs.count=Number(input.value);},'Cleaner count saved for future picks.');};
+$('jobs-pick').onclick=()=>{const c=chart(),week=jobsWeek();if(!c.students.length||c.weeklyJobs?.weeks.some(w=>w.week===week))return;change(()=>{c.weeklyJobs||={count:3,weeks:[]};c.weeklyJobs.weeks.push({week,students:pickCleaners(c.students,c.weeklyJobs.weeks,week,c.weeklyJobs.count)});c.weeklyJobs.weeks.sort((a,b)=>a.week.localeCompare(b.week));c.weeklyJobs.weeks=c.weeklyJobs.weeks.slice(-520);},'Lunch cleaners saved for the week.');};

@@ -17,3 +17,5 @@
 
 /* Temporary student avatar passes */
 .workspace-dialog.avatar-pass-dialog{width:min(520px,calc(100vw - 24px));max-height:calc(100dvh - 32px);overflow:auto}.avatar-pass-dialog>button,.avatar-pass-dialog p button{margin:6px 8px 6px 0}.avatar-pass-dialog input{font-size:13px}.avatar-pass-dialog [role=status]{font-size:14px;line-height:1.5}.avatar-pass-qr{width:min(240px,100%);margin:16px auto;background:white;padding:8px;border-radius:12px}.avatar-pass-qr svg{display:block;width:100%;height:auto}.avatar-pass-page{display:grid;place-items:center;padding:20px;overflow:auto;height:auto;min-height:100dvh}.avatar-pass-page>main{max-width:540px;width:100%;padding:30px;text-align:center}.avatar-pass-page #pass-portrait{width:180px;margin:16px auto}.avatar-pass-page #pass-portrait svg{width:100%;height:auto}.avatar-save-error{color:#a23e3e;font-size:13px;flex-basis:100%;margin:0}.student-avatar-pass{min-width:38px}
+
+.library .tabs{flex-wrap:wrap}#jobs-cleaners{padding-left:22px}#jobs-cleaners li{padding:8px 0}#jobs-cleaners li span{display:block;overflow-wrap:anywhere}#jobs-cleaners button{margin-top:4px}

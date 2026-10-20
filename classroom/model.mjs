@@ -1,3 +1,4 @@
+import {validateWeeklyJobs} from './weekly-jobs.mjs?v=20261020-jobs1';
 import {validateAvatar} from './avatars.mjs?v=20261019-release9';
 import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261019-release9';
 import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261019-release9';
@@ -141,7 +142,7 @@ export function validateBackup(data) {
     const teacher=c.teacher===undefined?null:validatePerson(c.teacher);
     if(c.assistants!==undefined&&(!Array.isArray(c.assistants)||c.assistants.length>100))throw new Error('Invalid teachers / assistants.');
     const assistants=c.assistants?.map(person=>({id:id(person?.id),...validatePerson(person)}));
-    return {id:id(c.id), name:str(c.name,80), students, items,...(assistants?{assistants}:{}),...(teacher?{teacher}:{}),...(c.room!==undefined?{room}:{}),...(c.appearance!==undefined?{appearance:validateAppearance(c.appearance)}:{})};
+    return {id:id(c.id), name:str(c.name,80), students, items,...(c.weeklyJobs!==undefined?{weeklyJobs:validateWeeklyJobs(c.weeklyJobs)}:{}),...(assistants?{assistants}:{}),...(teacher?{teacher}:{}),...(c.room!==undefined?{room}:{}),...(c.appearance!==undefined?{appearance:validateAppearance(c.appearance)}:{})};
   });
   const studentLists=(data.studentLists||[]);
   if(!Array.isArray(studentLists)||studentLists.length>100)throw new Error('Invalid saved student lists.');
