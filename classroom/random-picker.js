@@ -15,7 +15,8 @@ export function setupRandomPicker(getChart) {
   const stage=make('div','random-picker-stage'),portrait=make('div','random-picker-avatar');portrait.id='random-picker-avatar';portrait.setAttribute('aria-hidden','true');
   const name=make('div','random-picker-name','Who will it be?');name.id='random-picker-name';
   const status=make('p','hint random-picker-status');status.id='random-picker-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.setAttribute('aria-atomic','true');
-  stage.append(portrait,name);
+  const caption=make('p','random-picker-caption');caption.id='random-picker-caption';
+  stage.append(portrait,caption,name);
   const content=make('div','random-picker-content'),chosenPanel=make('aside','random-picker-chosen');chosenPanel.id='random-picker-chosen';chosenPanel.setAttribute('aria-labelledby','random-picker-chosen-title');
   const chosenTitle=make('h3','','Already chosen');chosenTitle.id='random-picker-chosen-title';
   const chosenList=make('ol'),chosenEmpty=make('p','hint','No students chosen yet this round.');chosenList.id='random-picker-chosen-list';chosenPanel.append(chosenTitle,chosenList,chosenEmpty);content.append(stage,chosenPanel);
@@ -28,7 +29,7 @@ export function setupRandomPicker(getChart) {
   showLabel.append(showChosen,document.createTextNode('Show chosen students'));controls.insertBefore(showLabel,pick);
   const reset=make('button','random-picker-reset','Reset round');reset.id='random-picker-reset';reset.type='button';reset.title='Clear chosen students and make everyone eligible again';controls.append(reset);
   dialog.append(header,classroom,content,status,controls);document.body.append(dialog);
-  let timer,audio,busy=false,run=0;
+  let timer,audio,busy=false,run=0,finaleCount=0;
   const rounds=new Map(),roundKey=id=>'sas-classroom-picker-round-'+id;
   function seenIds(c){
     let seen=rounds.get(c.id)||[];
@@ -49,12 +50,12 @@ export function setupRandomPicker(getChart) {
   }
   const placeholder=()=>{portrait.innerHTML=avatarSVG(defaultAvatar());};
   function paint(student){portrait.innerHTML=avatarSVG(student.avatar||defaultAvatar());name.textContent=rosterName(student);}
-  function stop(){run++;clearTimeout(timer);busy=false;dialog.classList.remove('is-spinning');stage.removeAttribute('aria-busy');if(audio){void audio.close().catch(()=>{});audio=null;}}
-  function tone(final=false){
+  function stop(){run++;clearTimeout(timer);busy=false;dialog.classList.remove('is-spinning','is-mystery');caption.textContent='';stage.removeAttribute('aria-busy');if(audio){void audio.close().catch(()=>{});audio=null;}}
+  function tone(final=false,frequency=null,delay=0){
     if(!sound.checked||!audio||audio.state!=='running')return;
-    const oscillator=audio.createOscillator(),gain=audio.createGain(),now=audio.currentTime;
-    oscillator.type='triangle';oscillator.frequency.setValueAtTime(final?880:620,now);
-    oscillator.frequency.exponentialRampToValueAtTime(final?660:180,now+(final?.16:.025));
+    const oscillator=audio.createOscillator(),gain=audio.createGain(),now=audio.currentTime+delay;
+    oscillator.type='triangle';oscillator.frequency.setValueAtTime(frequency||(final?880:620),now);
+    oscillator.frequency.exponentialRampToValueAtTime(frequency||(final?660:180),now+(final?.16:.025));
     gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.09,now+.004);gain.gain.exponentialRampToValueAtTime(.0001,now+(final?.28:.04));
     oscillator.connect(gain);gain.connect(audio.destination);oscillator.start(now);oscillator.stop(now+(final?.3:.045));
     oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};
@@ -75,12 +76,26 @@ export function setupRandomPicker(getChart) {
     const owner=getChart(),students=structuredClone(round(owner).remaining);if(!students.length)return;
     stop();busy=true;const token=run,winner=students[Math.floor(Math.random()*students.length)];
     enableAudio();pick.disabled=true;pick.textContent='Choosing…';status.textContent='Choosing a student…';stage.setAttribute('aria-busy','true');
-    const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,total=reduced?4:25;
+    const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,total=reduced?4:25,finalStudent=students.length===1;
+    function reveal(){
+      const left=remember(owner,winner.id);renderChosen(owner);paint(winner);
+      if(finalStudent){caption.textContent='Plot twist… it’s';tone(true,523.25);tone(true,659.25,.12);tone(true,783.99,.24);}else tone(true);
+      busy=false;stage.removeAttribute('aria-busy');dialog.classList.remove('is-spinning','is-mystery');dialog.classList.add('has-winner');
+      status.textContent=`Chosen: ${rosterName(winner)} · ${left?`${left} left this round.`:"Everyone’s had a turn! 🎉 The next pick starts a new round."}`;pick.textContent='Pick again';pick.disabled=false;
+    }
+    if(finalStudent){
+      const lines=['Who could it possibly be?','The suspense is entirely unnecessary…','Our extremely surprising final contestant…'];
+      caption.textContent=lines[finaleCount++%lines.length];name.textContent='The final mystery…';status.textContent='One student left. A very mysterious reveal…';pick.textContent='Revealing…';
+      portrait.innerHTML='<svg viewBox="0 0 160 160" aria-hidden="true"><rect x="4" y="4" width="152" height="152" rx="36" fill="currentColor" opacity=".08"/><circle cx="80" cy="57" r="30" fill="currentColor" opacity=".4"/><path d="M25 148v-17a55 55 0 0 1 110 0v17" fill="currentColor" opacity=".4"/><text x="80" y="115" text-anchor="middle" font-size="52" font-weight="800" fill="currentColor">?</text></svg>';
+      dialog.classList.add('is-mystery');tone();
+      timer=setTimeout(()=>{if(token!==run||!dialog.open)return;tone();timer=setTimeout(()=>{if(token===run&&dialog.open)reveal();},reduced?300:700);},reduced?250:650);
+      return;
+    }
     if(!reduced)dialog.classList.add('is-spinning');
     let step=0,last=-1;
     function tick(){
       if(token!==run||!dialog.open)return;
-      if(step===total){const left=remember(owner,winner.id);renderChosen(owner);paint(winner);tone(true);busy=false;stage.removeAttribute('aria-busy');dialog.classList.remove('is-spinning');dialog.classList.add('has-winner');status.textContent=`Chosen: ${rosterName(winner)} · ${left?`${left} left this round.`:"Everyone has had a turn. The next pick starts a new round."}`;pick.textContent='Pick again';pick.disabled=false;return;}
+      if(step===total){reveal();return;}
       if(!reduced){let index=Math.floor(Math.random()*students.length);if(students.length>1&&index===last)index=(index+1)%students.length;last=index;paint(students[index]);}
       tone();step++;timer=setTimeout(tick,reduced?160:55+Math.pow(step/total,3)*280);
     }
