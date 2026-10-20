@@ -1,3 +1,4 @@
+import {pickerRound} from './picker-round.mjs?v=20261020-picker2';
 import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261019-release9';
 import {rosterName} from './student-names.mjs?v=20261019-release9';
 
@@ -15,12 +16,36 @@ export function setupRandomPicker(getChart) {
   const name=make('div','random-picker-name','Who will it be?');name.id='random-picker-name';
   const status=make('p','hint random-picker-status');status.id='random-picker-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.setAttribute('aria-atomic','true');
   stage.append(portrait,name);
+  const content=make('div','random-picker-content'),chosenPanel=make('aside','random-picker-chosen');chosenPanel.id='random-picker-chosen';chosenPanel.setAttribute('aria-labelledby','random-picker-chosen-title');
+  const chosenTitle=make('h3','','Already chosen');chosenTitle.id='random-picker-chosen-title';
+  const chosenList=make('ol'),chosenEmpty=make('p','hint','No students chosen yet this round.');chosenList.id='random-picker-chosen-list';chosenPanel.append(chosenTitle,chosenList,chosenEmpty);content.append(stage,chosenPanel);
   const controls=make('div','random-picker-controls'),soundLabel=make('label','check'),sound=make('input');sound.type='checkbox';sound.id='random-picker-sound';sound.checked=true;
   try{sound.checked=localStorage.getItem('sas-classroom-picker-sound')!=='off';}catch{}
   soundLabel.append(sound,document.createTextNode('Ticking sound'));
   const pick=make('button','primary','Pick a student');pick.id='random-picker-pick';pick.type='button';controls.append(soundLabel,pick);
-  dialog.append(header,classroom,stage,status,controls);document.body.append(dialog);
+  const showLabel=make('label','check'),showChosen=make('input');showChosen.type='checkbox';showChosen.id='random-picker-show-chosen';showChosen.checked=true;
+  try{showChosen.checked=localStorage.getItem('sas-classroom-picker-show-chosen')!=='off';}catch{}
+  showLabel.append(showChosen,document.createTextNode('Show chosen students'));controls.insertBefore(showLabel,pick);
+  dialog.append(header,classroom,content,status,controls);document.body.append(dialog);
   let timer,audio,busy=false,run=0;
+  const rounds=new Map(),roundKey=id=>'sas-classroom-picker-round-'+id;
+  function seenIds(c){
+    let seen=rounds.get(c.id)||[];
+    try{const saved=localStorage.getItem(roundKey(c.id));if(saved!==null)seen=JSON.parse(saved);}catch{}
+    return Array.isArray(seen)?[...new Set(seen)].filter(id=>c.students.some(s=>s.id===id)):[];
+  }
+  function round(c){return pickerRound(c.students,seenIds(c));}
+  function renderChosen(c){
+    chosenPanel.hidden=!showChosen.checked;content.classList.toggle('show-chosen',showChosen.checked);
+    const ids=seenIds(c);chosenList.replaceChildren(...ids.map(id=>make('li','',rosterName(c.students.find(s=>s.id===id)))));chosenEmpty.hidden=!!ids.length;
+    chosenTitle.textContent=`Already chosen (${ids.length})`;
+  }
+  showChosen.onchange=()=>{try{localStorage.setItem('sas-classroom-picker-show-chosen',showChosen.checked?'on':'off');}catch{}renderChosen(getChart());};
+  function remember(c,id){
+    const {picked}=round(c),seen=[...new Set([...picked,id])];rounds.set(c.id,seen);
+    try{localStorage.setItem(roundKey(c.id),JSON.stringify(seen));}catch{}
+    return c.students.filter(s=>!seen.includes(s.id)).length;
+  }
   const placeholder=()=>{portrait.innerHTML=avatarSVG(defaultAvatar());};
   function paint(student){portrait.innerHTML=avatarSVG(student.avatar||defaultAvatar());name.textContent=rosterName(student);}
   function stop(){run++;clearTimeout(timer);busy=false;dialog.classList.remove('is-spinning');stage.removeAttribute('aria-busy');if(audio){void audio.close().catch(()=>{});audio=null;}}
@@ -39,14 +64,14 @@ export function setupRandomPicker(getChart) {
   }
   sound.onchange=()=>{try{localStorage.setItem('sas-classroom-picker-sound',sound.checked?'on':'off');}catch{}if(sound.checked)enableAudio();};
   launch.onclick=()=>{
-    stop();const c=getChart();classroom.textContent=c.name;
+    stop();const c=getChart();classroom.textContent=c.name;renderChosen(c);
     name.textContent=c.students.length?'Who will it be?':'Add students to get started';placeholder();
-    status.textContent=c.students.length?`${c.students.length} students · Each student has an equal chance.`:'Open People → Students to add your classroom roster.';
+    status.textContent=c.students.length?`${round(c).remaining.length} of ${c.students.length} students left this round · No repeats until everyone has a turn.`:'Open People → Students to add your classroom roster.';
     pick.textContent='Pick a student';pick.disabled=!c.students.length;dialog.showModal();
   };
   pick.onclick=()=>{
     if(busy)return;
-    const students=structuredClone(getChart().students);if(!students.length)return;
+    const owner=getChart(),students=structuredClone(round(owner).remaining);if(!students.length)return;
     stop();busy=true;const token=run,winner=students[Math.floor(Math.random()*students.length)];
     enableAudio();pick.disabled=true;pick.textContent='Choosing…';status.textContent='Choosing a student…';stage.setAttribute('aria-busy','true');
     const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,total=reduced?4:25;
@@ -54,7 +79,7 @@ export function setupRandomPicker(getChart) {
     let step=0,last=-1;
     function tick(){
       if(token!==run||!dialog.open)return;
-      if(step===total){paint(winner);tone(true);busy=false;stage.removeAttribute('aria-busy');dialog.classList.remove('is-spinning');dialog.classList.add('has-winner');status.textContent=`Chosen: ${rosterName(winner)}`;pick.textContent='Pick again';pick.disabled=false;return;}
+      if(step===total){const left=remember(owner,winner.id);renderChosen(owner);paint(winner);tone(true);busy=false;stage.removeAttribute('aria-busy');dialog.classList.remove('is-spinning');dialog.classList.add('has-winner');status.textContent=`Chosen: ${rosterName(winner)} · ${left?`${left} left this round.`:"Everyone has had a turn. The next pick starts a new round."}`;pick.textContent='Pick again';pick.disabled=false;return;}
       if(!reduced){let index=Math.floor(Math.random()*students.length);if(students.length>1&&index===last)index=(index+1)%students.length;last=index;paint(students[index]);}
       tone();step++;timer=setTimeout(tick,reduced?160:55+Math.pow(step/total,3)*280);
     }
