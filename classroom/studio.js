@@ -2,26 +2,27 @@ import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261020-names1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261020-release1';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261020-release1';
-import {openAvatarEditor} from './avatar-editor.js?v=20261020-release1';
-import {transferStudent} from './seat-transfer.mjs?v=20261020-release1';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261020-release1';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261020-release1';
-import {furnitureArt} from './furniture-art.mjs?v=20261020-release1';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261020-release2';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261020-release2';
+import {openAvatarEditor} from './avatar-editor.js?v=20261020-release2';
+import {transferStudent} from './seat-transfer.mjs?v=20261020-release2';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261020-release2';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261020-release2';
+import {furnitureArt} from './furniture-art.mjs?v=20261020-release2';
 import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-names1';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261020-release1';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261020-release2';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
 let controlFrame,controlEntries=[],groupOverlay,lastSeatTap,labelObservers=[],hoverOwner=null,studentDragging=false,suppressStudentClickUntil=0;
+let createdInitialChart=false;
 let state, loadError = '', selection = null, history = [], redoHistory = [], zoom = 1;
 try {
   const saved = localStorage.getItem(KEY);
   state = saved ? validateBackup(JSON.parse(saved)) : null;
 } catch { loadError = 'Saved charts could not be loaded. Export your current work before reloading; the previous saved data will remain untouched until you make a change.'; }
-if (!state) {const c = newChart(); state = {version:1, active:c.id, charts:[c]};}
+if (!state) {createdInitialChart=!loadError;const c = newChart(); state = {version:1, active:c.id, charts:[c]};}
 const chart = () => state.charts.find(c => c.id === state.active);
 let selectedIds=new Set(),selectedSeatKeys=new Set(),multiMode=false;
 function seatTextColor(s){if(s.textColor)return s.textColor;if(!s.color)return '#294c6b';const [r,g,b]=s.color.slice(1).match(/../g).map(c=>parseInt(c,16));return r*.299+g*.587+b*.114>145?'#172c3e':'#ffffff';}
@@ -321,7 +322,7 @@ $('import-file').onchange = async () => {const file=$('import-file').files[0];if
   change(() => {state=incoming;selection=null;},'Backup imported. Undo is available.');
 } catch(error) {say(`Import failed: ${error.message}`);} finally {$('import-file').value='';}};
 $('print').onclick = () => window.print();
-tab(document.body.dataset.workspacePanel==='students');render();if(loadError) {say(loadError);$('save-state').textContent='Saved data could not be loaded';}
+tab(document.body.dataset.workspacePanel==='students');render();if(createdInitialChart)save();if(loadError) {say(loadError);$('save-state').textContent='Saved data could not be loaded';}
 void connectCloud({getState:()=>structuredClone(state),applyState:incoming=>change(()=>{state=incoming;selection=null;},'Cloud charts opened. Undo is available.'),notify:say});
 
 document.addEventListener('sas-before-refresh',event=>{if(!save()&&exportedSnapshot!==JSON.stringify(state)){event.detail?.setReason?.('Refresh paused. Browser saving is unavailable. Export a current backup, then try again.');event.preventDefault();}});
@@ -621,3 +622,45 @@ $('jobs-delete-history').onclick=()=>{if(!chart().weeklyJobs)return;change(()=>d
 $('jobs-restart').onclick=()=>{if(!chart().weeklyJobs)return;change(()=>{const jobs=chart().weeklyJobs;jobs.draws??=cleanerHistory(jobs).map(w=>structuredClone(w));jobs.rotationStart=jobs.draws.length;jobs.rotationSeen=[];},'Rotation restarted. Everyone is eligible; dated history is kept.');};
 
 setupRandomPicker(chart,change);
+
+// View state belongs to this browser tab, independently of shared classroom data.
+const viewKey=KEY+'-view';
+function rememberView(){
+ const scroller=$('room').parentElement;
+ const view={chart:state.active,selection,ids:[...selectedIds],seats:[...selectedSeatKeys],multi:multiMode,
+  panel:document.body.dataset.workspacePanel,library:!document.querySelector('.library').hidden,
+  tab:['furniture','students','jobs','teachers'].find(name=>$(name+'-tab').getAttribute('aria-selected')==='true'),
+  zoom:$('zoom').value,pan:panMode,left:scroller.scrollLeft,top:scroller.scrollTop,
+  week:$('jobs-week').value,dialog:['charts-dialog','settings-dialog','account-dialog'].find(id=>$(id)?.open),
+  scrolls:['workspace-library','workspace-inspector','charts-dialog','settings-dialog','account-dialog'].map(id=>({id,top:$(id)?.scrollTop||0}))};
+ try{sessionStorage.setItem(viewKey,JSON.stringify(view));}catch{}
+}
+function restoreView(){
+ let view;try{view=JSON.parse(sessionStorage.getItem(viewKey)||'null');}catch{return;}
+ if(!view||view.chart!==state.active)return;
+ const ids=new Set(chart().items.map(it=>it.id));
+ selectedIds=new Set((Array.isArray(view.ids)?view.ids:[]).filter(id=>ids.has(id)));
+ const validSeats=new Set(chart().items.flatMap(it=>it.seats.map((_,index)=>seatKey(it,index))));
+ selectedSeatKeys=new Set((Array.isArray(view.seats)?view.seats:[]).filter(key=>validSeats.has(key)));
+ const item=chart().items.find(it=>it.id===view.selection?.id);
+ selection=item&&(view.selection.seat===null||item.seats[view.selection.seat])?view.selection:null;
+ multiMode=!!view.multi;$('multi-select').setAttribute('aria-pressed',String(multiMode));
+ if(/^\d{4}-\d{2}-\d{2}$/.test(view.week))$('jobs-week').value=view.week;
+ render();
+ const panel=['furniture','students','details'].includes(view.panel)?view.panel:null;
+ document.dispatchEvent(new CustomEvent('sas-workspace-restore',{detail:{panel:panel==='details'&&!selected()?null:panel,library:!!view.library}}));
+ if(['furniture','students','jobs','teachers'].includes(view.tab))tab(view.tab==='furniture'?false:view.tab==='students'?true:view.tab);
+ if(view.zoom==='fit')$('zoom').value='fit';
+ else if(Number.isFinite(Number(view.zoom))&&Number(view.zoom)>=.05&&Number(view.zoom)<=3){
+  const entry=option(String(Number(view.zoom)),'Restored zoom');entry.dataset.customZoom='true';$('zoom').append(entry);$('zoom').value=entry.value;
+ }
+ updateZoom();setPan(!!view.pan);
+ if(['charts-dialog','settings-dialog','account-dialog'].includes(view.dialog)&&!document.querySelector('dialog[open]'))$(view.dialog).showModal();
+ requestAnimationFrame(()=>{updateZoom();const scroller=$('room').parentElement;scroller.scrollLeft=Number.isFinite(view.left)?view.left:0;scroller.scrollTop=Number.isFinite(view.top)?view.top:0;
+  for(const entry of Array.isArray(view.scrolls)?view.scrolls:[])if(['workspace-library','workspace-inspector','charts-dialog','settings-dialog','account-dialog'].includes(entry.id)&&Number.isFinite(entry.top))$(entry.id).scrollTop=entry.top;
+ });
+}
+window.addEventListener('pagehide',rememberView);
+document.addEventListener('sas-before-refresh',rememberView);
+if(document.readyState==='complete')requestAnimationFrame(restoreView);
+else window.addEventListener('load',()=>requestAnimationFrame(restoreView),{once:true});

@@ -1,4 +1,4 @@
-import {dismissNotice} from './surface-motion.js?v=20261020-release1';
+import {dismissNotice} from './surface-motion.js?v=20261020-release2';
 let refreshing=false;
 export function clearRefreshStatus(){const notice=document.getElementById('refresh-status');if(notice){notice.removeAttribute('id');dismissNotice(notice);}}
 document.addEventListener('sas-refresh-ready',clearRefreshStatus);
@@ -10,3 +10,9 @@ export async function refreshSite(button){
  catch(error){let notice=document.getElementById('refresh-status');if(!notice){notice=document.createElement('div');notice.id='refresh-status';notice.setAttribute('role','alert');Object.assign(notice.style,{position:'fixed',bottom:'16px',left:'12px',right:'12px',zIndex:'50000',padding:'16px',borderRadius:'14px',background:'#203c51',color:'#fff',font:'14px/1.5 Arial,sans-serif'});document.body.append(notice);}notice.textContent=error.message;const dismiss=document.createElement('button');dismiss.type='button';dismiss.textContent='Dismiss';dismiss.style.cssText='margin-left:12px;padding:6px 10px;border:1px solid #ffffff88;border-radius:8px;background:transparent;color:inherit;cursor:pointer';dismiss.onclick=clearRefreshStatus;notice.append(dismiss);return false;}
  finally{clearTimeout(timeout);refreshing=false;if(button){button.disabled=false;button.innerHTML=original;}}
 }
+
+// Keep each page's reading position across reloads in this tab.
+const positionKey='sas-page-position:'+location.pathname;
+window.addEventListener('pagehide',()=>{try{sessionStorage.setItem(positionKey,JSON.stringify({x:scrollX,y:scrollY}));}catch{}});
+function restorePosition(){try{const position=JSON.parse(sessionStorage.getItem(positionKey)||'null');if(position&&Number.isFinite(position.x)&&Number.isFinite(position.y))requestAnimationFrame(()=>scrollTo(position.x,position.y));}catch{}}
+if(document.readyState==='complete')restorePosition();else window.addEventListener('load',restorePosition,{once:true});

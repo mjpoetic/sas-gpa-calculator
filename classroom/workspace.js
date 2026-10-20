@@ -1,5 +1,5 @@
-import './dialog-motion.js?v=20261020-release1';
-import {animateWorkspace} from './panel-motion.js?v=20261020-release1';
+import './dialog-motion.js?v=20261020-release2';
+import {animateWorkspace} from './panel-motion.js?v=20261020-release2';
 // Move existing controls into compact panels without changing their data bindings.
 const $=id=>document.getElementById(id),body=document.body;
 body.classList.add('chart-first');
@@ -108,3 +108,6 @@ document.addEventListener('keydown',event=>{if(event.defaultPrevented||event.rep
 for(const [key,id] of Object.entries(classroomKeys)){const button=$(id);button.setAttribute('aria-keyshortcuts',key.toUpperCase());button.dataset.tooltip=(button.dataset.tooltip||button.dataset.delayedTooltip||button.textContent.trim())+' ('+key.toUpperCase()+')';}
 
 document.addEventListener('sas-mfa-required',()=>{if(!account.open)account.showModal();});
+
+// Restore through the same panel controls, without an opening animation.
+document.addEventListener('sas-workspace-restore',event=>{panelInitialized=false;setPanel(event.detail.panel,{closeLibrary:!event.detail.library});});

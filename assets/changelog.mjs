@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.20.2","changes":["Refreshing Classroom Studio restores your tools, selection, zoom, pan position, and open settings in the same tab.","Page scroll positions are remembered when refreshing the site."]},
  {"version":"2026.10.20.1","changes":["Added weekly lunch cleaner rotation, manual cleaner selection, exclusions, and history reset.","Added an animated student picker with sound, a final-student mystery reveal, and round reset controls that prevent repeat picks.","Unified avatar custom color pickers."]},
  {version:'2026.10.19.9',changes:['Avatar pass buttons now use a matching QR-code icon: an icon-only roster action and an icon beside the label in seat details.']},
  {version:'2026.10.19.8',changes:['Temporary avatar passes are now also available in seat details. Select a seated student and choose Temporary avatar pass without unseating them.']},

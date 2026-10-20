@@ -1,4 +1,4 @@
-import qrcode from './vendor/qrcode.js?v=20261020-release1';
+import qrcode from './vendor/qrcode.js?v=20261020-release2';
 
 export function setupAvatarPasses(request){
  document.addEventListener('sas-avatar-pass',event=>openPassDialog(event.detail,request));
