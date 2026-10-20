@@ -1,3 +1,4 @@
+import {setupRandomPicker} from './random-picker.js?v=20261020-picker1';
 import {weekStart,pickCleaners} from './weekly-jobs.mjs?v=20261020-jobs1';
 import {enableTwoFingerPan} from './touch-pan.js?v=20261019-release9';
 import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261019-release9';
@@ -591,3 +592,5 @@ function renderJobs(){
 $('jobs-week').onchange=()=>{if(!$('jobs-week').value)return;const date=$('jobs-week').value;if(!Number.isFinite(Date.parse(date+'T12:00:00')))return;$('jobs-week').value=weekStart(date);renderJobs();};
 $('jobs-count').onchange=()=>{const input=$('jobs-count');if(!input.value||!input.checkValidity()){renderJobs();return;}change(()=>{chart().weeklyJobs||={count:3,weeks:[]};chart().weeklyJobs.count=Number(input.value);},'Cleaner count saved for future picks.');};
 $('jobs-pick').onclick=()=>{const c=chart(),week=jobsWeek();if(!c.students.length||c.weeklyJobs?.weeks.some(w=>w.week===week))return;change(()=>{c.weeklyJobs||={count:3,weeks:[]};c.weeklyJobs.weeks.push({week,students:pickCleaners(c.students,c.weeklyJobs.weeks,week,c.weeklyJobs.count)});c.weeklyJobs.weeks.sort((a,b)=>a.week.localeCompare(b.week));c.weeklyJobs.weeks=c.weeklyJobs.weeks.slice(-520);},'Lunch cleaners saved for the week.');};
+
+setupRandomPicker(chart);
