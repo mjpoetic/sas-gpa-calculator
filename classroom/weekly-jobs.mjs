@@ -1,3 +1,4 @@
+import {seatName} from './student-names.mjs?v=20261019-release9';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 // Local calendar dates avoid UTC shifting a classroom's week at midnight.
 export function weekStart(value = new Date()) {
@@ -34,7 +35,7 @@ export function pickCleaners(students,weeks,week,count,excluded=[],random=Math.r
 export function recordCleaners(jobs,students,week,ids){
  jobs.draws??=cleanerHistory(jobs).map(w=>({...w,students:[...w.students]}));
  if(jobs.draws.length>=10000)throw new Error('Cleaner history is full. Export a backup before starting a new classroom.');
- jobs.draws.push({week,students:[...ids],names:ids.map(id=>{const s=students.find(s=>s.id===id);return s?.nickname||s?.name||'Removed student';})});
+ jobs.draws.push({week,students:[...ids],names:ids.map(id=>{const s=students.find(s=>s.id===id);return s?seatName(s,students):'Removed student';})});
 }
 
 export function setManualCleaners(chart,week,ids){

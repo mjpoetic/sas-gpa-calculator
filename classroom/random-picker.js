@@ -1,8 +1,8 @@
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
-import {openStudentExclusions} from './student-exclusions.js?v=20261020-exclusions1';
+import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {pickerRound} from './picker-round.mjs?v=20261020-picker2';
 import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261019-release9';
-import {rosterName} from './student-names.mjs?v=20261019-release9';
+import {seatName} from './student-names.mjs?v=20261019-release9';
 
 export function setupRandomPicker(getChart,commit) {
   const make=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node;};
@@ -42,7 +42,7 @@ export function setupRandomPicker(getChart,commit) {
   function round(c){return pickerRound(eligibleStudents(c,'picker'),seenIds(c));}
   function renderChosen(c){
     chosenPanel.hidden=!showChosen.checked;content.classList.toggle('show-chosen',showChosen.checked);
-    const ids=seenIds(c);chosenList.replaceChildren(...ids.map(id=>make('li','',rosterName(c.students.find(s=>s.id===id)))));chosenEmpty.hidden=!!ids.length;
+    const ids=seenIds(c);chosenList.replaceChildren(...ids.map(id=>make('li','',seatName(c.students.find(s=>s.id===id),c.students))));chosenEmpty.hidden=!!ids.length;
     chosenTitle.textContent=`Already chosen (${ids.length})`;reset.disabled=!ids.length;
   }
   showChosen.onchange=()=>{try{localStorage.setItem('sas-classroom-picker-show-chosen',showChosen.checked?'on':'off');}catch{}renderChosen(getChart());};
@@ -52,7 +52,7 @@ export function setupRandomPicker(getChart,commit) {
     return eligibleStudents(c,'picker').filter(s=>!seen.includes(s.id)).length;
   }
   const placeholder=()=>{portrait.innerHTML=avatarSVG(defaultAvatar());};
-  function paint(student){portrait.innerHTML=avatarSVG(student.avatar||defaultAvatar());name.textContent=rosterName(student);}
+  function paint(student){portrait.innerHTML=avatarSVG(student.avatar||defaultAvatar());name.textContent=seatName(student,getChart().students);}
   function stop(){run++;clearTimeout(timer);busy=false;dialog.classList.remove('is-spinning','is-mystery');caption.textContent='';stage.removeAttribute('aria-busy');if(audio){void audio.close().catch(()=>{});audio=null;}}
   function tone(final=false,frequency=null,delay=0){
     if(!sound.checked||!audio||audio.state!=='running')return;
@@ -86,7 +86,7 @@ export function setupRandomPicker(getChart,commit) {
       const left=remember(owner,winner.id);renderChosen(owner);paint(winner);
       if(finalStudent){caption.textContent='Plot twist… it’s';tone(true,523.25);tone(true,659.25,.12);tone(true,783.99,.24);}else tone(true);
       busy=false;stage.removeAttribute('aria-busy');dialog.classList.remove('is-spinning','is-mystery');dialog.classList.add('has-winner');
-      status.textContent=`Chosen: ${rosterName(winner)} · ${left?`${left} left this round.`:"Everyone’s had a turn! 🎉 The next pick starts a new round."}`;pick.textContent='Pick again';pick.disabled=false;
+      status.textContent=`Chosen: ${seatName(winner,getChart().students)} · ${left?`${left} left this round.`:"Everyone’s had a turn! 🎉 The next pick starts a new round."}`;pick.textContent='Pick again';pick.disabled=false;
     }
     if(finalStudent){
       const lines=['Who could it possibly be?','The suspense is entirely unnecessary…','Our extremely surprising final contestant…'];

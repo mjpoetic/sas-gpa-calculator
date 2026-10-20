@@ -1,7 +1,7 @@
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
-import {openStudentExclusions} from './student-exclusions.js?v=20261020-exclusions1';
-import {setupRandomPicker} from './random-picker.js?v=20261020-exclusions1';
-import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-history1';
+import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
+import {setupRandomPicker} from './random-picker.js?v=20261020-names1';
+import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
 import {enableTwoFingerPan} from './touch-pan.js?v=20261019-release9';
 import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261019-release9';
 import {openAvatarEditor} from './avatar-editor.js?v=20261019-release9';
@@ -9,9 +9,9 @@ import {transferStudent} from './seat-transfer.mjs?v=20261019-release9';
 import {controlSize,placeControls} from './control-placement.mjs?v=20261019-release9';
 import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261019-release9';
 import {furnitureArt} from './furniture-art.mjs?v=20261019-release9';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-history1';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-names1';
 import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261019-release9';
-import {connectCloud} from './cloud.js?v=20261020-history1';
+import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -579,7 +579,7 @@ function renderAssistants(){
 function jobsWeek(){return $('jobs-week').value || weekStart();}
 function cleanerIdentity(c,id,fallback){
  const student=c.students.find(s=>s.id===id),identity=element('span','cleaner-identity'),portrait=element('span','cleaner-avatar');portrait.setAttribute('aria-hidden','true');portrait.innerHTML=avatarSVG(student?.avatar||defaultAvatar());
- identity.append(portrait,element('span','cleaner-name',student?rosterName(student):fallback||'Removed student'));return identity;
+ identity.append(portrait,element('span','cleaner-name',student?seatName(student,c.students):fallback?seatName({name:fallback},[...c.students,{name:fallback}]):'Removed student'));return identity;
 }
 function cleanerDate(week){return new Date(week+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
 function renderJobs(){
@@ -598,7 +598,7 @@ function renderJobs(){
  $('jobs-history').replaceChildren(...[...cleanerHistory(jobs)].reverse().map(draw=>{const group=element('section','cleaner-history-entry'),list=element('ul');group.append(element('h3','','Week of '+cleanerDate(draw.week)));list.append(...draw.students.map((id,i)=>{const row=element('li');row.append(cleanerIdentity(c,id,draw.names?.[i]));return row;}));group.append(list);return group;}));
  let summary=$('jobs-current-summary');if(!summary){summary=element('button','jobs-current-summary');summary.id='jobs-current-summary';summary.type='button';summary.onclick=()=>{if(document.querySelector('.library').hidden)$('dock-students').click();$('jobs-tab').click();};document.querySelector('.room-scroll').before(summary);}
  const current=jobs.weeks.find(w=>w.week===weekStart());summary.hidden=!current?.students.length;
- summary.replaceChildren();if(current?.students.length){summary.append(element('strong','','This week’s lunch cleaners'),...current.students.map(id=>cleanerIdentity(c,id)));summary.setAttribute('aria-label','This week’s lunch cleaners: '+current.students.map(id=>c.students.find(s=>s.id===id)?.name||'Removed student').join(', ')+'. Open Weekly Jobs');}
+ summary.replaceChildren();if(current?.students.length){summary.append(element('strong','','This week’s lunch cleaners'),...current.students.map(id=>cleanerIdentity(c,id)));summary.setAttribute('aria-label','This week’s lunch cleaners: '+current.students.map(id=>{const student=c.students.find(s=>s.id===id);return student?seatName(student,c.students):'Removed student';}).join(', ')+'. Open Weekly Jobs');}
 }
 $('jobs-week').onchange=()=>{if(!$('jobs-week').value)return;const date=$('jobs-week').value;if(!Number.isFinite(Date.parse(date+'T12:00:00')))return;$('jobs-week').value=weekStart(date);renderJobs();};
 $('jobs-count').onchange=()=>{const input=$('jobs-count');if(!input.value||!input.checkValidity()){renderJobs();return;}change(()=>{chart().weeklyJobs||={count:3,weeks:[]};chart().weeklyJobs.count=Number(input.value);},'Cleaner count saved for future picks.');};
@@ -612,7 +612,7 @@ $('jobs-manual').onclick=()=>{
  const saveButton=element('button','primary','Save cleaners');saveButton.id='jobs-manual-save';saveButton.type='button';
  function selected(){return [...list.querySelectorAll('input:checked')].map(input=>input.value);}
  function update(){const count=selected().length;saveButton.disabled=!count||count>jobs.count;status.textContent=count+' of '+jobs.count+' selected'+(count>jobs.count?' — remove a student to save.':'.');}
- for(const student of c.students){const row=element('label','manual-cleaner-row'),input=element('input');input.type='checkbox';input.value=student.id;input.checked=!!entry?.students.includes(student.id);input.disabled=!eligible.has(student.id);input.setAttribute('aria-label',rosterName(student));input.onchange=update;row.append(input,cleanerIdentity(c,student.id));if(input.disabled)row.append(element('span','hint',c.studentExclusions?.cleaners?.includes(student.id)?'Excluded':'Already served'));list.append(row);}
+ for(const student of c.students){const row=element('label','manual-cleaner-row'),input=element('input');input.type='checkbox';input.value=student.id;input.checked=!!entry?.students.includes(student.id);input.disabled=!eligible.has(student.id);input.setAttribute('aria-label',seatName(student,c.students));input.onchange=update;row.append(input,cleanerIdentity(c,student.id));if(input.disabled)row.append(element('span','hint',c.studentExclusions?.cleaners?.includes(student.id)?'Excluded':'Already served'));list.append(row);}
  saveButton.onclick=()=>{const owner=chart(),ids=selected();if(owner.id!==c.id){status.textContent='The classroom changed. Close and reopen the chooser.';return;}try{const next=structuredClone(owner);setManualCleaners(next,week,ids);change(()=>{owner.weeklyJobs=next.weeklyJobs;},'Manual cleaners saved. Rotation history updated.');d.close();}catch(error){status.textContent=error.message;}};
  d.append(heading,help,list,status,saveButton);d.addEventListener('close',()=>{d.remove();$('jobs-manual').focus();},{once:true});document.body.append(d);update();d.showModal();
 };
