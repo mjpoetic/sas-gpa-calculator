@@ -1,5 +1,7 @@
-import {setupRandomPicker} from './random-picker.js?v=20261020-finale1';
-import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners} from './weekly-jobs.mjs?v=20261020-jobs2';
+import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
+import {openStudentExclusions} from './student-exclusions.js?v=20261020-exclusions1';
+import {setupRandomPicker} from './random-picker.js?v=20261020-exclusions1';
+import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-history1';
 import {enableTwoFingerPan} from './touch-pan.js?v=20261019-release9';
 import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261019-release9';
 import {openAvatarEditor} from './avatar-editor.js?v=20261019-release9';
@@ -7,9 +9,9 @@ import {transferStudent} from './seat-transfer.mjs?v=20261019-release9';
 import {controlSize,placeControls} from './control-placement.mjs?v=20261019-release9';
 import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261019-release9';
 import {furnitureArt} from './furniture-art.mjs?v=20261019-release9';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-jobs2';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-history1';
 import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261019-release9';
-import {connectCloud} from './cloud.js?v=20261020-jobs2';
+import {connectCloud} from './cloud.js?v=20261020-history1';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
@@ -582,14 +584,14 @@ function cleanerIdentity(c,id,fallback){
 function cleanerDate(week){return new Date(week+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
 function renderJobs(){
  if(!$('jobs-week').value)$('jobs-week').value=weekStart();
- const c=chart(),jobs=c.weeklyJobs||{count:3,weeks:[]},entry=jobs.weeks.find(w=>w.week===jobsWeek()),pool=cleanerPool(c.students,jobs);
- $('jobs-count').value=jobs.count;$('jobs-pick').disabled=!!entry||!c.students.length;$('jobs-clear').disabled=!entry;
+ const c=chart(),jobs=c.weeklyJobs||{count:3,weeks:[]},entry=jobs.weeks.find(w=>w.week===jobsWeek()),pool=cleanerPool(eligibleStudents(c,'cleaners'),jobs);
+ $('jobs-count').value=jobs.count;$('jobs-pick').disabled=!!entry||!eligibleStudents(c,'cleaners').length;$('jobs-clear').disabled=!entry;$('jobs-manual').disabled=!c.students.length;$('jobs-manual').textContent=entry?'Edit cleaners manually':'Choose cleaners manually';
  $('jobs-status').textContent=entry?'Saved for the week of '+cleanerDate(entry.week)+'.':c.students.length?'Ready to choose '+Math.min(jobs.count,pool.length)+' cleaners.':'Add students in the Students tab to get started.';
  $('jobs-rotation-status').textContent=pool.length+' of '+c.students.length+' students eligible before the next round. Last groups may be smaller to avoid repeats.';
- $('jobs-restart').disabled=!cleanerHistory(jobs).slice(jobs.rotationStart||0).length;
+ $('jobs-restart').disabled=!cleanerHistory(jobs).slice(jobs.rotationStart||0).length&&!jobs.rotationSeen?.length;$('jobs-delete-history').disabled=!cleanerHistory(jobs).length&&!jobs.weeks.some(w=>w.week<weekStart());
  $('jobs-cleaners').replaceChildren(...(entry?.students||[]).map(id=>{
   const row=element('li'),identity=cleanerIdentity(c,id),swap=element('button','','Swap');swap.type='button';swap.setAttribute('aria-label','Swap '+identity.textContent);
-  const candidates=()=>pickCleaners(c.students,jobs.weeks,jobsWeek(),1,entry.students,Math.random,jobs);
+  const candidates=()=>pickCleaners(eligibleStudents(c,'cleaners'),jobs.weeks,jobsWeek(),1,entry.students,Math.random,jobs);
   swap.disabled=!candidates().length;
   swap.onclick=()=>{const next=candidates()[0];if(next)change(()=>{recordCleaners(jobs,c.students,jobsWeek(),[next]);entry.students[entry.students.indexOf(id)]=next;},'Cleaner swapped. Previous picks remain in history.');};row.append(identity,swap);return row;
  }));
@@ -600,8 +602,22 @@ function renderJobs(){
 }
 $('jobs-week').onchange=()=>{if(!$('jobs-week').value)return;const date=$('jobs-week').value;if(!Number.isFinite(Date.parse(date+'T12:00:00')))return;$('jobs-week').value=weekStart(date);renderJobs();};
 $('jobs-count').onchange=()=>{const input=$('jobs-count');if(!input.value||!input.checkValidity()){renderJobs();return;}change(()=>{chart().weeklyJobs||={count:3,weeks:[]};chart().weeklyJobs.count=Number(input.value);},'Cleaner count saved for future picks.');};
-$('jobs-pick').onclick=()=>{const c=chart(),week=jobsWeek();if(!c.students.length||c.weeklyJobs?.weeks.some(w=>w.week===week))return;change(()=>{c.weeklyJobs||={count:3,weeks:[]};const jobs=c.weeklyJobs,ids=pickCleaners(c.students,jobs.weeks,week,jobs.count,[],Math.random,jobs);recordCleaners(jobs,c.students,week,ids);jobs.weeks.push({week,students:ids});jobs.weeks.sort((a,b)=>a.week.localeCompare(b.week));jobs.weeks=jobs.weeks.slice(-520);},'Lunch cleaners saved for the week.');};
+$('jobs-pick').onclick=()=>{const c=chart(),week=jobsWeek();if(!eligibleStudents(c,'cleaners').length||c.weeklyJobs?.weeks.some(w=>w.week===week))return;change(()=>{c.weeklyJobs||={count:3,weeks:[]};const jobs=c.weeklyJobs,ids=pickCleaners(eligibleStudents(c,'cleaners'),jobs.weeks,week,jobs.count,[],Math.random,jobs);recordCleaners(jobs,c.students,week,ids);jobs.weeks.push({week,students:ids});jobs.weeks.sort((a,b)=>a.week.localeCompare(b.week));jobs.weeks=jobs.weeks.slice(-520);},'Lunch cleaners saved for the week.');};
+$('jobs-exclusions').onclick=()=>openStudentExclusions(chart,change,'cleaners');
+$('jobs-manual').onclick=()=>{
+ const c=chart(),week=jobsWeek(),jobs=c.weeklyJobs||{count:3,weeks:[]},entry=jobs.weeks.find(w=>w.week===week),eligible=new Set([...cleanerPool(eligibleStudents(c,'cleaners'),jobs).map(s=>s.id),...(entry?.students||[])]);
+ const d=element('dialog','workspace-dialog manual-cleaners');d.id='jobs-manual-dialog';d.setAttribute('aria-labelledby','jobs-manual-title');
+ const heading=element('form');heading.method='dialog';const title=element('h2','','Choose lunch cleaners');title.id='jobs-manual-title';const close=element('button','','×');close.setAttribute('aria-label','Close manual cleaner selection');heading.append(title,close);
+ const help=element('p','hint','Week of '+cleanerDate(week)+'. Choose up to '+jobs.count+' cleaners. Students who have already served are unavailable until the round is complete.'),list=element('div','manual-cleaner-list'),status=element('p','hint');status.id='jobs-manual-status';status.setAttribute('role','status');
+ const saveButton=element('button','primary','Save cleaners');saveButton.id='jobs-manual-save';saveButton.type='button';
+ function selected(){return [...list.querySelectorAll('input:checked')].map(input=>input.value);}
+ function update(){const count=selected().length;saveButton.disabled=!count||count>jobs.count;status.textContent=count+' of '+jobs.count+' selected'+(count>jobs.count?' — remove a student to save.':'.');}
+ for(const student of c.students){const row=element('label','manual-cleaner-row'),input=element('input');input.type='checkbox';input.value=student.id;input.checked=!!entry?.students.includes(student.id);input.disabled=!eligible.has(student.id);input.setAttribute('aria-label',rosterName(student));input.onchange=update;row.append(input,cleanerIdentity(c,student.id));if(input.disabled)row.append(element('span','hint',c.studentExclusions?.cleaners?.includes(student.id)?'Excluded':'Already served'));list.append(row);}
+ saveButton.onclick=()=>{const owner=chart(),ids=selected();if(owner.id!==c.id){status.textContent='The classroom changed. Close and reopen the chooser.';return;}try{const next=structuredClone(owner);setManualCleaners(next,week,ids);change(()=>{owner.weeklyJobs=next.weeklyJobs;},'Manual cleaners saved. Rotation history updated.');d.close();}catch(error){status.textContent=error.message;}};
+ d.append(heading,help,list,status,saveButton);d.addEventListener('close',()=>{d.remove();$('jobs-manual').focus();},{once:true});document.body.append(d);update();d.showModal();
+};
 $('jobs-clear').onclick=()=>{if(!chart().weeklyJobs)return;change(()=>{const jobs=chart().weeklyJobs;jobs.draws??=cleanerHistory(jobs).map(w=>structuredClone(w));jobs.weeks=jobs.weeks.filter(w=>w.week!==jobsWeek());},'This week’s cleaners cleared. History and rotation are kept. Undo is available.');};
-$('jobs-restart').onclick=()=>{if(!chart().weeklyJobs)return;change(()=>{const jobs=chart().weeklyJobs;jobs.draws??=cleanerHistory(jobs).map(w=>structuredClone(w));jobs.rotationStart=jobs.draws.length;},'Rotation restarted. Everyone is eligible; dated history is kept.');};
+$('jobs-delete-history').onclick=()=>{if(!chart().weeklyJobs)return;change(()=>deleteCleanerHistory(chart()),'Cleaner history deleted. Current assignments and rotation progress kept. Undo is available.');};
+$('jobs-restart').onclick=()=>{if(!chart().weeklyJobs)return;change(()=>{const jobs=chart().weeklyJobs;jobs.draws??=cleanerHistory(jobs).map(w=>structuredClone(w));jobs.rotationStart=jobs.draws.length;jobs.rotationSeen=[];},'Rotation restarted. Everyone is eligible; dated history is kept.');};
 
-setupRandomPicker(chart);
+setupRandomPicker(chart,change);

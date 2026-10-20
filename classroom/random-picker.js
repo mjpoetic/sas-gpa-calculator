@@ -1,8 +1,10 @@
+import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
+import {openStudentExclusions} from './student-exclusions.js?v=20261020-exclusions1';
 import {pickerRound} from './picker-round.mjs?v=20261020-picker2';
 import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261019-release9';
 import {rosterName} from './student-names.mjs?v=20261019-release9';
 
-export function setupRandomPicker(getChart) {
+export function setupRandomPicker(getChart,commit) {
   const make=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node;};
   const launch=make('button','random-picker-launch');
   launch.id='random-picker-open';launch.type='button';launch.setAttribute('aria-label','Pick a random student');launch.title='Pick a random student with a big avatar reveal';
@@ -28,6 +30,7 @@ export function setupRandomPicker(getChart) {
   try{showChosen.checked=localStorage.getItem('sas-classroom-picker-show-chosen')!=='off';}catch{}
   showLabel.append(showChosen,document.createTextNode('Show chosen students'));controls.insertBefore(showLabel,pick);
   const reset=make('button','random-picker-reset','Reset round');reset.id='random-picker-reset';reset.type='button';reset.title='Clear chosen students and make everyone eligible again';controls.append(reset);
+  const exclusions=make('button','','Excluded students');exclusions.id='random-picker-exclusions';exclusions.type='button';controls.append(exclusions);
   dialog.append(header,classroom,content,status,controls);document.body.append(dialog);
   let timer,audio,busy=false,run=0,finaleCount=0;
   const rounds=new Map(),roundKey=id=>'sas-classroom-picker-round-'+id;
@@ -36,7 +39,7 @@ export function setupRandomPicker(getChart) {
     try{const saved=localStorage.getItem(roundKey(c.id));if(saved!==null)seen=JSON.parse(saved);}catch{}
     return Array.isArray(seen)?[...new Set(seen)].filter(id=>c.students.some(s=>s.id===id)):[];
   }
-  function round(c){return pickerRound(c.students,seenIds(c));}
+  function round(c){return pickerRound(eligibleStudents(c,'picker'),seenIds(c));}
   function renderChosen(c){
     chosenPanel.hidden=!showChosen.checked;content.classList.toggle('show-chosen',showChosen.checked);
     const ids=seenIds(c);chosenList.replaceChildren(...ids.map(id=>make('li','',rosterName(c.students.find(s=>s.id===id)))));chosenEmpty.hidden=!!ids.length;
@@ -46,7 +49,7 @@ export function setupRandomPicker(getChart) {
   function remember(c,id){
     const {picked}=round(c),seen=[...new Set([...picked,id])];rounds.set(c.id,seen);
     try{localStorage.setItem(roundKey(c.id),JSON.stringify(seen));}catch{}
-    return c.students.filter(s=>!seen.includes(s.id)).length;
+    return eligibleStudents(c,'picker').filter(s=>!seen.includes(s.id)).length;
   }
   const placeholder=()=>{portrait.innerHTML=avatarSVG(defaultAvatar());};
   function paint(student){portrait.innerHTML=avatarSVG(student.avatar||defaultAvatar());name.textContent=rosterName(student);}
@@ -65,12 +68,14 @@ export function setupRandomPicker(getChart) {
     try{const Context=window.AudioContext||window.webkitAudioContext;if(!Context)return;if(!audio)audio=new Context();void audio.resume().catch(()=>{});}catch{/* Picking still works when audio is unavailable. */}
   }
   sound.onchange=()=>{try{localStorage.setItem('sas-classroom-picker-sound',sound.checked?'on':'off');}catch{}if(sound.checked)enableAudio();};
-  launch.onclick=()=>{
+  function refreshPicker(){
     stop();const c=getChart();classroom.textContent=c.name;renderChosen(c);
-    name.textContent=c.students.length?'Who will it be?':'Add students to get started';placeholder();
-    status.textContent=c.students.length?`${round(c).remaining.length} of ${c.students.length} students left this round · No repeats until everyone has a turn.`:'Open People → Students to add your classroom roster.';
-    pick.textContent='Pick a student';pick.disabled=!c.students.length;dialog.showModal();
-  };
+    name.textContent=eligibleStudents(c,'picker').length?'Who will it be?':c.students.length?'No eligible students':'Add students to get started';placeholder();
+    status.textContent=c.students.length?`${round(c).remaining.length} of ${eligibleStudents(c,'picker').length} eligible students left this round · Manage excluded students to restore names.`:'Open People → Students to add your classroom roster.';
+    pick.textContent='Pick a student';pick.disabled=!eligibleStudents(c,'picker').length;
+  }
+  launch.onclick=()=>{refreshPicker();dialog.showModal();};
+  exclusions.onclick=()=>{refreshPicker();openStudentExclusions(getChart,commit,'picker',refreshPicker);pick.disabled=!eligibleStudents(getChart(),'picker').length;pick.textContent='Pick a student';};
   pick.onclick=()=>{
     if(busy)return;
     const owner=getChart(),students=structuredClone(round(owner).remaining);if(!students.length)return;
@@ -105,7 +110,7 @@ export function setupRandomPicker(getChart) {
     stop();const c=getChart();rounds.set(c.id,[]);
     try{localStorage.setItem(roundKey(c.id),'[]');}catch{}
     renderChosen(c);placeholder();name.textContent=c.students.length?'Who will it be?':'Add students to get started';dialog.classList.remove('has-winner');
-    status.textContent=`Round reset · All ${c.students.length} students are eligible again.`;pick.textContent='Pick a student';pick.disabled=!c.students.length;
+    status.textContent=`Round reset · All ${eligibleStudents(c,'picker').length} non-excluded students are eligible again.`;pick.textContent='Pick a student';pick.disabled=!eligibleStudents(c,'picker').length;
   };
   close.onclick=()=>dialog.close();
   dialog.addEventListener('close',()=>{stop();dialog.classList.remove('has-winner');launch.focus();});
