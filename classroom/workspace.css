@@ -123,3 +123,5 @@
 .classroom-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;min-width:0}.classroom-footer .message{min-width:0;flex:1}.classroom-footer .site-version{flex:none;padding:4px 3px}.settings-version{padding:8px 2px;line-height:1.5}.chart-tools-collapsed .classroom-footer,.chart-fullscreen .classroom-footer{display:none!important}@media print{.classroom-footer,.settings-version{display:none!important}}
 
 .item:not(.label)>.item-caption{z-index:1;pointer-events:none}
+/* Match the two roster actions despite their different glyph sizes. */
+.chart-first .toolbar-actions :is(#random-picker-open,#shuffle){display:inline-flex;align-items:center;justify-content:center;gap:5px;box-sizing:border-box;height:max(38px,calc(38px * var(--ui-text-scale,1)));min-height:max(38px,calc(38px * var(--ui-text-scale,1)));padding:6px 10px;line-height:1.2;vertical-align:middle}.chart-first .toolbar-actions :is(#random-picker-open,#shuffle) .button-glyph{margin:0}@media(max-width:600px){.chart-first .toolbar-actions :is(#random-picker-open,#shuffle){width:38px;min-width:38px;padding:6px}}
