@@ -1,6 +1,6 @@
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
-import {setupRandomPicker} from './random-picker.js?v=20261020-names1';
+import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
 import {enableTwoFingerPan} from './touch-pan.js?v=20261020-release2';
 import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261020-release2';

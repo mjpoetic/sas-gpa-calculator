@@ -8,7 +8,7 @@ export function setupRandomPicker(getChart,commit) {
   const make=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node;};
   const launch=make('button','random-picker-launch');
   launch.id='random-picker-open';launch.type='button';launch.setAttribute('aria-label','Pick a random student');launch.title='Pick a random student with a big avatar reveal';
-  launch.innerHTML='<svg class="button-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M7 7h.01M17 7h.01M12 12h.01M7 17h.01M17 17h.01" stroke-linecap="round"/></svg><span>Pick a name</span>';
+  launch.innerHTML='<svg class="button-glyph" viewBox="0 0 24 24" aria-hidden="true"><g transform="rotate(-12 12 12)"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><g fill="currentColor"><circle cx="7.5" cy="7.5" r="1.8"/><circle cx="16.5" cy="7.5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="7.5" cy="16.5" r="1.8"/><circle cx="16.5" cy="16.5" r="1.8"/></g></g></svg><span>Pick a name</span>';
   document.getElementById('shuffle').before(launch);
   const dialog=make('dialog','workspace-dialog random-picker');dialog.id='random-picker-dialog';dialog.setAttribute('aria-labelledby','random-picker-title');
   const header=make('header','random-picker-header'),title=make('h2','','Random student');title.id='random-picker-title';
