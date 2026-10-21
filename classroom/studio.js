@@ -580,9 +580,16 @@ function renderAssistants(){
 function jobsWeek(){return $('jobs-week').value || weekStart();}
 function cleanerIdentity(c,id,fallback){
  const student=c.students.find(s=>s.id===id),identity=element('span','cleaner-identity'),portrait=element('span','cleaner-avatar');portrait.setAttribute('aria-hidden','true');portrait.innerHTML=avatarSVG(student?.avatar||defaultAvatar());
- identity.append(portrait,element('span','cleaner-name',student?seatName(student,c.students):fallback?seatName({name:fallback},[...c.students,{name:fallback}]):'Removed student'));return identity;
+ const label=element('span','cleaner-name',student?seatName(student,c.students):fallback?seatName({name:fallback},[...c.students,{name:fallback}]):'Removed student');label.title=label.textContent;identity.append(portrait,label);return identity;
 }
 function cleanerDate(week){return new Date(week+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
+function fitCleanerNames(){
+ for(const name of $('jobs-cleaners').querySelectorAll('.cleaner-name')){
+  if(!name.clientWidth)continue;
+  name.style.fontSize='';const size=parseFloat(getComputedStyle(name).fontSize),minimum=Math.max(11,size*.75);
+  for(let next=size-1;name.scrollWidth>name.clientWidth&&next>=minimum;next--)name.style.fontSize=next+'px';
+ }
+}
 function renderJobs(){
  if(!$('jobs-week').value)$('jobs-week').value=weekStart();
  const c=chart(),jobs=c.weeklyJobs||{count:3,weeks:[]},entry=jobs.weeks.find(w=>w.week===jobsWeek()),pool=cleanerPool(eligibleStudents(c,'cleaners'),jobs);
@@ -596,7 +603,7 @@ function renderJobs(){
   swap.disabled=!candidates().length;
   swap.onclick=()=>{const next=candidates()[0];if(next)change(()=>{recordCleaners(jobs,c.students,jobsWeek(),[next]);entry.students[entry.students.indexOf(id)]=next;},'Cleaner swapped. Previous picks remain in history.');};row.append(identity,swap);return row;
  }));
- renderCleanerArchive();
+ requestAnimationFrame(fitCleanerNames);renderCleanerArchive();
  let summary=$('jobs-current-summary');if(!summary){summary=element('button','jobs-current-summary');summary.id='jobs-current-summary';summary.type='button';summary.onclick=()=>{if(document.querySelector('.library').hidden)$('dock-students').click();$('jobs-tab').click();};document.querySelector('.room-scroll').before(summary);}
  const current=jobs.weeks.find(w=>w.week===weekStart());summary.hidden=!current?.students.length;
  summary.replaceChildren();if(current?.students.length){summary.append(element('strong','','This week’s lunch cleaners'),...current.students.map(id=>cleanerIdentity(c,id)));summary.setAttribute('aria-label','This week’s lunch cleaners: '+current.students.map(id=>{const student=c.students.find(s=>s.id===id);return student?seatName(student,c.students):'Removed student';}).join(', ')+'. Open Weekly Jobs');}
@@ -677,3 +684,5 @@ window.addEventListener('pagehide',rememberView);
 document.addEventListener('sas-before-refresh',rememberView);
 if(document.readyState==='complete')requestAnimationFrame(restoreView);
 else window.addEventListener('load',()=>requestAnimationFrame(restoreView),{once:true});
+
+new ResizeObserver(fitCleanerNames).observe($('jobs-cleaners'));
