@@ -1,6 +1,7 @@
 import {readFile,writeFile,readdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const read=path=>readFile(root+path,'utf8');
 const pages=['index.html','classroom/index.html','teacher-tools/index.html'];
@@ -14,6 +15,15 @@ async function sources(dir=''){
   else if(/\.(html|js|mjs|css)$/.test(path))files.push(path);
  }
  return files;
+}
+async function sourceHash(){
+ const hash=createHash('sha256');
+ for(const path of (await sources()).sort()){
+  if(path==='assets/changelog.mjs')continue;
+  const content=(await read(path)).replace(/\?v=\d{8}-release\d+/g,'?v=RELEASE').replace(/(<meta name="site-(?:version|updated)" content=")[^"]+/g,'$1RELEASE');
+  hash.update(path+'\0'+content+'\0');
+ }
+ return hash.digest('hex');
 }
 const manifest=JSON.parse(await read('site-version.json'));
 if(process.argv[2]!=='--check'){
@@ -29,9 +39,10 @@ if(process.argv[2]!=='--check'){
   if(path==='assets/changelog.mjs')after=after.replace('export const releases=[','export const releases=[\n '+JSON.stringify({version,changes})+',');
   if(after!==before)await writeFile(root+path,after);
  }
- Object.assign(manifest,{version,updatedAt});
+ Object.assign(manifest,{version,updatedAt,sourceHash:await sourceHash()});
  await writeFile(root+'site-version.json',JSON.stringify(manifest,null,2)+'\n');
 }
+assert.equal(manifest.sourceHash,await sourceHash(),'Site files changed since the last release. Run node scripts/site-release.mjs with a new version and release notes.');
 for(const path of pages){
  const html=await read(path);
  assert.equal(html.match(/name="site-version" content="([^"]+)"/)?.[1],manifest.version,path+' version');
