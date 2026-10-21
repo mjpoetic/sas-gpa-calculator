@@ -125,3 +125,6 @@
 .item:not(.label)>.item-caption{z-index:1;pointer-events:none}
 /* Match the two roster actions despite their different glyph sizes. */
 .chart-first .toolbar-actions :is(#random-picker-open,#shuffle){display:inline-flex;align-items:center;justify-content:center;gap:5px;box-sizing:border-box;height:max(38px,calc(38px * var(--ui-text-scale,1)));min-height:max(38px,calc(38px * var(--ui-text-scale,1)));padding:6px 10px;line-height:1.2;vertical-align:middle}.chart-first .toolbar-actions :is(#random-picker-open,#shuffle) .button-glyph{margin:0}@media(max-width:600px){.chart-first .toolbar-actions :is(#random-picker-open,#shuffle){width:38px;min-width:38px;padding:6px}}
+
+/* Panels float above a stable room instead of resizing its canvas. */
+@media(min-width:1100px){.chart-first .workspace{position:relative}.chart-first .library,.chart-first .inspector{position:absolute;top:0;bottom:110px;z-index:20;max-height:calc(100% - 110px);box-shadow:0 8px 30px #10283b33}.chart-first .library{left:0}.chart-first .inspector{right:0;bottom:auto;max-height:calc(100% - 110px)}}

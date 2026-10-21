@@ -1,5 +1,5 @@
-import './dialog-motion.js?v=20261021-release2';
-import {animateWorkspace} from './panel-motion.js?v=20261021-release2';
+import './dialog-motion.js?v=20261021-release4';
+import {animateWorkspace} from './panel-motion.js?v=20261021-release4';
 // Move existing controls into compact panels without changing their data bindings.
 const $=id=>document.getElementById(id),body=document.body;
 body.classList.add('chart-first');
@@ -22,7 +22,7 @@ function setPanel(panel,{closeLibrary=false}={}){if(panelInitialized&&panel===ac
 for(const name of ['furniture','students','details'])$('dock-'+name).onclick=()=>setPanel(active===name?null:name);
 $('dock-fit').onclick=()=>{$('zoom').value='fit';$('zoom').dispatchEvent(new Event('change'));setPanel(null);};
 setPanel(active);
-document.addEventListener('sas-selection-changed',event=>{$('dock-details').hidden=!event.detail?.selected;if(!event.detail?.selected&&active==='details')setPanel(null);if(event.detail?.seat)setPanel('details');});
+document.addEventListener('sas-selection-changed',event=>{$('dock-details').hidden=!event.detail?.selected&&active!=='details';if(event.detail?.seat)setPanel('details');});
 $('palette').addEventListener('click',()=>{if(innerWidth<1100)setPanel(null);});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('dialog[open]')&&!document.querySelector('.site-select-menu:popover-open'))setPanel(null);});
 let compact=innerWidth<1100;window.addEventListener('resize',()=>{const next=innerWidth<1100;if(next!==compact){compact=next;setPanel(next?null:'furniture');}});

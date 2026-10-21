@@ -1,4 +1,4 @@
-import './surface-motion.js?v=20261021-release2';
+import './surface-motion.js?v=20261021-release4';
 // Keep native selects as the data/event source; render the same menu in each browser.
 const controls=new Map();let open=null;
 function close(){if(!open)return;const {menu,button}=open;open=null;button.setAttribute('aria-expanded','false');menu.inert=true;menu.style.pointerEvents='none';menu.removeAttribute('id');menu.setAttribute('aria-hidden','true');if(menu.hidePopover&&menu.matches(':popover-open')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){menu.hidePopover();setTimeout(()=>menu.remove(),190);}else menu.remove();}
