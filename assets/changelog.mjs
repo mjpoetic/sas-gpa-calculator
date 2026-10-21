@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.21.5","changes":["Stack lunch cleaner actions with matching glyphs and roomier, consistent labels"]},
  {"version":"2026.10.21.4","changes":["Keep Classroom Studio panels calm, the room steady, and canvas controls accessible"]},
  {"version":"2026.10.21.3","changes":["Calmer Classroom Studio panels keep the room steady and Edit open between selections"]},
  {"version":"2026.10.21.2","changes":["Share lunch cleaner summaries across classes with avatars, PDF printing, images, and browser links"]},
