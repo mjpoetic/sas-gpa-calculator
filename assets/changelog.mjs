@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.21.2","changes":["Share lunch cleaner summaries across classes with avatars, PDF printing, images, and browser links"]},
  {"version":"2026.10.21.1","changes":["Streamlined lunch cleaner controls, added archived history, and kept cleaner names on one line.","Improved the student picker dice icon and matched picker and shuffle button heights."]},
  {"version":"2026.10.20.2","changes":["Refreshing Classroom Studio restores your tools, selection, zoom, pan position, and open settings in the same tab.","Page scroll positions are remembered when refreshing the site."]},
  {"version":"2026.10.20.1","changes":["Added weekly lunch cleaner rotation, manual cleaner selection, exclusions, and history reset.","Added an animated student picker with sound, a final-student mystery reveal, and round reset controls that prevent repeat picks.","Unified avatar custom color pickers."]},

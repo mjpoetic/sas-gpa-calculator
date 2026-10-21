@@ -1,8 +1,8 @@
-import {setupAvatarPasses} from './avatar-passes.js?v=20261021-release1';
-import {createMFA} from './mfa.js?v=20261021-release1';
-import {migrateTabSession} from './auth-session.mjs?v=20261021-release1';
+import {setupAvatarPasses} from './avatar-passes.js?v=20261021-release2';
+import {createMFA} from './mfa.js?v=20261021-release2';
+import {migrateTabSession} from './auth-session.mjs?v=20261021-release2';
 import {mergeDocuments} from './sync-merge.mjs?v=20261020-names1';
-import {cloudConfig} from './cloud-config.js?v=20261021-release1';
+import {cloudConfig} from './cloud-config.js?v=20261021-release2';
 import {CloudStore} from './cloud-store.mjs?v=20261020-names1';
 
 // Pin the browser SDK, including its bundled dependency versions.

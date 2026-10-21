@@ -1,16 +1,17 @@
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261021-release2';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261021-release1';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261021-release1';
-import {openAvatarEditor} from './avatar-editor.js?v=20261021-release1';
-import {transferStudent} from './seat-transfer.mjs?v=20261021-release1';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261021-release1';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261021-release1';
-import {furnitureArt} from './furniture-art.mjs?v=20261021-release1';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261021-release2';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261021-release2';
+import {openAvatarEditor} from './avatar-editor.js?v=20261021-release2';
+import {transferStudent} from './seat-transfer.mjs?v=20261021-release2';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261021-release2';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261021-release2';
+import {furnitureArt} from './furniture-art.mjs?v=20261021-release2';
 import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-names1';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261021-release1';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261021-release2';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
@@ -460,7 +461,7 @@ $('multi-seat-clear').onclick=()=>{selectedSeatKeys.clear();selectedIds.clear();
 
 $('label-font-size').onchange=()=>{const it=selected(),value=Number($('label-font-size').value);if(it?.type==='label'&&Number.isFinite(value)&&value>=8&&value<=200)change(()=>{it.labelFontSize=value;},'Room label font size updated.');};
 $('label-font-size-auto').onclick=()=>{const it=selected();if(it?.type==='label')change(()=>{delete it.labelFontSize;},'Room label text fits automatically.');};
-function preparePrint(){document.getElementById('chart-print-sheet')?.remove();const sheet=element('section','');sheet.id='chart-print-sheet';const title=element('h1','',chart().name),frame=element('div','print-frame'),copy=$('room').cloneNode(true);copy.removeAttribute('id');copy.querySelectorAll('.item').forEach(node=>{if(node.dataset.baseLayer)node.style.zIndex=node.dataset.baseLayer;node.classList.remove('hover-spotlight');});copy.className='print-room';copy.style.setProperty('--print-scale',Math.min(248*96/25.4/WIDTH,168*96/25.4/HEIGHT));copy.style.zoom='1';copy.style.margin='0';copy.querySelectorAll('.furniture-actions,.resize-handle,.group-selection,.selection-marquee,.alignment-guide').forEach(n=>n.remove());copy.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));for(const it of chart().items.filter(it=>it.type==='label'&&!it.labelStyle))copy.querySelector(`[data-id="${it.id}"]`)?.style.setProperty('color','#20354e');copy.querySelectorAll('.selected,.selected-seat').forEach(n=>n.classList.remove('selected','selected-seat'));frame.append(copy);sheet.append(title,frame);document.body.append(sheet);}
+function preparePrint(){if(document.body.classList.contains('cleaner-summary-print'))return;document.getElementById('chart-print-sheet')?.remove();const sheet=element('section','');sheet.id='chart-print-sheet';const title=element('h1','',chart().name),frame=element('div','print-frame'),copy=$('room').cloneNode(true);copy.removeAttribute('id');copy.querySelectorAll('.item').forEach(node=>{if(node.dataset.baseLayer)node.style.zIndex=node.dataset.baseLayer;node.classList.remove('hover-spotlight');});copy.className='print-room';copy.style.setProperty('--print-scale',Math.min(248*96/25.4/WIDTH,168*96/25.4/HEIGHT));copy.style.zoom='1';copy.style.margin='0';copy.querySelectorAll('.furniture-actions,.resize-handle,.group-selection,.selection-marquee,.alignment-guide').forEach(n=>n.remove());copy.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));for(const it of chart().items.filter(it=>it.type==='label'&&!it.labelStyle))copy.querySelector(`[data-id="${it.id}"]`)?.style.setProperty('color','#20354e');copy.querySelectorAll('.selected,.selected-seat').forEach(n=>n.classList.remove('selected','selected-seat'));frame.append(copy);sheet.append(title,frame);document.body.append(sheet);}
 window.addEventListener('beforeprint',preparePrint);window.addEventListener('afterprint',()=>document.getElementById('chart-print-sheet')?.remove());
 
 $('group-color').onchange=()=>change(()=>{selectedItems().forEach(it=>{it.color=$('group-color').value;});},'Selected furniture colors updated.');
@@ -686,3 +687,22 @@ if(document.readyState==='complete')requestAnimationFrame(restoreView);
 else window.addEventListener('load',()=>requestAnimationFrame(restoreView),{once:true});
 
 new ResizeObserver(fitCleanerNames).observe($('jobs-cleaners'));
+
+$('jobs-share').onclick=()=>{
+ const d=element('dialog','workspace-dialog cleaner-summary-dialog');d.setAttribute('aria-labelledby','cleaner-summary-title');
+ const heading=element('form');heading.method='dialog';const title=element('h2','','Share lunch cleaners');title.id='cleaner-summary-title';const close=element('button','','×');close.setAttribute('aria-label','Close cleaner summary');heading.append(title,close);d.append(heading);
+ const help=element('p','hint','Select classes and a week to preview their saved assignments. Print or save a PDF, download an image, or copy a snapshot link. Anyone with the link can view the included names and avatars.');d.append(help);
+ const weekLabel=element('label','','Week of'),week=element('input');week.type='date';week.value=jobsWeek();week.id='summary-week';weekLabel.append(week);d.append(weekLabel);
+ const choices=element('fieldset','summary-class-list'),legend=element('legend','','Classes');choices.append(legend);
+ const preview=element('article','cleaner-summary');preview.id='cleaner-summary-preview';const actions=element('div','summary-actions'),status=element('p','hint');status.setAttribute('role','status');
+ const pdf=element('button','','Print / Save PDF'),image=element('button','','Save image'),link=element('button','','Copy share link');for(const button of [pdf,image,link])button.type='button';actions.append(pdf,image,link);
+ const url=element('textarea','summary-share-url');url.readOnly=true;url.hidden=true;url.setAttribute('aria-label','Shareable summary link');
+ const data=()=>({week:weekStart(week.value),classes:state.charts.filter(c=>[...choices.querySelectorAll('input:checked')].some(i=>i.value===c.id)).map(c=>({name:c.name,students:(c.weeklyJobs?.weeks.find(w=>w.week===weekStart(week.value))?.students||[]).map(id=>{const student=c.students.find(s=>s.id===id);return {name:student?rosterName(student):'Removed student',avatar:student?.avatar||defaultAvatar()};})}))});
+ const update=()=>{url.hidden=true;url.value='';const valid=!!week.value&&!!choices.querySelector('input:checked');for(const button of [pdf,image,link])button.disabled=!valid;if(valid){const snapshot=data();renderSummary(preview,snapshot);status.textContent=snapshot.classes.length+' classes selected. Links are snapshots; create a new link after changing assignments.';}else{preview.replaceChildren();status.textContent='Select at least one class and a week.';}};
+ for(const c of state.charts){const label=element('label'),input=element('input');input.type='checkbox';input.value=c.id;input.checked=c.id===state.active;input.onchange=update;label.append(input,document.createTextNode(c.name));choices.append(label);}
+ week.onchange=update;
+ pdf.onclick=()=>{const sheet=element('article','cleaner-summary');sheet.id='cleaner-print-sheet';renderSummary(sheet,data());document.body.append(sheet);document.body.classList.add('cleaner-summary-print');const clean=()=>{sheet.remove();document.body.classList.remove('cleaner-summary-print');};window.addEventListener('afterprint',clean,{once:true});try{window.print();}catch(error){clean();status.textContent=error.message;}};
+ image.onclick=async()=>{image.disabled=true;try{await downloadSummaryImage(data());status.textContent='Image saved. You can attach it to your message to teachers.';}catch(error){status.textContent=error.message;}finally{image.disabled=false;}};
+ link.onclick=async()=>{try{const value=await summaryLink(data());url.value=value;url.hidden=false;try{await navigator.clipboard.writeText(value);status.textContent='Link copied. Anyone with this link can view this snapshot.';}catch{url.focus();url.select();status.textContent='Copy the selected link to share this snapshot.';}}catch(error){status.textContent='Could not create a share link. '+error.message;}};
+ d.append(choices,actions,status,url,preview);d.onclose=()=>d.remove();document.body.append(d);update();d.showModal();
+};
