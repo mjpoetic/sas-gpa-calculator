@@ -1,13 +1,13 @@
-import {avatarMaskSVG} from './avatar-masks.mjs?v=20261021-release5';
-import {hairColorDetails,hairOrnamentSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261021-release5';
+import {avatarMaskSVG} from './avatar-masks.mjs?v=20261021-release6';
+import {hairColorDetails,hairOrnamentSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261021-release6';
 export {supportsHairTips};
-import {teacherClothing,layeredClothingSVG,shortSleevesSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG,glassesStrapSVG} from './avatar-props.mjs?v=20261021-release5';
+import {teacherClothing,layeredClothingSVG,shortSleevesSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG,glassesStrapSVG} from './avatar-props.mjs?v=20261021-release6';
 export {teacherClothing};
 export const accessoryColorDefaults={"sunglassLensColor":"#25333e","frogEyeWhiteColor":"#ffffff","headphoneBandColor":"#3b526a","headphoneCupColor":"#8596c7","headphonePadColor":"#263445","starColor":"#f8d264","starEdgeColor":"#ba8c3f","flowerColor":"#f3c565","flowerCenterColor":"#9b673f","flowerLeafColor":"#6c9b69","flowerBandColor":"#6c8252","catBandColor":"#65517d","catEarColor":"#8a79a8","catInnerColor":"#e1a4b6","antennaStemColor":"#536c87","antennaLeftColor":"#dc8cb6","antennaRightColor":"#7baed6","crownColor":"#f4cd5d","crownEdgeColor":"#c79a3d","crownGemColor":"#d77a9e","frogColor":"#71af73","frogBrimColor":"#86c06f","frogBumpColor":"#92c783","frogEyeColor":"#334039"};
 const accessoryPalette=[['#302420','Espresso'],['#ffffff','White'],['#34445f','Navy'],['#f4ce70','Gold'],['#f09fbc','Pink'],['#438aaf','Blue'],['#228b22','Forest green']];
 const propPalette=color=>[[color,'Original'],...accessoryPalette.filter(([value])=>value!==color)];
 export const teacherAvatarParts=['beardGraying','mustache','mustacheColor','facialHair','facialHairColor','wrinkles','lipstick','lipstickColor','drink','drinkColor','undershirtColor','neckwear','lanyardColor','badgeColor','teachingTool','toolColor','glassesPosition','glassesStrap','glassesStrapColor'];
-const propDefaults={bodyBuild:'medium',bodyHeight:'medium',earSize:'medium',sunglassTint:'dark',mask:'none',maskColor:'#438aaf',maskAccentColor:'#f4ce70',hairHighlights:'none',hairHighlightColor:'#e7c366',hairTips:'none',hairTipColor:'#b16b32',hairAccessory:'none',hairAccessoryColor:'#da7b99',hairAccessoryAccentColor:'#f4ce70',eyeColor:'#332d35',glassesPosition:'eyes',glassesStrap:'none',glassesStrapColor:'#34445f',backpack:'none',backpackColor:'#537ea3',backpackPocketColor:'#3b5d80',backpackStrapColor:'#34445f',undershirtColor:'#f4eee3',neckwear:'none',lanyardColor:'#438aaf',badgeColor:'#f4eee3',teachingTool:'none',toolColor:'#638eb2'};
+const propDefaults={bracesColor:'#438aaf',bodyBuild:'medium',bodyHeight:'medium',earSize:'medium',sunglassTint:'dark',mask:'none',maskColor:'#438aaf',maskAccentColor:'#f4ce70',hairHighlights:'none',hairHighlightColor:'#e7c366',hairTips:'none',hairTipColor:'#b16b32',hairAccessory:'none',hairAccessoryColor:'#da7b99',hairAccessoryAccentColor:'#f4ce70',eyeColor:'#332d35',glassesPosition:'eyes',glassesStrap:'none',glassesStrapColor:'#34445f',backpack:'none',backpackColor:'#537ea3',backpackPocketColor:'#3b5d80',backpackStrapColor:'#34445f',undershirtColor:'#f4eee3',neckwear:'none',lanyardColor:'#438aaf',badgeColor:'#f4eee3',teachingTool:'none',toolColor:'#638eb2'};
 const adultDefaults={...propDefaults,beardGraying:'none',mustache:'auto',mustacheColor:'#302420',facialHair:'none',facialHairColor:'#302420',wrinkles:'none',lipstick:'none',lipstickColor:'#b95068',drink:'none',drinkColor:'#f4eee3'};
 export const avatarOptions={
  bodyBuild:[['slim','Slim'],['medium','Medium'],['broad','Broad']],
@@ -41,7 +41,7 @@ export const avatarOptions={
  backpackColor:propPalette('#537ea3'),backpackPocketColor:propPalette('#3b5d80'),backpackStrapColor:propPalette('#34445f'),
  style:[['junior','Round'],['middle','Oval'],['senior','Narrow oval']],
  skin:[['#f6d7b0','Light warm'],['#edc6a4','Light tan'],['#dca878','Golden tan'],['#c78e64','Warm brown'],['#a86d49','Medium brown'],['#855337','Deep brown'],['#603d2c','Dark brown'],['#ecc5bd','Light rose']],
- hair:[['crop','Short crop'],['swoop','Side sweep'],['curls','Soft curls'],['afro','Rounded afro'],['sponge','Sponge curl high top'],['spongeafro','Sponge curl afro'],['coils','Coils'],['bob','Bob'],['long','Long hair'],['longcurly','Long curly hair'],['braids','Braids'],['ponytail','Ponytail'],['curlyponytail','Curly Ponytail'],['bun','High bun'],['curlybun','Braided curly bun'],['evencut','Even low cut'],['shortafro','Short curly afro'],['lowtaper','Low taper fade'],['fade','Fade'],['curlytop','Curly top'],['waves','Waves'],['cornrows','Cornrows'],['boxbraids','Box braids'],['locs','Long locs'],['shortlocs','Short locs'],['twists','Two-strand twists'],['puffs','Afro puffs'],['bald','No hair']],
+ hair:[['fauxhawk','Fauxhawk'],['spikyhightop','Spiky high top'],['mohawk','Mohawk'],['spikyafro','Spiky afro'],['crop','Short crop'],['swoop','Side sweep'],['curls','Soft curls'],['afro','Rounded afro'],['sponge','Sponge curl high top'],['spongeafro','Sponge curl afro'],['coils','Coils'],['bob','Bob'],['long','Long hair'],['longcurly','Long curly hair'],['braids','Braids'],['ponytail','Ponytail'],['curlyponytail','Curly Ponytail'],['bun','High bun'],['curlybun','Braided curly bun'],['evencut','Even low cut'],['shortafro','Short curly afro'],['lowtaper','Low taper fade'],['fade','Fade'],['curlytop','Curly top'],['waves','Waves'],['cornrows','Cornrows'],['boxbraids','Box braids'],['locs','Long locs'],['shortlocs','Short locs'],['twists','Two-strand twists'],['puffs','Afro puffs'],['bald','No hair']],
  hairHighlights:[['none','No highlights'],['on','Highlights']],
  hairHighlightColor:[['#e7c366','Golden'],['#b16b32','Copper'],['#d8d7d0','Platinum'],['#da7b99','Pink'],['#9a69bc','Purple'],['#438aaf','Blue'],['#800020','Burgundy'],['#228b22','Forest green']],
  hairTips:[['none','Natural tips'],['on','Dyed tips']],
@@ -60,6 +60,7 @@ export const avatarOptions={
  extra:[['none','None'],['star','Star pin'],['singleflower','Flower'],['flower','Flower crown'],['crown','Crown'],['frog','Frog cap'],['cat','Cat ears'],['antenna','Space antennae'],['baseball','Baseball cap']],
  capColor:[['#34445f','Navy'],['#800020','Burgundy'],['#228b22','Forest green'],['#4c95b9','Ocean'],['#db8294','Coral'],['#deddd5','Cloud'],['#302420','Black']],
  capBrimColor:[['#34445f','Navy'],['#800020','Burgundy'],['#228b22','Forest green'],['#4c95b9','Ocean'],['#db8294','Coral'],['#deddd5','Cloud'],['#302420','Black']],
+ bracesColor:propPalette('#438aaf'),
  mouthAccessory:[['none','None'],['braces','Braces']],
  backdrop:[['#dcebf6','Sky'],['#e6def2','Lilac'],['#dceee1','Mint'],['#f4e7c9','Sunshine'],['#f4dfe5','Blush'],['#e4e8ed','Silver'],['#800020','Burgundy'],['#228b22','Forest green']]
 };
@@ -84,6 +85,22 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
  let back={long:`<path d="M27 40Q25 12 59 14Q96 14 93 57L99 100H20Z" fill="${hair}"/>`,braids:`<path d="M30 45Q25 18 59 16Q94 17 91 49" fill="${hair}"/><g fill="${hair}">${[61,72,83,94].map(y=>`<ellipse cx="29" cy="${y}" rx="10" ry="8"/><ellipse cx="91" cy="${y}" rx="10" ry="8"/>`).join('')}</g>`,ponytail:`<ellipse cx="93" cy="42" rx="16" ry="27" fill="${hair}"/><path d="M88 31l8 3" stroke="#d994b0" stroke-width="6"/>`,bob:`<path d="M26 45Q22 15 59 14Q96 15 95 49L94 80H25Z" fill="${hair}"/>`,afro:`<path d="M23 69Q5 47 24 28Q23 10 44 9Q62-2 79 12Q104 10 102 34Q119 53 95 73Z" fill="${hair}"/>`}[a.hair]||'';
  let front={crop:`<path d="M31 41Q29 16 59 17Q91 18 89 42L78 30 66 34 52 29 39 36Z"/>`,swoop:`<path d="M30 43Q26 14 60 14Q91 16 91 41L81 35 78 26Q60 46 31 46Z"/>`,curls:`<path d="M29 43Q16 28 33 23Q30 10 46 15Q54 1 66 14Q84 8 86 23Q104 25 91 44L80 36Q69 45 60 34Q47 44 39 34Z"/>`,coils:`${[29,40,52,64,76,88].map((x,i)=>`<circle cx="${x}" cy="${i===0||i===5?34:24}" r="12"/>`).join('')}`,afro:'<path d="M31 43Q29 23 60 22Q88 21 90 43L76 33 61 38 44 32Z"/>',bob:'<path d="M29 45Q27 14 60 15Q95 17 92 45L77 29 70 40 43 34 36 46Z"/>',long:'<path d="M29 46Q24 16 59 14Q96 15 92 47L79 31Q62 20 45 35L32 53Z"/>',braids:'<path d="M30 40Q28 14 60 16Q94 15 91 42Q74 33 60 25Q43 37 30 40Z"/>',ponytail:'<path d="M30 43Q26 16 60 15Q93 16 91 43L80 30 65 35 49 28 35 44Z"/>',bald:''}[a.hair];
 
+ // Faded temples stay translucent over skin; the raised center remains textured.
+ if(['fauxhawk','mohawk','spikyhightop'].includes(a.hair)){
+  scalp='';
+  const fade='<path d="M32 46Q27 22 48 18L44 29Q36 32 34 47Zm56 0Q93 22 72 18L76 29Q84 32 86 47Z" opacity=".14"/><path d="M32 39Q30 22 48 18L45 27Q36 29 33 41Zm56 0Q90 22 72 18L75 27Q84 29 87 41Z" opacity=".28"/><path d="M33 31Q36 21 48 18L46 24Q38 26 34 34Zm54 0Q84 21 72 18L74 24Q82 26 86 34Z" opacity=".48"/>';
+  front=`<g data-hairstyle="${a.hair}"><g data-hair-detail="side-fade">${fade}</g>`;
+  if(a.hair==='fauxhawk')front+='<path d="M39 33Q33 28 38 23Q33 16 42 15Q40 7 49 10Q52 1 58 8Q65 0 69 9Q78 5 78 15Q87 14 82 23Q88 29 80 34Q61 26 39 33Z"/>'+[[44,21],[51,16],[60,13],[69,17],[76,23],[53,26],[65,24]].map(([x,y])=>`<path d="M${x-2} ${y+2}q-3-5 2-5t1 5" fill="none" stroke="${ridge}" stroke-width="1.5"/>`).join('');
+  else if(a.hair==='spikyhightop')front+='<path d="M36 33L32 25L37 25L32 15L42 19L40 8L50 13L52 3L59 10L66 2L69 12L80 5L78 17L89 13L83 25L86 31Q60 24 36 33Z"/>'+[[40,23],[48,19],[57,17],[67,18],[77,22]].map(([x,y])=>`<path d="M${x} ${y+6}q-5-6 1-8" fill="none" stroke="${ridge}" stroke-width="1.4"/>`).join('');
+  else front+='<path d="M49 34L48 24L51 22L48 12L54 15L56 3L61 10L66 2L67 15L73 10L70 24L73 34Q61 29 49 34Z"/>'+`<path d="M56 28L59 15M64 27L65 16" stroke="${ridge}" stroke-width="1.2"/>`;
+  front+='</g>';
+ }
+ if(a.hair==='spikyafro'){
+  scalp='';
+  const spikes=Array.from({length:19},(_,i)=>{const angle=(155+i*13+(i%3-1)*2)*Math.PI/180,point=(r,offset=0)=>`${(60+Math.cos(angle+offset)*r).toFixed(2)} ${(37+Math.sin(angle+offset)*r*.86).toFixed(2)}`;return `<path d="M${point(29,-.11)}Q${point(35,-.12)} ${point(40+(i*7)%11,.035*(i%3-1))}Q${point(36,.02)} ${point(29,.12)}Z"/><path d="M${point(31)}L${point(36+(i*7)%9)}" fill="none" stroke="${ridge}" stroke-width=".8"/>`;}).join('');
+  back=`<g data-hairstyle="spikyafro-rear" fill="${hair}">${spikes}<ellipse cx="60" cy="33" rx="33" ry="26"/></g>`;
+  front=`<g data-hairstyle="spikyafro"><path d="M29 43Q25 12 60 12Q95 12 91 43L84 32Q60 23 36 33L32 46Z"/>${[[36,26],[46,20],[58,18],[70,20],[81,26]].map(([x,y])=>`<path d="M${x} ${y+5}q-5-7 2-9" fill="none" stroke="${ridge}" stroke-width="1.2"/>`).join('')}</g>`;
+ }
  const cap=`<path d="M30 43Q28 15 60 15Q92 15 90 43L82 35Q60 25 38 35Z"/>`;
  if(['boxbraids','locs','twists'].includes(a.hair)){back=`<g fill="none" stroke="${hair}" stroke-width="9" stroke-linecap="round">${[23,32,41,79,88,97].map((x,i)=>`<path d="M${x} 35q${i%2?5:-5} 19 0 35t${i%2?3:-3} ${23+i%3*4}"/>`).join('')}</g>`;front=cap;}
  if(a.hair==='shortlocs')front=cap+`<g stroke="${hair}" stroke-width="8" stroke-linecap="round">${[33,44,55,66,77,87].map((x,i)=>`<path d="M${x} 24q${i%2?7:-4} 8 0 ${13+i%3*4}"/>`).join('')}</g>`;
@@ -262,8 +279,12 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
  if(a.expression==='excited')moodDetails+='<path d="m35 42 1.1 2.7 2.9 1-2.9 1L35 50l-1.1-3.3-2.9-1 2.9-1Zm50 0 1.1 2.7 2.9 1-2.9 1L85 50l-1.1-3.3-2.9-1 2.9-1Z" fill="#f4ce70" stroke="#c89f43" stroke-width=".5"/>';
  if(a.expression==='hungry')moodDetails+='<g data-avatar-detail="drool"><path d="M72 62q-2 2-6 2q-2 0-2 3v4q0 2 1.5 2t1.5-2v-1q0-1 1-1t1 1v5q0 2-1 4q-1 3 1.5 3t1.5-3q-1-2-1-4v-5q2-3 2-8Z" fill="#8bd2e9" stroke="#5eabc5" stroke-width=".5"/><path d="M66 66q3 0 4-1" fill="none" stroke="#d5f2f7" stroke-width="1" stroke-linecap="round"/></g>';
  if(a.expression==='nervous')moodDetails+='<path d="M87 37q-5 7-1 8q5 0 1-8" fill="#7bc6e9"/>';
- if(a.mouthAccessory==='braces'&&['silly','excited'].includes(a.expression))mouth+='<path d="M54 63h12" stroke="#a1adb9" stroke-width="1"/>'+[55,59,63,67].map(x=>`<rect x="${x-1}" y="62" width="1.8" height="2.5" rx=".4" fill="#aab7c4"/>`).join('');
- else if(a.mouthAccessory==='braces'&&!['confused','thinking','embarrassed'].includes(a.expression))mouth='<path d="M48 60Q60 77 72 60Z" fill="#693e43"/><path d="M50 61h20l-3 7H53Z" fill="#fff"/><path d="M51 64h18" stroke="#7d8b98" stroke-width="1.4"/>'+[54,58,62,66].map(x=>`<rect x="${x-1}" y="62" width="2.5" height="4" rx=".5" fill="#aab7c4" stroke="#697989" stroke-width=".4"/>`).join('');
+ // Brackets follow the existing teeth instead of replacing the expression.
+ if(a.mouthAccessory==='braces'&&['grin','excited','laughing','nervous'].includes(a.expression)){
+  const y=a.expression==='grin'?62.5:a.expression==='nervous'?63:64;
+  mouth+=`<g data-avatar-detail="braces"><path d="M53 ${y}Q60 ${y+1} 67 ${y}" fill="none" stroke="#8d99a5" stroke-width=".55"/>${[54.5,58.2,61.8,65.5].map(x=>`<rect x="${x-.8}" y="${y-.65}" width="1.6" height="1.6" rx=".35" fill="${a.bracesColor}" stroke="#788692" stroke-width=".25"/><path d="M${x-.4} ${y+.1}h.8" stroke="#e1e6eb" stroke-width=".4"/>`).join('')}</g>`;
+ }
+
  const facialHair=facialHairSVG(a,rx);
  const aging=a.wrinkles==='none'?'':`<g data-avatar-detail="wrinkles" fill="none" stroke="#633d3c" stroke-width=".65" opacity=".42" stroke-linecap="round"><path d="M38 55l-3 1m3 1-2 2m46-4 3 1m-3 1 2 2M47 61q-3 3-2 6m28-6q3 3 2 6"/>${a.wrinkles==='defined'?'<path d="M47 31q13-3 26 0M49 34q11-2 22 0M44 72l-2 2m34-2 2 2"/>':''}</g>`;
  if(a.lipstick!=='none')mouth=`<g data-avatar-detail="lipstick"><path d="M52 62Q56 59 60 62Q64 59 68 62Q60 ${a.lipstick==='bold'?73:70} 52 62Z" fill="${a.lipstickColor}" opacity="${a.lipstick==='bold'?1:.7}"/>${mouth.replaceAll('#633d3c',a.lipstickColor)}</g>`;

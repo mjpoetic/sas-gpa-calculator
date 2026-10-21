@@ -43,3 +43,29 @@ test('long curly hair supports highlights and tips and survives saved lists, tea
  const a={...defaultAvatar(),...details,hair:'longcurly'},c=newChart();c.students=[{id:'curly-student',name:'Alex',avatar:a}];c.assistants=[{id:'curly-assistant',name:'Assistant',avatar:a,seatId:null}];const document={version:1,active:c.id,charts:[c],studentLists:[{id:'curly-list',name:'Class',names:['Alex'],avatars:[a]}]};saveTeacherProfile(document,c.id,'Teacher',a);const saved=validateBackup(document);assert.deepEqual(saved.charts[0].students[0].avatar,a);assert.deepEqual(saved.charts[0].assistants[0].avatar,a);assert.deepEqual(saved.teacherProfile.avatar,a);assert.deepEqual(saved.studentLists[0].avatars[0],a);assert.equal(supportsHairTips('longcurly'),true);
  for(const [style] of avatarOptions.style){const svg=avatarSVG({...a,style});assert.match(svg,/data-hairstyle="longcurly"/);assert.match(svg,/data-hairstyle="longcurly-rear"/);assert.match(svg,/data-hair-color="highlights"/);assert.match(svg,/data-hair-color="tips"/);}
 });
+test('fauxhawk, mohawk and spiky afro survive saved avatars with highlights',()=>{
+ for(const hair of ['fauxhawk','mohawk','spikyafro']){
+  const avatar={...defaultAvatar(),hair,hairHighlights:'on',mouthAccessory:'braces',bracesColor:'#cf43aa'};
+  const chart=newChart();chart.students=[{id:'new-hair',name:'Alex',avatar}];
+  assert.deepEqual(validateBackup({version:1,active:chart.id,charts:[chart]}).charts[0].students[0].avatar,avatar);
+  const svg=avatarSVG(avatar);assert.match(svg,new RegExp(`data-hairstyle="${hair}"`));assert.match(svg,/data-hair-color="highlights"/);
+  if(hair!=='spikyafro')assert.match(svg,/data-hair-detail="side-fade"/);
+ }
+});
+test('braces preserve expressions and only overlay visible teeth with safe custom band colors',()=>{
+ const old=defaultAvatar();delete old.bracesColor;assert.equal(validateAvatar(old).bracesColor,'#438aaf');
+ assert.throws(()=>validateAvatar({...defaultAvatar(),bracesColor:'url(bad)'}),/bracesColor/);
+ for(const [expression] of avatarOptions.expression){
+  const base={...defaultAvatar(),expression},plain=avatarSVG(base),braces=avatarSVG({...base,mouthAccessory:'braces',bracesColor:'#cf43aa'});
+  const visible=['grin','excited','laughing','nervous'].includes(expression);
+  assert.equal(braces.includes('data-avatar-detail="braces"'),visible);
+  if(visible){assert.match(braces,/fill="#cf43aa"/);assert.equal(braces.replace(/<g data-avatar-detail="braces">.*?<\/g>/,''),plain);}
+  else assert.equal(braces,plain);
+ }
+});
+test('spiky high top and raised or radial dyed tips validate and render',()=>{
+ for(const hair of ['fauxhawk','spikyhightop','spikyafro']){
+  assert.ok(supportsHairTips(hair));const a={...defaultAvatar(),hair,hairTips:'on',hairTipColor:'#c2513d'};assert.deepEqual(validateAvatar(a),a);
+  const svg=avatarSVG(a);assert.match(svg,/data-hair-color="tips"/);assert.match(svg,/stop-color="#c2513d"/);assert.match(svg,hair==='spikyafro'?/cy="37" r="49"/:/y1="26" x2="0" y2="8"/);
+ }
+});
