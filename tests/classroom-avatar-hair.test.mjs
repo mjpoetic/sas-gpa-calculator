@@ -49,7 +49,7 @@ test('fauxhawk, mohawk and spiky afro survive saved avatars with highlights',()=
   const chart=newChart();chart.students=[{id:'new-hair',name:'Alex',avatar}];
   assert.deepEqual(validateBackup({version:1,active:chart.id,charts:[chart]}).charts[0].students[0].avatar,avatar);
   const svg=avatarSVG(avatar);assert.match(svg,new RegExp(`data-hairstyle="${hair}"`));assert.match(svg,/data-hair-color="highlights"/);
-  if(hair!=='spikyafro')assert.match(svg,/data-hair-detail="side-fade"/);
+  if(hair==='fauxhawk')assert.match(svg,/data-hair-detail="side-fade"/);
  }
 });
 test('braces preserve expressions and only overlay visible teeth with safe custom band colors',()=>{
@@ -67,5 +67,12 @@ test('spiky high top and raised or radial dyed tips validate and render',()=>{
  for(const hair of ['fauxhawk','spikyhightop','spikyafro']){
   assert.ok(supportsHairTips(hair));const a={...defaultAvatar(),hair,hairTips:'on',hairTipColor:'#c2513d'};assert.deepEqual(validateAvatar(a),a);
   const svg=avatarSVG(a);assert.match(svg,/data-hair-color="tips"/);assert.match(svg,/stop-color="#c2513d"/);assert.match(svg,hair==='spikyafro'?/cy="37" r="49"/:/y1="26" x2="0" y2="8"/);
+ }
+});
+test('mohawk sides stay bare and smooth temple fades are clipped to the scalp',()=>{
+ for(const hair of ['mohawk','fauxhawk','spikyhightop']){
+  const svg=avatarSVG({...defaultAvatar(),hair,hairHighlights:'on',hairTips:'on'});
+  if(hair==='mohawk'){assert.ok(!svg.includes('side-fade'));assert.ok(!svg.includes('avatar-temple-fade'));}
+  else {assert.match(svg,/data-hair-detail="side-fade" clip-path="url\(#avatar-temple-fade-\d+-scalp\)"/);assert.match(svg,/offset="1" stop-color="#[\da-f]+" stop-opacity="0"/);assert.equal((svg.match(/data-hair-detail="side-fade"/g)||[]).length,1);}
  }
 });

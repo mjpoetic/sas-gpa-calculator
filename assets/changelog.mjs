@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.21.7","changes":["Make spiky hairstyles fuller and curlier, smooth temple fades into bare skin, and keep mohawk sides shaved"]},
  {"version":"2026.10.21.6","changes":["Add fauxhawk, mohawk, spiky afro and faded spiky high top hairstyles, dyed spike tips, and natural braces with customizable band colors"]},
  {"version":"2026.10.21.5","changes":["Stack lunch cleaner actions with matching glyphs and roomier, consistent labels"]},
  {"version":"2026.10.21.4","changes":["Keep Classroom Studio panels calm, the room steady, and canvas controls accessible"]},

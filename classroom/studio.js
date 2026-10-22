@@ -1,17 +1,17 @@
-import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261021-release6';
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261021-release7';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261021-release6';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261021-release6';
-import {openAvatarEditor} from './avatar-editor.js?v=20261021-release6';
-import {transferStudent} from './seat-transfer.mjs?v=20261021-release6';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261021-release6';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261021-release6';
-import {furnitureArt} from './furniture-art.mjs?v=20261021-release6';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261021-release7';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261021-release7';
+import {openAvatarEditor} from './avatar-editor.js?v=20261021-release7';
+import {transferStudent} from './seat-transfer.mjs?v=20261021-release7';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261021-release7';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261021-release7';
+import {furnitureArt} from './furniture-art.mjs?v=20261021-release7';
 import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-names1';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261021-release6';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261021-release7';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
