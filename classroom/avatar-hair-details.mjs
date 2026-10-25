@@ -50,7 +50,8 @@ export function hairEdgesSVG(a){
 }
 export function braidDecorationSVG(a){
  if(!['braids','boxbraids'].includes(a.hair)||a.braidDecoration==='none')return '';
- // Sit on the visible outer strands, clear of the face and above the shoulders.
- const positions=a.hair==='braids'?[[27,63],[93,63],[27,77],[93,77]]:[[28,63],[92,67],[27,81],[93,85]];
+ // Follow the outer rear strands. Render with rear hair so clothing naturally
+ // hides any beads or cuffs on strands passing behind the shoulders.
+ const positions=a.hair==='braids'?[[25.5,63],[94.5,63],[25,77],[95,77]]:[[20.5,63],[99.5,63],[20,77],[100,77]];
  return `<g data-avatar-accessory="braid-${a.braidDecoration}">${positions.map(([x,y])=>a.braidDecoration==='beads'?`<g fill="${a.braidDecorationColor}" stroke="#00000038" stroke-width=".5">${[0,4,8].map(d=>`<rect x="${x-2.8}" y="${y+d}" width="5.6" height="3.7" rx="1.4"/><path d="M${x-1} ${y+d+1}v1" stroke="#ffffff90"/>`).join('')}</g>`:`<g><rect x="${x-2.7}" y="${y}" width="5.4" height="7" rx="1" fill="${a.braidDecorationColor}" stroke="#00000038" stroke-width=".6"/><path d="M${x-2} ${y+2}h4m-4 3h4" stroke="#ffffff90" stroke-width=".7"/></g>`).join('')}</g>`;
 }
