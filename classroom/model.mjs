@@ -1,9 +1,9 @@
-import {validateBirthday} from './celebration-date.mjs?v=20261025-release12';
+import {validateBirthday} from './celebration-date.mjs?v=20261025-release13';
 import {validateStudentExclusions} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {validateWeeklyJobs} from './weekly-jobs.mjs?v=20261020-names1';
-import {validateAvatar} from './avatars.mjs?v=20261025-release12';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261025-release12';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261025-release12';
+import {validateAvatar} from './avatars.mjs?v=20261025-release13';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261025-release13';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261025-release13';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -153,7 +153,8 @@ export function validateBackup(data) {
   const lists=studentLists.map(list=>{if(!Array.isArray(list.names)||list.names.length>500)throw new Error('Invalid saved student list.');return {id:id(list.id),name:str(list.name,80),names:list.names.map(n=>normalizeStudentName(str(n,80))),...(list.birthdays!==undefined?{birthdays:validateListBirthdays(list.birthdays,list.names.length)}:{}),...(list.nicknames!==undefined?{nicknames:validateListNicknames(list.nicknames,list.names.length)}:{}),...(list.avatars!==undefined?{avatars:validateListAvatars(list.avatars,list.names.length)}:{}),...(list.avoid!==undefined?{avoid:validateListAvoid(list.avoid,list.names.length)}:{})};});
   const chartOrder=data.chartOrder;if(chartOrder!==undefined&&(!Array.isArray(chartOrder)||chartOrder.length>100||chartOrder.some(id=>typeof id!=='string')||new Set(chartOrder).size!==chartOrder.length))throw new Error('Invalid classroom order.');
   const teacherProfile=data.teacherProfile===undefined?null:{name:str(data.teacherProfile?.name,80).trim(),avatar:validateAvatar(data.teacherProfile?.avatar)};
-  return {version:1,...(teacherProfile?{teacherProfile}:{}), ...(chartOrder?{chartOrder:chartOrder.filter(id=>charts.some(c=>c.id===id))}:{}), ...(lists.length?{studentLists:lists}:{}), charts, active:charts.some(c => c.id === data.active) ? data.active : charts[0].id};
+  if(data.birthdayPreferences!==undefined&&(!data.birthdayPreferences||typeof data.birthdayPreferences.weekendEarly!=='boolean'))throw new Error('Invalid birthday preferences.');
+  return {version:1,...(data.birthdayPreferences?{birthdayPreferences:{weekendEarly:data.birthdayPreferences.weekendEarly}}:{}),...(teacherProfile?{teacherProfile}:{}), ...(chartOrder?{chartOrder:chartOrder.filter(id=>charts.some(c=>c.id===id))}:{}), ...(lists.length?{studentLists:lists}:{}), charts, active:charts.some(c => c.id === data.active) ? data.active : charts[0].id};
 }
 
 export function footprint(it) {

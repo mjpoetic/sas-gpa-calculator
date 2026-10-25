@@ -1,0 +1,7 @@
+project_id = "sas-classroom-studio"
+
+[functions.birthday-reminders]
+# This function validates user JWTs through Auth, enforces the existing MFA
+# policy, and separately authenticates cron requests with a server-only key.
+verify_jwt = false
+entrypoint = "./functions/birthday-reminders/index.ts"

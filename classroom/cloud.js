@@ -1,9 +1,10 @@
-import {setupAvatarPasses} from './avatar-passes.js?v=20261025-release12';
-import {createMFA} from './mfa.js?v=20261025-release12';
-import {migrateTabSession} from './auth-session.mjs?v=20261025-release12';
-import {mergeDocuments} from './sync-merge.mjs?v=20261020-names1';
-import {cloudConfig} from './cloud-config.js?v=20261025-release12';
-import {CloudStore} from './cloud-store.mjs?v=20261020-names1';
+import {configureBirthdayReminders,stopBirthdayPush} from './birthday-reminders.js?v=20261025-release13';
+import {setupAvatarPasses} from './avatar-passes.js?v=20261025-release13';
+import {createMFA} from './mfa.js?v=20261025-release13';
+import {migrateTabSession} from './auth-session.mjs?v=20261025-release13';
+import {mergeDocuments} from './sync-merge.mjs?v=20261025-release13';
+import {cloudConfig} from './cloud-config.js?v=20261025-release13';
+import {CloudStore} from './cloud-store.mjs?v=20261025-release13';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';
@@ -13,6 +14,13 @@ export async function connectCloud({getState,applyState,notify}) {
   let backedUpFingerprint=null;
   let autoReady=false,dirty=false,autoTimer,editVersion=0,picker,pendingPicker=false,pickerTimer;
   let mfa,mfaLocked=false,client, store, busy=false, accountRequest=0, accountEpoch=0, recovery=false;
+  configureBirthdayReminders(async(action,params)=>{
+    if(!client||!store||mfaLocked)throw new Error('Sign in to your teacher account and open your cloud charts to manage push reminders.');
+    const epoch=accountEpoch;if(['subscribe','settings'].includes(action)){await flush();if(dirty||!autoReady)throw new Error('Finish saving your cloud classrooms before enabling reminders.');}
+    const {data,error}=await client.functions.invoke('birthday-reminders',{body:{action,...params}});
+    if(epoch!==accountEpoch)throw new Error('Your account changed. Reopen birthday reminders.');
+    if(error){let detail;try{detail=await error.context?.json();}catch{}throw new Error(detail?.error||'Could not connect to birthday reminders. Try again.');}return data;
+  });
   setupAvatarPasses(async(action,params)=>{
     if(!store||mfaLocked)throw new Error('Sign in to your teacher account in Account to manage avatar passes.');
     const epoch=accountEpoch,owner=store.userId;
@@ -208,7 +216,7 @@ export async function connectCloud({getState,applyState,notify}) {
   setInterval(pullRemote,5000);window.addEventListener('online',pullRemote);document.addEventListener('visibilitychange',()=>{if(!document.hidden)void pullRemote();});document.addEventListener('pointerdown',()=>{interacting=true;},true);for(const name of ['pointerup','pointercancel'])document.addEventListener(name,()=>{interacting=false;},true);
   $('cloud-signout').onclick=async()=>{
     if(busy) return;busy=true;enable(false);
-    try {const {error}=await client.auth.signOut({scope:'local'});if(error) throw error;++accountEpoch;mfa?.reset();store=null;baseline=null;deferredRevision=null;autoReady=false;pendingPicker=false;clearTimeout(pickerTimer);clearTimeout(autoTimer);controls(false);status('Signed out. Your charts remain in this browser; clear them before leaving a shared computer.');}
+    try {try{await stopBirthdayPush();}catch{}const {error}=await client.auth.signOut({scope:'local'});if(error) throw error;++accountEpoch;mfa?.reset();store=null;baseline=null;deferredRevision=null;autoReady=false;pendingPicker=false;clearTimeout(pickerTimer);clearTimeout(autoTimer);controls(false);status('Signed out. Your charts remain in this browser; clear them before leaving a shared computer.');}
     catch {notify('Sign-out failed. Try again while connected.');}
     finally {busy=false;enable(true);}
   };
