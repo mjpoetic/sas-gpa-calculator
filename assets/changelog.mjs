@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.29","changes":["Sync matching furniture across rooms with exact styling, preserved class assignments, and undo"]},
  {"version":"2026.10.25.28","changes":["Allow smaller calendars and add a live wooden wedge digital clock style"]},
  {"version":"2026.10.25.27","changes":["Refresh cached calendar behavior and place new furniture within the current zoomed view"]},
  {"version":"2026.10.25.26","changes":["Rename the Classroom Studio Furniture tab to Items"]},

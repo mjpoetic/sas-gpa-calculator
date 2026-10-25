@@ -1,5 +1,5 @@
-import './dialog-motion.js?v=20261025-release28';
-import {animateWorkspace} from './panel-motion.js?v=20261025-release28';
+import './dialog-motion.js?v=20261025-release29';
+import {animateWorkspace} from './panel-motion.js?v=20261025-release29';
 // Move existing controls into compact panels without changing their data bindings.
 const $=id=>document.getElementById(id),body=document.body;
 body.classList.add('chart-first');
@@ -16,7 +16,7 @@ const fileSection=document.createElement('details');fileSection.className='accou
 for(const [button,d] of [['workspace-account',account],['workspace-settings',settings]])$(button).onclick=()=>{d.showModal();};
 const library=document.querySelector('.library'),inspector=document.querySelector('.inspector');library.id='workspace-library';inspector.id='workspace-inspector';
 function closeButton(panel,name){const b=document.createElement('button');b.type='button';b.className='workspace-panel-close';b.setAttribute('aria-label','Close '+name);b.textContent='×';b.onclick=()=>{if(innerWidth>=1100&&panel===inspector&&!library.hidden)setPanel($('students-panel').hidden?'furniture':'students');else if(innerWidth>=1100&&panel===library&&!inspector.hidden){setPanel('details',{closeLibrary:true});}else setPanel(null);};panel.prepend(b);}closeButton(library,'library');closeButton(inspector,'details');
-const dock=document.createElement('nav');dock.className='workspace-dock';dock.setAttribute('aria-label','Classroom tools');dock.innerHTML='<button id="dock-furniture" aria-controls="workspace-library">Items</button><button id="dock-students" aria-controls="workspace-library">People</button><button id="dock-details" aria-controls="workspace-inspector" hidden>Edit</button><button id="dock-fit">Fit room</button>';document.querySelector('.room-panel').append(dock);dock.insertBefore($('copy-furniture-room'),$('dock-fit'));dock.insertBefore($('rotate-room-ccw'),$('dock-fit'));dock.insertBefore($('rotate-room'),$('dock-fit'));
+const dock=document.createElement('nav');dock.className='workspace-dock';dock.setAttribute('aria-label','Classroom tools');dock.innerHTML='<button id="dock-furniture" aria-controls="workspace-library">Items</button><button id="dock-students" aria-controls="workspace-library">People</button><button id="dock-details" aria-controls="workspace-inspector" hidden>Edit</button><button id="dock-fit">Fit room</button>';document.querySelector('.room-panel').append(dock);dock.insertBefore($('copy-furniture-room'),$('dock-fit'));const syncButton=document.createElement('button');syncButton.id='sync-furniture-room';syncButton.type='button';syncButton.title='Sync furniture to other rooms';syncButton.setAttribute('aria-label',syncButton.title);syncButton.innerHTML='<svg class="button-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 8a8 8 0 0 0-14-3L3 8m0-5v5h5M4 16a8 8 0 0 0 14 3l3-3m0 5v-5h-5"/></svg>';dock.insertBefore(syncButton,$('dock-fit'));dock.insertBefore($('rotate-room-ccw'),$('dock-fit'));dock.insertBefore($('rotate-room'),$('dock-fit'));
 // Show the empty Details introduction once per browser.
 const introKey='sas-classroom-details-intro-seen';
 let showDetailsIntro=false;

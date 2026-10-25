@@ -1,18 +1,19 @@
-import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release28';
-import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release28';
+import {planFurnitureSync,applyFurnitureSync} from './furniture-sync.mjs?v=20261025-release29';
+import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release29';
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release29';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release28';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release28';
-import {openAvatarEditor} from './avatar-editor.js?v=20261025-release28';
-import {transferStudent} from './seat-transfer.mjs?v=20261025-release28';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release28';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release28';
-import {furnitureArt} from './furniture-art.mjs?v=20261025-release28';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261025-release28';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release28';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release29';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release29';
+import {openAvatarEditor} from './avatar-editor.js?v=20261025-release29';
+import {transferStudent} from './seat-transfer.mjs?v=20261025-release29';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release29';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release29';
+import {furnitureArt} from './furniture-art.mjs?v=20261025-release29';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261025-release29';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release29';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
@@ -84,11 +85,29 @@ $('copy-furniture-room').onclick=()=>{
   if(target.items.length+members.length>500){status.textContent='The destination room would exceed the 500 furniture limit.';return;}
   const copies=structuredClone(members),bounds=groupBounds(copies),room=target.room||{width:960,height:680};
   if(bounds.x<-.001||bounds.y<-.001||bounds.x+bounds.width>room.width+.001||bounds.y+bounds.height>room.height+.001){status.textContent='The selected furniture does not fit at its exact position in the destination room. Enlarge that room first.';return;}
-  copies.forEach(it=>{it.id=uid();it.seats.forEach(seat=>{seat.student=null;seat.locked=false;});});
+  copies.forEach(it=>{it.syncKey=it.syncKey||it.id;it.id=uid();it.seats.forEach(seat=>{seat.student=null;seat.locked=false;});});
   change(()=>target.items.push(...copies),`${copies.length} furniture ${copies.length===1?'item':'items'} copied to ${target.name} at the exact same positions and orientations, with empty seats. Undo is available.`);d.close();
  };
  d.append(heading,label,element('p','hint',`Copy ${members.length} selected ${members.length===1?'item':'items'} at the exact same room positions, with the same size, shape, orientation, and styling. Existing furniture stays in place, so copies may overlap it. Seats are copied empty.`),status,submit);
  d.onclose=()=>d.remove();document.body.append(d);d.showModal();select.focus();
+};
+$('sync-furniture-room').onclick=()=>{
+ const source=chart(),destinations=orderedCharts().filter(c=>c.id!==source.id);
+ if(!destinations.length)return say('Create another room first, then sync its matching furniture.');
+ const d=element('dialog','workspace-dialog furniture-sync-dialog'),heading=element('form');heading.method='dialog';
+ const title=element('h2','','Sync furniture to other rooms');title.id='furniture-sync-title';d.setAttribute('aria-labelledby',title.id);
+ const close=element('button','','×');close.setAttribute('aria-label','Close furniture sync');heading.append(title,close);
+ const scopeLabel=element('label','','Furniture to sync'),scope=element('select');scope.id='furniture-sync-scope';scope.append(option('all','All furniture in this room'));
+ const selectedFurniture=selectedItems().filter(it=>it.type!=='label');if(selectedFurniture.length)scope.append(option('selected',`${selectedFurniture.length} selected furniture items`));scopeLabel.append(scope);
+ const list=element('div','furniture-sync-targets'),preview=element('div','hint'),status=element('p','hint');status.setAttribute('role','status');preview.setAttribute('aria-live','polite');
+ const checks=destinations.map(target=>{const label=element('label','check'),input=element('input');input.type='checkbox';input.value=target.id;label.append(input,document.createTextNode(target.name));list.append(label);return {target,input};});
+ const submit=element('button','primary','Sync matching furniture');submit.type='button';submit.id='apply-furniture-sync';
+ const plans=()=>checks.filter(entry=>entry.input.checked).map(({target})=>planFurnitureSync(source,target,scope.value==='selected'?selectedFurniture:source.items));
+ const refresh=()=>{const current=plans();preview.replaceChildren(...current.map(plan=>element('p','',`${plan.target.name}: ${plan.pairs.length} matched; ${plan.unmatched} source items without a match.${plan.outside?' Enlarge this room first to keep exact positions.':''}`)));submit.disabled=!current.some(plan=>plan.pairs.length)||current.some(plan=>plan.outside);status.textContent='';};
+ scope.onchange=refresh;checks.forEach(({input})=>input.onchange=refresh);
+ submit.onclick=()=>{const current=plans();if(!current.length||current.some(plan=>plan.outside))return;const count=current.reduce((sum,plan)=>sum+plan.pairs.length,0);if(!count)return;change(()=>current.forEach(applyFurnitureSync),`${count} matching furniture items synced from ${source.name} to ${current.length} rooms. Students and room labels kept. Undo is available.`);d.close();};
+ d.append(heading,element('p','hint',`Use ${source.name} as the source for this sync. Updates exact positions, sizes, orientation, flips, and furniture colors and styles. Students, seat settings, teacher placements, and room labels stay in each room. No items are added or removed.`),scopeLabel,element('h3','','Destination rooms'),list,element('p','hint','Matches saved furniture links first, then furniture of the same type, preferring the same name and closest position. Repeated syncs remember these matches. You can run this from any room to sync changes back. Each sync is a one-time update.'),preview,status,submit);
+ d.onclose=()=>d.remove();document.body.append(d);refresh();d.showModal();checks[0].input.focus();
 };
 function visibleFurnitureBounds(){
  const room=$('room').getBoundingClientRect(),view=$('room').parentElement.getBoundingClientRect();
@@ -329,7 +348,7 @@ for(const field of ['label','width','height','x','y']) $('item-'+field).onchange
   change(() => {if(field==='width'||field==='height')resizeFurniture(it,field==='width'?Number(input.value):it.width,field==='height'?Number(input.value):it.height,field);else {it[field]=field==='label'?input.value.trim()||catalog[it.type].label:Number(input.value);constrain(it);}});
 };
 $('rotate').onclick = () => {const it=selected();if(it) change(() => {it.rotation=(it.rotation+90)%360;constrain(it);});};
-function duplicateFurniture(it){if(!it||chart().items.length>=500)return;change(()=>{const copy=structuredClone(it);copy.id=uid();copy.seats.forEach(s=>{s.student=null;s.locked=false;});vacantPosition(copy,chart().items,{x:it.x+30,y:it.y+30});chart().items.push(copy);choose(copy);},'Furniture duplicated with empty seats. Undo is available.');}
+function duplicateFurniture(it){if(!it||chart().items.length>=500)return;change(()=>{const copy=structuredClone(it);delete copy.syncKey;copy.id=uid();copy.seats.forEach(s=>{s.student=null;s.locked=false;});vacantPosition(copy,chart().items,{x:it.x+30,y:it.y+30});chart().items.push(copy);choose(copy);},'Furniture duplicated with empty seats. Undo is available.');}
 $('duplicate-item').onclick=()=>duplicateFurniture(selected());
 $('delete-item').onclick = () => {const it=selected();if(it) change(() => {chart().items=chart().items.filter(i => i.id!==it.id);selection=null;},'Furniture removed. Its students are now unassigned.');};
 $('assignment').onchange = () => {const it=selected();if(!it || selection.seat===null) return;const target=it.seats[selection.seat], id=$('assignment').value||null;
@@ -455,7 +474,7 @@ function renderGroupControls(){
  controlGlyph(resize,'M4 9V4h5m6 0h5v5M4 15v5h5m6 0h5v-5M4 4l6 6m10-6-6 6M4 20l6-6m10 6-6-6');copy.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 9h11v11H9ZM4 15H3V3h12v1"/></svg>';
  for(const [button,label] of [[turn,'Rotate selected objects'],[copy,'Duplicate selected objects'],[remove,'Delete selected objects'],[resize,'Resize selected objects']]){button.type='button';button.setAttribute('aria-label',label);button.title=label;}
  remove.onclick=e=>{e.stopPropagation();change(()=>{chart().items=chart().items.filter(it=>!selectedIds.has(it.id));selectedIds.clear();selection=null;},'Selected furniture removed. Undo is available.');};
- copy.onclick=e=>{e.stopPropagation();if(chart().items.length+members.length>500)return say('This chart has reached the furniture limit.');change(()=>{const copies=structuredClone(members);copies.forEach(it=>{it.id=uid();it.seats.forEach(s=>{s.student=null;s.locked=false;});});const b=groupBounds(copies),proxy={x:b.x,y:b.y,width:b.width,height:b.height,rotation:0};vacantPosition(proxy,chart().items,{x:b.x+30,y:b.y+30});moveGroup(copies,proxy.x-b.x,proxy.y-b.y);chart().items.push(...copies);selectedIds=new Set(copies.map(it=>it.id));selection={id:copies[0].id,seat:null};},'Group duplicated with empty seats. Undo is available.');};
+ copy.onclick=e=>{e.stopPropagation();if(chart().items.length+members.length>500)return say('This chart has reached the furniture limit.');change(()=>{const copies=structuredClone(members);copies.forEach(it=>{delete it.syncKey;it.id=uid();it.seats.forEach(s=>{s.student=null;s.locked=false;});});const b=groupBounds(copies),proxy={x:b.x,y:b.y,width:b.width,height:b.height,rotation:0};vacantPosition(proxy,chart().items,{x:b.x+30,y:b.y+30});moveGroup(copies,proxy.x-b.x,proxy.y-b.y);chart().items.push(...copies);selectedIds=new Set(copies.map(it=>it.id));selection={id:copies[0].id,seat:null};},'Group duplicated with empty seats. Undo is available.');};
  let rotated=false;turn.onclick=e=>{e.stopPropagation();if(rotated){rotated=false;return;}change(()=>{if(!rotateGroup(members,90))say('This group is too large to rotate within the room. Resize it first.');});};
  turn.onpointerdown=e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();const original=structuredClone(members),r=groupOverlay.getBoundingClientRect(),cx=r.x+r.width/2,cy=r.y+r.height/2,start=Math.atan2(e.clientY-cy,e.clientX-cx);rotated=false;turn.setPointerCapture(e.pointerId);const move=ev=>{const delta=snapAngle((Math.atan2(ev.clientY-cy,ev.clientX-cx)-start)*180/Math.PI,$('snap').checked);if(!rotated&&Math.min(delta,360-delta)<2)return;if(!rotated){checkpoint();rotated=true;}members.forEach((it,i)=>Object.assign(it,original[i]));rotateGroup(members,delta);paintPositions();for(const it of members){const n=$('room').querySelector(`[data-id="${it.id}"]`);n.dataset.rotation=it.rotation;n.style.transform=`rotate(${it.rotation}deg)`;n.querySelectorAll('.seat-identity,.seat-name:not(.avatar-name)').forEach(t=>t.style.transform=`rotate(${-it.rotation}deg)`);}};const end=()=>{turn.removeEventListener('pointermove',move);turn.removeEventListener('pointerup',end);turn.removeEventListener('pointercancel',end);if(rotated){save();render();}};turn.addEventListener('pointermove',move);turn.addEventListener('pointerup',end);turn.addEventListener('pointercancel',end);};
  resize.onpointerdown=e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();const original=structuredClone(members),b=groupBounds(members),start={x:e.clientX,y:e.clientY};let moved=false;resize.setPointerCapture(e.pointerId);const move=ev=>{const dx=(ev.clientX-start.x)/zoom,dy=(ev.clientY-start.y)/zoom;if(!moved&&Math.hypot(dx,dy)<3)return;if(!moved){checkpoint();moved=true;}members.forEach((it,i)=>Object.assign(it,original[i]));scaleGroup(members,Math.max(.1,1+(dx+dy)/(b.width+b.height)));paintPositions();};const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){save();render();}};resize.addEventListener('pointermove',move);resize.addEventListener('pointerup',end);resize.addEventListener('pointercancel',end);};

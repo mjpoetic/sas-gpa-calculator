@@ -167,3 +167,8 @@
 @media(max-width:600px){.chart-first .workspace-dock>button{height:42px;min-height:42px}}
 
 #room .item.bible{background:transparent!important;border:0!important}.item.bible .furniture-art{inset:0}.mini.bible{width:26px;height:36px}
+
+.chart-first .workspace-dock>#sync-furniture-room{width:40px;flex:0 0 40px;padding:8px}
+.chart-first .workspace-dock>#sync-furniture-room svg{width:19px;height:19px;margin:0}
+.furniture-sync-targets{display:grid;gap:8px;margin:12px 0}.furniture-sync-targets label{margin:0;padding:8px;border:1px solid var(--studio-glass-edge,#abc3d4);border-radius:8px}
+@media(max-width:420px){.chart-first .workspace-dock>button{font-size:0;min-width:0;padding:6px 4px}.chart-first .workspace-dock>button .button-glyph{width:19px;height:19px;margin:0}}
