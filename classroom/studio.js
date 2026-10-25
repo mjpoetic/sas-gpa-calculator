@@ -1,18 +1,18 @@
-import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release26';
-import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release26';
+import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release27';
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release27';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release26';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release26';
-import {openAvatarEditor} from './avatar-editor.js?v=20261025-release26';
-import {transferStudent} from './seat-transfer.mjs?v=20261025-release26';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release26';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release26';
-import {furnitureArt} from './furniture-art.mjs?v=20261025-release26';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-names1';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release26';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release27';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release27';
+import {openAvatarEditor} from './avatar-editor.js?v=20261025-release27';
+import {transferStudent} from './seat-transfer.mjs?v=20261025-release27';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release27';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release27';
+import {furnitureArt} from './furniture-art.mjs?v=20261025-release27';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261025-release27';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release27';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
@@ -90,7 +90,14 @@ $('copy-furniture-room').onclick=()=>{
  d.append(heading,label,element('p','hint',`Copy ${members.length} selected ${members.length===1?'item':'items'} at the exact same room positions, with the same size, shape, orientation, and styling. Existing furniture stays in place, so copies may overlap it. Seats are copied empty.`),status,submit);
  d.onclose=()=>d.remove();document.body.append(d);d.showModal();select.focus();
 };
-function addFurniture(type,preferred){if(chart().items.length>=500)return say('This chart has reached the furniture limit.');change(()=>{const item=furniture(type);const found=vacantPosition(item,chart().items,preferred);snapToWall(item);chart().items.push(item);choose(item);if(!found)say('Room is full; move the new item to make space.');},catalog[type].label+' added.');}
+function visibleFurnitureBounds(){
+ const room=$('room').getBoundingClientRect(),view=$('room').parentElement.getBoundingClientRect();
+ let left=Math.max(room.left,view.left,0)+16,top=Math.max(room.top,view.top,0)+48,right=Math.min(room.right,view.right,innerWidth)-16,bottom=Math.min(room.bottom,view.bottom,innerHeight)-64;
+ for(const panel of document.querySelectorAll('.library:not([hidden]),.inspector:not([hidden])')){const p=panel.getBoundingClientRect();if(p.right<=left||p.left>=right||p.bottom<=top||p.top>=bottom)continue;if(p.width>(right-left)*.75)bottom=Math.min(bottom,p.top-12);else if(p.left<left+30)left=Math.max(left,p.right+12);else right=Math.min(right,p.left-12);}
+ if(right-left<40||bottom-top<40){left=Math.max(room.left,view.left)+8;top=Math.max(room.top,view.top)+8;right=Math.min(room.right,view.right)-8;bottom=Math.min(room.bottom,view.bottom)-8;}
+ return {x:Math.max(0,(left-room.left)/zoom),y:Math.max(0,(top-room.top)/zoom),width:Math.max(40,(right-left)/zoom),height:Math.max(40,(bottom-top)/zoom)};
+}
+function addFurniture(type,preferred){if(chart().items.length>=500)return say('This chart has reached the furniture limit.');const bounds=visibleFurnitureBounds();change(()=>{const item=furniture(type),scale=Math.min(1,bounds.width*.55/item.width,bounds.height*.55/item.height);if(scale<1)resizeFurniture(item,item.width*scale,item.height*scale);const target=preferred||{x:bounds.x+(bounds.width-item.width)/2,y:bounds.y+(bounds.height-item.height)/2};const found=vacantPosition(item,chart().items,target,bounds);chart().items.push(item);choose(item);if(!found)say('Added in your current view; move it to make more space.');},catalog[type].label+' added.');}
 function render() {
   const c = chart();$('show-avatars').checked=!!appearance().showAvatars;$('chart-seat-font-size').value=appearance().seatFontSize||appearance().fontSize;setRoomSize(c.room);$('room-width').value=WIDTH;$('room-depth').value=HEIGHT;
   $('charts').replaceChildren(...orderedCharts().map(c => option(c.id,c.name)));$('charts').value = c.id;

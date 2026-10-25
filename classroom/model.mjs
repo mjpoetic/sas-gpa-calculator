@@ -1,9 +1,9 @@
-import {validateBirthday} from './celebration-date.mjs?v=20261025-release26';
+import {validateBirthday} from './celebration-date.mjs?v=20261025-release27';
 import {validateStudentExclusions} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {validateWeeklyJobs} from './weekly-jobs.mjs?v=20261020-names1';
-import {validateAvatar} from './avatars.mjs?v=20261025-release26';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261025-release26';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261025-release26';
+import {validateAvatar} from './avatars.mjs?v=20261025-release27';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261025-release27';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261025-release27';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -194,11 +194,15 @@ export function resizeFurniture(it,width,height,axis='width') {
  constrain(it);
 }
 
-export function vacantPosition(item,others,preferred={x:320,y:220}) {
+export function vacantPosition(item,others,preferred={x:320,y:220},bounds={x:0,y:0,width:WIDTH,height:HEIGHT}) {
  const free=()=>{const b=footprint(item);return !others.filter(it=>!['rug','label'].includes(it.type)).some(it=>{const t=footprint(it);return b.x<t.x+t.width+8&&b.x+b.width+8>t.x&&b.y<t.y+t.height+8&&b.y+b.height+8>t.y;});};
- item.x=preferred.x;item.y=preferred.y;constrain(item);if(free())return true;
- for(let y=0;y<=HEIGHT-item.height;y+=20)for(let x=0;x<=WIDTH-item.width;x+=20){item.x=x;item.y=y;constrain(item);if(free())return true;}
- item.x=preferred.x;item.y=preferred.y;constrain(item);return false;
+ const left=Math.max(0,bounds.x),top=Math.max(0,bounds.y),right=Math.max(left,Math.min(WIDTH,bounds.x+bounds.width)-item.width),bottom=Math.max(top,Math.min(HEIGHT,bounds.y+bounds.height)-item.height);
+ const place=(x,y)=>{item.x=Math.max(left,Math.min(right,x));item.y=Math.max(top,Math.min(bottom,y));constrain(item);};
+ place(preferred.x,preferred.y);if(free())return true;
+ const candidates=[];for(let y=top;y<=bottom;y+=10)for(let x=left;x<=right;x+=10)candidates.push({x,y});
+ candidates.sort((a,b)=>Math.hypot(a.x-preferred.x,a.y-preferred.y)-Math.hypot(b.x-preferred.x,b.y-preferred.y));
+ for(const p of candidates){place(p.x,p.y);if(free())return true;}
+ place(preferred.x,preferred.y);return false;
 }
 
 export function reshapeRoom(chart,width,height){

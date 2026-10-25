@@ -1,5 +1,5 @@
-import './release-notes.js?v=20261025-release26';
-import {refreshSite} from './refresh.js?v=20261025-release26';
+import './release-notes.js?v=20261025-release27';
+import {refreshSite} from './refresh.js?v=20261025-release27';
 const current=document.querySelector('meta[name="site-version"]')?.content;
 const root=new URL('../',import.meta.url);
 const style=document.createElement('style');style.textContent=`.site-version{font:10px/1.4 Arial,sans-serif;color:inherit;opacity:.75;white-space:nowrap}.site-version-main{display:block;text-align:center;padding:8px}.site-update-toast{position:fixed;bottom:max(16px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:40000;max-width:calc(100vw - 24px);width:340px;box-sizing:border-box;background:#203c51f5;color:#edf6fc;border:1px solid #8cb1cb88;border-radius:14px;padding:12px;box-shadow:0 8px 32px #0004;backdrop-filter:blur(20px);font:14px/1.4 Arial,sans-serif}.site-update-toast p{margin:0 0 8px;text-align:center}.site-update-actions{display:flex;justify-content:center;align-items:center;gap:8px}.site-update-toast button{font:600 13px Arial,sans-serif;border:1px solid #abc5d5;border-radius:9px;background:#335b78;color:white;padding:8px 12px;min-height:40px;margin:0;cursor:pointer}.site-update-toast[hidden]{display:none}@media print{.site-update-toast,.site-version{display:none}}`;document.head.append(style);
