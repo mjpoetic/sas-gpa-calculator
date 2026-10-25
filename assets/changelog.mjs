@@ -1,5 +1,8 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.26","changes":["Rename the Classroom Studio Furniture tab to Items"]},
+ {"version":"2026.10.25.25","changes":["Allow clocks, calendars, and the new Bible to move without snapping; add customizable live wooden block and flip calendars"]},
+ {"version":"2026.10.25.24","changes":["Copy multiple furniture items between rooms at their exact original positions and orientations"]},
  {"version":"2026.10.25.23","changes":["Move furniture copying to the room toolbar and align button heights with stronger hover halos"]},
  {"version":"2026.10.25.22","changes":["Fix tabletop clock placement, keep selected resize controls visible, and add smaller globes with customizable colors"]},
  {"version":"2026.10.25.21","changes":["Search furniture quickly and copy selected furniture between rooms with size and orientation preserved"]},

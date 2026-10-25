@@ -1,10 +1,10 @@
-import {configureBirthdayReminders,stopBirthdayPush} from './birthday-reminders.js?v=20261025-release23';
-import {setupAvatarPasses} from './avatar-passes.js?v=20261025-release23';
-import {createMFA} from './mfa.js?v=20261025-release23';
-import {migrateTabSession} from './auth-session.mjs?v=20261025-release23';
-import {mergeDocuments} from './sync-merge.mjs?v=20261025-release23';
-import {cloudConfig} from './cloud-config.js?v=20261025-release23';
-import {CloudStore} from './cloud-store.mjs?v=20261025-release23';
+import {configureBirthdayReminders,stopBirthdayPush} from './birthday-reminders.js?v=20261025-release26';
+import {setupAvatarPasses} from './avatar-passes.js?v=20261025-release26';
+import {createMFA} from './mfa.js?v=20261025-release26';
+import {migrateTabSession} from './auth-session.mjs?v=20261025-release26';
+import {mergeDocuments} from './sync-merge.mjs?v=20261025-release26';
+import {cloudConfig} from './cloud-config.js?v=20261025-release26';
+import {CloudStore} from './cloud-store.mjs?v=20261025-release26';
 
 // Pin the browser SDK, including its bundled dependency versions.
 const SDK = 'https://esm.sh/@supabase/supabase-js@2.117.3?bundle';

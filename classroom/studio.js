@@ -1,18 +1,18 @@
-import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release23';
-import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release23';
+import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release26';
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release26';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release23';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release23';
-import {openAvatarEditor} from './avatar-editor.js?v=20261025-release23';
-import {transferStudent} from './seat-transfer.mjs?v=20261025-release23';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release23';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release23';
-import {furnitureArt} from './furniture-art.mjs?v=20261025-release23';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release26';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release26';
+import {openAvatarEditor} from './avatar-editor.js?v=20261025-release26';
+import {transferStudent} from './seat-transfer.mjs?v=20261025-release26';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release26';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release26';
+import {furnitureArt} from './furniture-art.mjs?v=20261025-release26';
 import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-names1';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release23';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release26';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
@@ -83,16 +83,11 @@ $('copy-furniture-room').onclick=()=>{
   const target=state.charts.find(c=>c.id===select.value);if(!target)return;
   if(target.items.length+members.length>500){status.textContent='The destination room would exceed the 500 furniture limit.';return;}
   const copies=structuredClone(members),bounds=groupBounds(copies),room=target.room||{width:960,height:680};
-  if(bounds.width>room.width+.001||bounds.height>room.height+.001){status.textContent='This furniture does not fit in the destination room at its current size and orientation. Enlarge that room first.';return;}
-  let found;
-  setRoomSize(room);
-  try{
-   const proxy={...bounds,rotation:0};found=vacantPosition(proxy,target.items,{x:bounds.x,y:bounds.y});
-   copies.forEach(it=>{it.id=uid();it.x+=proxy.x-bounds.x;it.y+=proxy.y-bounds.y;it.seats.forEach(seat=>{seat.student=null;seat.locked=false;});});
-  }finally{setRoomSize(chart().room);}
-  change(()=>target.items.push(...copies),`${copies.length} furniture ${copies.length===1?'item':'items'} copied to ${target.name} with empty seats.${found?'':' Room is full; move the copies to make space.'} Undo is available.`);d.close();
+  if(bounds.x<-.001||bounds.y<-.001||bounds.x+bounds.width>room.width+.001||bounds.y+bounds.height>room.height+.001){status.textContent='The selected furniture does not fit at its exact position in the destination room. Enlarge that room first.';return;}
+  copies.forEach(it=>{it.id=uid();it.seats.forEach(seat=>{seat.student=null;seat.locked=false;});});
+  change(()=>target.items.push(...copies),`${copies.length} furniture ${copies.length===1?'item':'items'} copied to ${target.name} at the exact same positions and orientations, with empty seats. Undo is available.`);d.close();
  };
- d.append(heading,label,element('p','hint',`Copy ${members.length} selected ${members.length===1?'item':'items'} with the same size, shape, orientation, and styling. Student and teacher assignments stay in this room.`),status,submit);
+ d.append(heading,label,element('p','hint',`Copy ${members.length} selected ${members.length===1?'item':'items'} at the exact same room positions, with the same size, shape, orientation, and styling. Existing furniture stays in place, so copies may overlap it. Seats are copied empty.`),status,submit);
  d.onclose=()=>d.remove();document.body.append(d);d.showModal();select.focus();
 };
 function addFurniture(type,preferred){if(chart().items.length>=500)return say('This chart has reached the furniture limit.');change(()=>{const item=furniture(type);const found=vacantPosition(item,chart().items,preferred);snapToWall(item);chart().items.push(item);choose(item);if(!found)say('Room is full; move the new item to make space.');},catalog[type].label+' added.');}
@@ -140,7 +135,7 @@ function renderRoom() {
   room.style.fontFamily=fontCSS(appearance().font);
   room.style.setProperty('--chart-font-size',`${appearance().fontSize}px`);
   const font=appearance().font,weight=appearance().weight||400;$('chart-font-status').textContent=font.source==='google'?'Loading '+font.family+'…':'Font applied: '+(fontOptions[font.family]?.label||font.family);void loadFont(font,weight).then(async()=>{if(document.fonts?.load)await document.fonts.load(`${weight} 14px ${fontCSS(font)}`);if(JSON.stringify(appearance().font)===JSON.stringify(font))$('chart-font-status').textContent='Font applied: '+(fontOptions[font.family]?.label||font.family);}).catch(error=>{$('chart-font-status').textContent=error.message;say(error.message);});
-  const tabletop=new Set(['digitalclock','globe','mug','bottle','keyboard','mouse','laptop','printer','sharpener']);
+  const tabletop=new Set(['digitalclock','clock','calendar','bible','globe','mug','bottle','keyboard','mouse','laptop','printer','sharpener']);
   const layers=new Map([...chart().items].sort((a,b)=>Number(tabletop.has(a.type))-Number(tabletop.has(b.type))||b.width*b.height-a.width*a.height).map((it,i)=>[it.id,i+1]));
   for(const it of chart().items) {
     const node = element('div',`item ${it.type}${!selectedSeatKeys.size&&selectedIds.has(it.id) ? ' selected' : ''}`);
@@ -155,7 +150,7 @@ function renderRoom() {
     const caption=element('span','item-caption',it.label);if(it.type==='label'||it.showLabel===true)node.append(caption);
     if(it.type==='label'){if(it.labelStyle?.textOutline){caption.style.webkitTextStroke=`${labelOutlineWidth(it)}px ${it.labelStyle.textOutlineColor||'#20354e'}`;caption.style.paintOrder='stroke fill';}caption.classList.add('editable-room-label');caption.tabIndex=0;caption.setAttribute('role','textbox');caption.setAttribute('aria-label','Room label; click to rename');caption.title='Click to rename; drag the border to move';if(it.labelFont){caption.style.fontFamily=fontCSS(it.labelFont);void loadFont(it.labelFont,it.fontWeight||400).then(async()=>{if(document.fonts?.load)await document.fonts.load(`${it.fontWeight||400} 100px ${fontCSS(it.labelFont)}`);fitCaption(caption,it);}).catch(e=>say(e.message));}const observer=new ResizeObserver(()=>fitCaption(caption,it));observer.observe(node);labelObservers.push(observer);caption.oninput=()=>fitCaption(caption,it);caption.onpointerdown=e=>e.stopPropagation();caption.onclick=e=>{e.stopPropagation();choose(it);room.querySelectorAll('.item').forEach(n=>n.classList.toggle('selected',n===node));renderInspector();caption.contentEditable='true';caption.focus();};caption.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();caption.blur();}if(e.key==='Escape'){caption.textContent=it.label;caption.blur();}};caption.onblur=()=>{caption.contentEditable='false';const value=caption.textContent.trim().slice(0,60)||'Room label';if(value!==it.label)change(()=>{it.label=value;},'Room label updated.');};}
 
-    if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type,it.height,it.rugStyle,it.clockFormat);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=HEIGHT-1||f.x+f.width>=WIDTH-1),wallFlip=it.type==='door'&&((f.y+f.height>=HEIGHT-1&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=WIDTH-1&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);if(color&&!art.innerHTML.includes('var(--furniture-color')){const rects=[...art.querySelectorAll('rect')].sort((a,b)=>Number(b.getAttribute('width'))*Number(b.getAttribute('height'))-Number(a.getAttribute('width'))*Number(a.getAttribute('height')));(rects[0]||art.querySelector('circle'))?.setAttribute('fill',color);}requestAnimationFrame(()=>fitCaption(caption,it));}
+    if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type,it.height,it.rugStyle,it.clockFormat,it.calendarStyle);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=HEIGHT-1||f.x+f.width>=WIDTH-1),wallFlip=it.type==='door'&&((f.y+f.height>=HEIGHT-1&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=WIDTH-1&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);if(color&&!art.innerHTML.includes('var(--furniture-color')){const rects=[...art.querySelectorAll('rect')].sort((a,b)=>Number(b.getAttribute('width'))*Number(b.getAttribute('height'))-Number(a.getAttribute('width'))*Number(a.getAttribute('height')));(rects[0]||art.querySelector('circle'))?.setAttribute('fill',color);}requestAnimationFrame(()=>fitCaption(caption,it));}
     if(teacherSeatTypes.includes(it.type)){
       node.classList.add('teacher-drop-seat');
       for(const person of [chart().teacher,...(chart().assistants||[])].filter(Boolean))if(person.seatId===it.id&&person.avatar.enabled){const portrait=createTeacherPortrait(it,person.id||null);if(it.seats.some(s=>s.student))node.classList.add('teacher-occupied-desk');node.append(portrait);}
@@ -217,7 +212,7 @@ function renderRoom() {
         const angle=it.rotation*Math.PI/180,step=1;
         it.width=Math.max(['mug','mouse','globe'].includes(it.type)?16:40,Math.min(400,Math.round((start.w+dx*Math.cos(angle)+dy*Math.sin(angle))/step)*step));
         it.height=Math.max(8,Math.min(300,Math.round((start.h-dx*Math.sin(angle)+dy*Math.cos(angle))/step)*step));if(['door','board','smartboard','bulletin','window'].includes(it.type))resizeFurniture(it,it.width,it.height,'width');else if(proportionalTypes.has(it.type)||it.type==='cabinet')resizeFurniture(it,it.width,it.height,Math.abs(dx*Math.cos(angle)+dy*Math.sin(angle))/start.w>=Math.abs(-dx*Math.sin(angle)+dy*Math.cos(angle))/start.h?'width':'height');else constrain(it);snapResize(it);
-        Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});if(it.type==='cabinet')node.querySelector('.furniture-art').innerHTML=furnitureArt(it.type,it.height,it.rugStyle,it.clockFormat);showGuides([it]);
+        Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});if(it.type==='cabinet')node.querySelector('.furniture-art').innerHTML=furnitureArt(it.type,it.height,it.rugStyle,it.clockFormat,it.calendarStyle);showGuides([it]);
       };
       const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(['mug','mouse','globe'].includes(it.type)?16:40,Math.min(400,Math.round(it.width/(['mug','mouse','globe'].includes(it.type)?2:10))*(['mug','mouse','globe'].includes(it.type)?2:10)));it.height=Math.max(8,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height);}save();render();}};
       resize.addEventListener('pointermove',move);resize.addEventListener('pointerup',end);resize.addEventListener('pointercancel',end);
@@ -266,6 +261,7 @@ function renderInspector() {
   const style={...defaultLabelStyle(),...it.labelStyle};for(const key of ['background','outline','textOutline'])$('label-'+key).checked=style[key];for(const key of ['fill','border','text','textOutlineColor'])$('label-'+key).value=style[key];
   $('label-textOutlineWidth').value=Number(labelOutlineWidth(it).toFixed(2));
   $('globe-controls').hidden=it.type!=='globe';$('globe-ocean').value=it.globeStyle?.ocean||'#78bfd6';$('globe-land').value=it.globeStyle?.land||'#6f9f74';
+  $('calendar-controls').hidden=it.type!=='calendar';$('calendar-design').value=it.calendarStyle?.design||'classic';for(const [key,value] of Object.entries({wood:'#b99569',cards:'#242626',text:'#f2f4f3',accent:'#292e30'}))$('calendar-'+key).value=it.calendarStyle?.[key]||value;
   $('digital-clock-controls').hidden=it.type!=='digitalclock';$('digital-clock-format').value=it.clockFormat||'12';
   $('rug-controls').hidden=it.type!=='rug';$('rug-pattern').value=it.rugStyle?.pattern||'plain';$('rug-pattern-color').value=it.rugStyle?.color||'#547b93';$('rug-pattern-color-label').hidden=($('rug-pattern').value==='plain');
   $('item-color').value=it.color || appearance().color || '#e8d7bb';
@@ -369,7 +365,7 @@ document.addEventListener('sas-before-refresh',event=>{if(!save()&&exportedSnaps
 
 $('item-angle').onchange=()=>{const it=selected();if(!it)return;if(!$('item-angle').checkValidity()||!$('item-angle').value){renderInspector();return;}change(()=>{it.rotation=Number($('item-angle').value);constrain(it);});};
 
-$('multi-select').onclick=()=>{multiMode=!multiMode;$('multi-select').setAttribute('aria-pressed',String(multiMode));say(multiMode?'Tap furniture or seats to add or remove them from the selection. Turn Select multiple off to drag the group.':'Drag selected furniture to move the group.');};
+$('multi-select').onclick=()=>{multiMode=!multiMode;$('multi-select').setAttribute('aria-pressed',String(multiMode));say(multiMode?'Tap furniture to build a group, then use Copy to another room below the room. Tap seats to select seats instead. Turn Select multiple off to drag the group.':'Drag selected furniture to move the group.');};
 $('clear-selection').onclick=()=>{selection=null;selectedIds.clear();renderRoom();renderInspector();};
 $('group-delete').onclick=()=>change(()=>{chart().items=chart().items.filter(it=>!selectedIds.has(it.id));selection=null;},'Selected furniture deleted. Undo is available.');
 $('group-scale').onchange=()=>{if(!$('group-scale').checkValidity())return;change(()=>scaleGroup(selectedItems(),Number($('group-scale').value)/100),'Group resized with its spacing preserved.');};
@@ -750,10 +746,12 @@ $('jobs-share').onclick=()=>{
 };
 
 setupBirthdays(chart,change,()=>state);
-setInterval(()=>{for(const node of document.querySelectorAll("#room .item.clock .furniture-art,#room .item.digitalclock .furniture-art,#room .item.calendar .furniture-art")){const item=chart().items.find(it=>it.id===node.parentElement.dataset.id);if(item)node.innerHTML=furnitureArt(item.type,item.height,item.rugStyle,item.clockFormat);}},1000);
+setInterval(()=>{for(const node of document.querySelectorAll("#room .item.clock .furniture-art,#room .item.digitalclock .furniture-art,#room .item.calendar .furniture-art")){const item=chart().items.find(it=>it.id===node.parentElement.dataset.id);if(item)node.innerHTML=furnitureArt(item.type,item.height,item.rugStyle,item.clockFormat,item.calendarStyle);}},1000);
 
 $('digital-clock-format').onchange=()=>{const item=selected(),format=$('digital-clock-format').value;if(item?.type==='digitalclock'&&['12','24'].includes(format))change(()=>{item.clockFormat=format;},'Digital clock time format updated.');};
 
 for(const id of ['globe-ocean','globe-land'])$(id).onchange=()=>{const it=selected();if(it?.type==='globe')change(()=>{it.globeStyle={ocean:$('globe-ocean').value,land:$('globe-land').value};},'Globe colors updated.');};
 $('globe-monochrome').onclick=()=>{const it=selected();if(it?.type==='globe')change(()=>{it.globeStyle={ocean:'#164c3b',land:'#bfc5c4'};},'Dark green and silver globe applied.');};
 $('globe-reset').onclick=()=>{const it=selected();if(it?.type==='globe')change(()=>{delete it.globeStyle;},'Globe colors reset.');};
+
+for(const id of ['design','wood','cards','text','accent'])$('calendar-'+id).onchange=()=>{const it=selected();if(it?.type==='calendar')change(()=>{it.calendarStyle=Object.fromEntries(['design','wood','cards','text','accent'].map(key=>[key,$('calendar-'+key).value]));},'Calendar appearance updated.');};

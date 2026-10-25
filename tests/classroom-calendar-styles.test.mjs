@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {furniture,newChart,validateBackup,snapGroup,snapToWall} from '../classroom/model.mjs';
+import {liveFurnitureArt} from '../classroom/live-furniture.mjs';
+import {furnitureArt} from '../classroom/furniture-art.mjs';
+test('clocks, calendars and Bibles bypass every placement snap',()=>{for(const type of ['digitalclock','clock','calendar','bible'])for(const [x,y] of [[3,3],[830,600],[300,300]]){const it=furniture(type,x,y);it.rotation=17;const before=structuredClone(it);snapGroup([it],[furniture('sidetable',305,305)]);snapToWall(it);assert.deepEqual(it,before);}});
+test('wooden calendar designs render the given date and preserve colors through backups',()=>{for(const design of ['classic','block','flip']){const c=newChart('Calendar'),it=furniture('calendar');it.calendarStyle={design,wood:'#987654',cards:'#123456',text:'#abcdef',accent:'#345678'};c.items=[it];const backup={version:1,active:c.id,charts:[c]};assert.deepEqual(validateBackup(backup).charts[0].items[0].calendarStyle,it.calendarStyle);const art=liveFurnitureArt('calendar',new Date(2026,10,29,12),undefined,it.calendarStyle);assert.match(art.replace(/<[^>]*>/g,''),/nov/i);for(const color of Object.values(it.calendarStyle).slice(1))assert.ok(art.includes(color));assert.notEqual(art,liveFurnitureArt('calendar',new Date(2026,10,30,12),undefined,it.calendarStyle));it.calendarStyle.text='bad';assert.throws(()=>validateBackup(backup),/calendar style/);}});
+test('Bible has scalable cover art',()=>{assert.match(furnitureArt('bible'),/BIBLE/);assert.match(furnitureArt('bible'),/var\(--furniture-color/);});

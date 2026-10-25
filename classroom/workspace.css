@@ -165,3 +165,5 @@
 @media(hover:hover){.chart-first .workspace-dock>button:hover{box-shadow:0 0 0 3px #68b7ee66,0 0 20px 5px #429ee54d,inset 0 1px 0 #ffffffb3;border-color:#69ace0}.dark .chart-first .workspace-dock>button:hover{box-shadow:0 0 0 3px #8ccfff80,0 0 22px 5px #53b5ff66,inset 0 1px 0 #ffffff33}}
 .chart-first .workspace-dock>button:focus-visible{outline:3px solid #56a0d4;outline-offset:3px}
 @media(max-width:600px){.chart-first .workspace-dock>button{height:42px;min-height:42px}}
+
+#room .item.bible{background:transparent!important;border:0!important}.item.bible .furniture-art{inset:0}.mini.bible{width:26px;height:36px}

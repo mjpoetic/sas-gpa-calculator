@@ -1,9 +1,9 @@
-import {validateBirthday} from './celebration-date.mjs?v=20261025-release23';
+import {validateBirthday} from './celebration-date.mjs?v=20261025-release26';
 import {validateStudentExclusions} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {validateWeeklyJobs} from './weekly-jobs.mjs?v=20261020-names1';
-import {validateAvatar} from './avatars.mjs?v=20261025-release23';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261025-release23';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261025-release23';
+import {validateAvatar} from './avatars.mjs?v=20261025-release26';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261025-release26';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261025-release26';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -50,6 +50,7 @@ export const catalog = {
   mug:{label:'Tea / coffee mug',width:45,height:40,seats:0},
   bottle:{label:'Water bottle',width:40,height:40,seats:0},
   sharpener:{label:'Electric pencil sharpener',width:55,height:45,seats:0},
+  bible:{label:'Bible',width:55,height:75,seats:0},
   calendar:{label:'Calendar',width:70,height:55,seats:0},
   stool: {label:'Stool',width:55,height:55,seats:0},
   rug: {label: 'Reading rug', width: 180, height: 140, seats: 0},
@@ -131,11 +132,12 @@ export function validateBackup(data) {
     const items = c.items.map(it => {
       if(it.showLabel!==undefined&&typeof it.showLabel!=='boolean')throw new Error('Invalid furniture label visibility.');
       if(it.globeStyle!==undefined&&(it.type!=='globe'||!it.globeStyle||['ocean','land'].some(key=>!/^#[\da-f]{6}$/i.test(it.globeStyle[key]))))throw new Error('Invalid globe colors.');
+      if(it.calendarStyle!==undefined&&(it.type!=='calendar'||!it.calendarStyle||!['classic','block','flip'].includes(it.calendarStyle.design)||['wood','cards','text','accent'].some(key=>!/^#[\da-f]{6}$/i.test(it.calendarStyle[key]))))throw new Error('Invalid calendar style.');
       if(it.clockFormat!==undefined&&(it.type!=='digitalclock'||!['12','24'].includes(it.clockFormat)))throw new Error('Invalid digital clock format.');
       if(it.rugStyle!==undefined&&it.type!=='rug')throw new Error('Invalid rug style.');
       if(it.color!==undefined && !/^#[\da-f]{6}$/i.test(it.color)) throw new Error('Invalid furniture color.');
       if (!Object.hasOwn(catalog, it.type) || !Array.isArray(it.seats) || it.seats.length !== catalog[it.type].seats || (!Number.isFinite(it.rotation) || it.rotation<0 || it.rotation>=360)) throw new Error('Invalid furniture in backup.');
-      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.showLabel!==undefined?{showLabel:it.showLabel}:{}),...(it.clockFormat!==undefined?{clockFormat:it.clockFormat}:{}),...(it.globeStyle!==undefined?{globeStyle:{ocean:it.globeStyle.ocean,land:it.globeStyle.land}}:{}), ...(it.rugStyle!==undefined?{rugStyle:validateRugStyle(it.rugStyle)}:{}), ...(it.color!==undefined?{color:it.color}:{}),...(it.font!==undefined?{font:validateFont(it.font)}:{}),...(it.fontWeight!==undefined?{fontWeight:validateWeight(it.fontWeight)}:{}), ...(it.labelFont!==undefined?{labelFont:validateFont(it.labelFont)}:{}),...(it.labelFontSize!==undefined?{labelFontSize:validateLabelFontSize(it.labelFontSize)}:{}), ...(it.labelStyle!==undefined?{labelStyle:validateLabelStyle(it.labelStyle)}:{}), ...(it.flipX===true?{flipX:true}:{}), ...(it.flipY===true?{flipY:true}:{}), width: dimension(it.width,['mug','mouse','globe'].includes(it.type)?16:40,400), height: dimension(it.height,8,300), x:num(it.x,-300,1900), y:num(it.y,-300,1900), rotation:it.rotation, seats:it.seats.map(s => {
+      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.showLabel!==undefined?{showLabel:it.showLabel}:{}),...(it.calendarStyle!==undefined?{calendarStyle:{...it.calendarStyle}}:{}),...(it.clockFormat!==undefined?{clockFormat:it.clockFormat}:{}),...(it.globeStyle!==undefined?{globeStyle:{ocean:it.globeStyle.ocean,land:it.globeStyle.land}}:{}), ...(it.rugStyle!==undefined?{rugStyle:validateRugStyle(it.rugStyle)}:{}), ...(it.color!==undefined?{color:it.color}:{}),...(it.font!==undefined?{font:validateFont(it.font)}:{}),...(it.fontWeight!==undefined?{fontWeight:validateWeight(it.fontWeight)}:{}), ...(it.labelFont!==undefined?{labelFont:validateFont(it.labelFont)}:{}),...(it.labelFontSize!==undefined?{labelFontSize:validateLabelFontSize(it.labelFontSize)}:{}), ...(it.labelStyle!==undefined?{labelStyle:validateLabelStyle(it.labelStyle)}:{}), ...(it.flipX===true?{flipX:true}:{}), ...(it.flipY===true?{flipY:true}:{}), width: dimension(it.width,['mug','mouse','globe'].includes(it.type)?16:40,400), height: dimension(it.height,8,300), x:num(it.x,-300,1900), y:num(it.y,-300,1900), rotation:it.rotation, seats:it.seats.map(s => {
         if (typeof s.locked !== 'boolean' || (s.student !== null && (!studentIds.has(s.student) || assigned.has(s.student)))) throw new Error('Invalid student assignment in backup.');
         if (s.student) assigned.add(s.student);
         if(s.textColor!==undefined&&!/^#[\da-f]{6}$/i.test(s.textColor))throw new Error('Invalid seat text color.');
@@ -170,7 +172,9 @@ export function scaleGroup(items,requested) {
  items.forEach(it=>{it.x=b.x+(it.x-b.x)*scale;it.y=b.y+(it.y-b.y)*scale;it.width=it.type==='cabinet'?80:it.width*scale;it.height*=scale;});return scale;
 }
 export function snapAngle(angle,enabled=true) {angle=(angle%360+360)%360;const nearest=Math.round(angle/15)*15;return enabled&&Math.abs(nearest-angle)<=4?nearest%360:angle;}
+export const freePlacementTypes=new Set(['digitalclock','clock','calendar','bible']);
 export function snapGroup(items,others,grid=true) {
+ if(items.length&&items.every(it=>freePlacementTypes.has(it.type)))return false;
  const b=groupBounds(items);let dx=grid?Math.round(b.x/20)*20-b.x:0,dy=grid?Math.round(b.y/20)*20-b.y:0,bestX=9,bestY=9;
  for(const it of others){const t=footprint(it);
  if(b.y<t.y+t.height+8&&b.y+b.height>t.y-8)for(const d of [t.x-b.x-b.width,t.x+t.width-b.x,t.x-b.x])if(Math.abs(d)<bestX){bestX=Math.abs(d);dx=d;}
@@ -178,7 +182,7 @@ export function snapGroup(items,others,grid=true) {
  }if(b.x<9)dx=-b.x;else if(WIDTH-b.x-b.width<9)dx=WIDTH-b.x-b.width;if(b.y<9)dy=-b.y;else if(HEIGHT-b.y-b.height<9)dy=HEIGHT-b.y-b.height;moveGroup(items,dx,dy);return bestX<9||bestY<9;
 }
 
-export const proportionalTypes=new Set(['sanitizer','sink','petcage','fishbowl','computercart','powerstrip','tvtray','round','plant','laptop','keyboard','mouse','chair','stool','printer','couch','window','officechair','trash','sidetable','clock','digitalclock','globe','mug','bottle','sharpener','calendar']);
+export const proportionalTypes=new Set(['sanitizer','sink','petcage','fishbowl','computercart','powerstrip','tvtray','round','plant','laptop','keyboard','mouse','chair','stool','printer','couch','window','officechair','trash','sidetable','clock','digitalclock','globe','mug','bottle','sharpener','calendar','bible']);
 export function resizeFurniture(it,width,height,axis='width') {
  if(it.type==='cabinet'){it.width=80;it.height=Math.max(60,Math.min(300,Math.round(height/30)*30));}
  else if(['door','board','smartboard','bulletin'].includes(it.type)){it.width=Math.max(8*(it.type==='door'?12:20),Math.min(400,axis==='height'?height*(it.type==='door'?12:20):width));it.height=it.width/(it.type==='door'?12:20);}
@@ -221,7 +225,7 @@ export function rotateGroup(items,degrees){
  const after=groupBounds(items);if(after.width>WIDTH+1e-6||after.height>HEIGHT+1e-6){items.forEach((it,i)=>Object.assign(it,original[i]));return false;}moveGroup(items,0,0);return true;
 }
 
-export const wallFixtures=new Set(['door','board','smartboard','window','bulletin','clock','calendar']);
+export const wallFixtures=new Set(['door','board','smartboard','window','bulletin']);
 export function snapToWall(item,threshold=24){
  if(!wallFixtures.has(item.type))return null;
  const b=footprint(item),cx=b.x+b.width/2,cy=b.y+b.height/2;
