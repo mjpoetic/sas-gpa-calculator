@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.12","changes":["Fit classroom action buttons to their labels on larger screens"]},
  {"version":"2026.10.25.11","changes":["Default digital clocks to 12-hour time and add a saved per-clock 24-hour option"]},
  {"version":"2026.10.25.10","changes":["Close empty Details after clearing a furniture or student selection"]},
  {"version":"2026.10.25.9","changes":["Center and proportion classroom action buttons and glyphs"]},

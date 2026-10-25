@@ -1,5 +1,5 @@
-import {liveFurnitureArt} from './live-furniture.mjs?v=20261025-release11';
-import {roomDetailsArt} from './room-details-art.mjs?v=20261025-release11';
+import {liveFurnitureArt} from './live-furniture.mjs?v=20261025-release12';
+import {roomDetailsArt} from './room-details-art.mjs?v=20261025-release12';
 export function furnitureArt(type,height=110,rugStyle,clockFormat='12'){
  const live=liveFurnitureArt(type,new Date(),clockFormat);if(live)return live;
  const details=roomDetailsArt(type,rugStyle);if(details)return details;
