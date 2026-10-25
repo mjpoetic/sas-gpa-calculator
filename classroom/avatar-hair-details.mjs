@@ -40,8 +40,12 @@ export function hairOrnamentSVG(a){
 // Follow the exposed hairline; use the selected hair color for gelled baby hairs.
 export function hairEdgesSVG(a){
  if(a.hair==='bald'||a.hairEdges==='none')return '';
- const curls=a.hairEdges==='curls';
- return `<g data-hair-detail="edges-${a.hairEdges}" fill="none" stroke="${a.hairColor}" stroke-width="1.5" stroke-linecap="round"><path d="M36 34C37 40 44 40 46 36M74 36C76 40 83 40 84 34"/>${curls?'<path d="M49 34c-2 6 7 9 8 4s-5-4-4-1M71 34c2 6-7 9-8 4s5-4 4-1M34 39c-4 3-2 8 1 6M86 39c4 3 2 8-1 6"/>':'<path d="M48 33Q52 40 58 35M62 35Q68 40 72 33M34 39q-3 3 0 6M86 39q3 3 0 6"/>'}</g>`;
+ const curls=a.hairEdges==='curls',braided=['braids','boxbraids'].includes(a.hair);
+ // Short tapered swoops stay attached to the temples rather than forming a
+ // row of loops across the forehead. Other hairstyles keep their own hairline.
+ const swoop='<path d="M37 30C35 33 37 36 41 34C38 35 36 33 37 30ZM83 30C85 33 83 36 79 34C82 35 84 33 83 30Z"/>';
+ const curl=curls?'<path d="M43 26C41 28 42 31 45 30C47 29 45 27 44 28C45 27.5 46 29 44.5 29C43 29 42.5 27.5 43 26ZM77 26C79 28 78 31 75 30C73 29 75 27 76 28C75 27.5 74 29 75.5 29C77 29 77.5 27.5 77 26Z"/>':'';
+ return `<g data-hair-detail="edges-${a.hairEdges}" transform="translate(0 ${braided?0:6})" fill="${a.hairColor}">${swoop}${curl}<g fill="none" stroke="${a.hairColor}" stroke-width=".7" stroke-linecap="round"><path d="M33 37C31 39 32 43 34 42M87 37C89 39 88 43 86 42"/>${curls?'<path d="M34 35C32 37 34 39 35 38M86 35C88 37 86 39 85 38"/>':''}</g></g>`;
 }
 export function braidDecorationSVG(a){
  if(!['braids','boxbraids'].includes(a.hair)||a.braidDecoration==='none')return '';
