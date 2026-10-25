@@ -10,3 +10,6 @@ test('live furniture reflects supplied local date and time',()=>{const date=new 
 import {birthdayAvatar} from '../classroom/birthday-portrait.js';
 import {avatarOptions,defaultAvatar} from '../classroom/avatars.mjs';
 test('birthday outfit temporarily replaces every headgear option',()=>{for(const [extra] of avatarOptions.extra){for(const headphones of ['on','neck','none']){const original={...defaultAvatar(),extra,headphones,accessory:'glasses',hairAccessory:'bow'},before=structuredClone(original),display=birthdayAvatar(original);assert.deepEqual(original,before);assert.equal(display.extra,extra==='star'?'star':'none');assert.equal(display.headphones,headphones==='on'?'none':headphones);assert.equal(display.hairAccessory,'none');assert.equal(display.accessory,'glasses');assert.equal(display.expression,'grin');}}});
+
+import {readFileSync} from 'node:fs';
+test('birthday effects stylesheet refreshes with each release',()=>{const release=JSON.parse(readFileSync(new URL('../site-version.json',import.meta.url))).version,token=release.replaceAll('.','').slice(0,8)+'-release'+release.split('.').at(-1),html=readFileSync(new URL('../classroom/index.html',import.meta.url),'utf8');assert.ok(html.includes(`workspace.css?v=${token}`),'Birthday animation CSS must use the current release cache token');});
