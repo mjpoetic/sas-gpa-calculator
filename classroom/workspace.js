@@ -1,5 +1,5 @@
-import './dialog-motion.js?v=20261025-release6';
-import {animateWorkspace} from './panel-motion.js?v=20261025-release6';
+import './dialog-motion.js?v=20261025-release7';
+import {animateWorkspace} from './panel-motion.js?v=20261025-release7';
 // Move existing controls into compact panels without changing their data bindings.
 const $=id=>document.getElementById(id),body=document.body;
 body.classList.add('chart-first');
@@ -17,7 +17,11 @@ for(const [button,d] of [['workspace-account',account],['workspace-settings',set
 const library=document.querySelector('.library'),inspector=document.querySelector('.inspector');library.id='workspace-library';inspector.id='workspace-inspector';
 function closeButton(panel,name){const b=document.createElement('button');b.type='button';b.className='workspace-panel-close';b.setAttribute('aria-label','Close '+name);b.textContent='×';b.onclick=()=>{if(innerWidth>=1100&&panel===inspector&&!library.hidden)setPanel($('students-panel').hidden?'furniture':'students');else if(innerWidth>=1100&&panel===library&&!inspector.hidden){setPanel('details',{closeLibrary:true});}else setPanel(null);};panel.prepend(b);}closeButton(library,'library');closeButton(inspector,'details');
 const dock=document.createElement('nav');dock.className='workspace-dock';dock.setAttribute('aria-label','Classroom tools');dock.innerHTML='<button id="dock-furniture" aria-controls="workspace-library">Furniture</button><button id="dock-students" aria-controls="workspace-library">People</button><button id="dock-details" aria-controls="workspace-inspector" hidden>Edit</button><button id="dock-fit">Fit room</button>';document.querySelector('.room-panel').append(dock);dock.insertBefore($('rotate-room-ccw'),$('dock-fit'));dock.insertBefore($('rotate-room'),$('dock-fit'));
-let active=innerWidth>=1100?'furniture':null,panelInitialized=false;
+// Show the empty Details introduction once per browser.
+const introKey='sas-classroom-details-intro-seen';
+let showDetailsIntro=false;
+try{showDetailsIntro=localStorage.getItem(introKey)!=='true';localStorage.setItem(introKey,'true');}catch{}
+let active=showDetailsIntro?'details':innerWidth>=1100?'furniture':null,panelInitialized=false;
 function setPanel(panel,{closeLibrary=false}={}){if(panelInitialized&&panel===active&&!closeLibrary)return;const apply=()=>{active=panel;body.dataset.workspacePanel=panel||'';const keepLibrary=innerWidth>=1100&&panel==='details'&&!library.hidden&&!closeLibrary;library.hidden=!keepLibrary&&!['furniture','students'].includes(panel);inspector.hidden=panel!=='details';for(const name of ['furniture','students','details'])$('dock-'+name).setAttribute('aria-expanded',String(active===name));if(panel==='furniture')$('furniture-tab').click();if(panel==='students')$('students-tab').click();document.dispatchEvent(new Event('sas-workspace-resize'));};if(panelInitialized)animateWorkspace(apply);else{apply();panelInitialized=true;}}
 for(const name of ['furniture','students','details'])$('dock-'+name).onclick=()=>setPanel(active===name?null:name);
 $('dock-fit').onclick=()=>{$('zoom').value='fit';$('zoom').dispatchEvent(new Event('change'));setPanel(null);};

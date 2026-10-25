@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.7","changes":["Show the Classroom Studio Details introduction only on the first visit"]},
  {"version":"2026.10.25.6","changes":["Choose a few, more, or every braid strand for beads and cuffs"]},
  {"version":"2026.10.25.5","changes":["Subtle rear braid gaps and beads and cuffs that stay behind clothing with their strands"]},
  {"version":"2026.10.25.4","changes":["Full rear braid coverage and fuller sculpted forehead waves and curls"]},
