@@ -1,1 +1,1 @@
-import '../assets/dialog-motion.js?v=20261025-release7';
+import '../assets/dialog-motion.js?v=20261025-release8';

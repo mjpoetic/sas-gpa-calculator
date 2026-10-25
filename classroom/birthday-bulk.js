@@ -1,4 +1,4 @@
-import {previewBirthdays,birthdayTemplate,birthdayRosterStamp} from './birthday-import.mjs?v=20261025-release7';
+import {previewBirthdays,birthdayTemplate,birthdayRosterStamp} from './birthday-import.mjs?v=20261025-release8';
 const make=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 export function openBulkBirthdays(getChart,commit){
  const chartId=getChart().id,d=make('dialog');d.className='workspace-dialog birthday-bulk';d.setAttribute('aria-labelledby','birthday-bulk-title');

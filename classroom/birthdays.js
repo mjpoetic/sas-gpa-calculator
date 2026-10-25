@@ -1,8 +1,8 @@
-import {openSISBirthdays} from './birthday-sis.js?v=20261025-release7';
-import {openBulkBirthdays} from './birthday-bulk.js?v=20261025-release7';
-import {paintBirthdayPortrait} from './birthday-portrait.js?v=20261025-release7';
-import {seatName} from './student-names.mjs?v=20261025-release7';
-import {validateBirthday,birthdayToday} from './celebration-date.mjs?v=20261025-release7';
+import {openSISBirthdays} from './birthday-sis.js?v=20261025-release8';
+import {openBulkBirthdays} from './birthday-bulk.js?v=20261025-release8';
+import {paintBirthdayPortrait} from './birthday-portrait.js?v=20261025-release8';
+import {seatName} from './student-names.mjs?v=20261025-release8';
+import {validateBirthday,birthdayToday} from './celebration-date.mjs?v=20261025-release8';
 const make=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 export function editBirthday(student,getChart,commit){
  const chartId=getChart().id,d=make('dialog');d.className='workspace-dialog';d.setAttribute('aria-label','Student birthday');
@@ -26,5 +26,18 @@ export function setupBirthdays(getChart,commit,getState=()=>({charts:[getChart()
  let active=false;const dismissed=new Set();
  const check=()=>{if(active||document.hidden||document.querySelector('dialog[open]'))return;const c=getChart(),now=new Date(),date=`${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;const key=st=>`sas-birthday:${date}:${c.id}:${st.id}`;
  const st=c.students.find(s=>birthdayToday(s.birthday,now)&&!dismissed.has(key(s))&&(()=>{try{return !localStorage.getItem(key(s));}catch{return true;}})());if(!st)return;active=true;const stamp=key(st);celebrate(st,()=>{dismissed.add(stamp);try{localStorage.setItem(stamp,'dismissed');}catch{}active=false;setTimeout(check,300);});};
- const button=make('button');button.id='birthdays-open';button.type='button';button.className='birthdays-launch';button.setAttribute('aria-label','Birthdays');button.title='Student birthdays';button.innerHTML='<svg class="button-glyph" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16v8H4ZM3 21h18M4 16q2 3 4 0q2 3 4 0q2 3 4 0q2 3 4 0M8 9v4m4-4v4m4-4v4"/><path d="M8 3q-3 4 0 4t0-4Zm4 0q-3 4 0 4t0-4Zm4 0q-3 4 0 4t0-4Z"/></g></svg><span>Birthdays</span>';button.onclick=()=>{const c=getChart(),d=make('dialog');d.className='workspace-dialog';d.setAttribute('aria-label','Class birthdays');d.append(make('h2','Class birthdays'),make('p','Choose a student to enter a birthday or celebrate now.'));const bulk=make('button','Bulk add birthdays');bulk.id='birthday-bulk-open';bulk.className='primary';bulk.onclick=()=>{d.close();openBulkBirthdays(getChart,commit);};const sis=make('button','Import SIS report across lists');sis.id='birthday-sis-open';sis.onclick=()=>{d.close();openSISBirthdays(getState,commit);};d.append(bulk,sis);for(const st of [...c.students].sort((a,b)=>(a.birthday||'99').localeCompare(b.birthday||'99'))){const b=make('button',`${st.name} · ${st.birthday||'Add birthday'}`);b.onclick=()=>{d.close();editBirthday(st,getChart,commit);};d.append(b);}const close=make('button','Close');close.onclick=()=>d.close();d.append(close);d.onclose=()=>d.remove();document.body.append(d);d.showModal();};document.getElementById('random-picker-open').before(button);setInterval(check,1500);document.addEventListener('visibilitychange',check);
+ const button=make('button');button.id='birthdays-open';button.type='button';button.className='birthdays-launch';button.setAttribute('aria-label','Birthdays');button.title='Student birthdays';button.innerHTML='<svg class="button-glyph" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16v8H4ZM3 21h18M4 16q2 3 4 0q2 3 4 0q2 3 4 0q2 3 4 0M8 9v4m4-4v4m4-4v4"/><path d="M8 3q-3 4 0 4t0-4Zm4 0q-3 4 0 4t0-4Zm4 0q-3 4 0 4t0-4Z"/></g></svg><span>Birthdays</span>';button.onclick=()=>{
+  const c=getChart(),d=make('dialog');d.className='workspace-dialog birthday-directory';d.setAttribute('aria-labelledby','birthday-directory-title');d.setAttribute('aria-label','Class birthdays');
+  const header=make('header'),title=make('h2','Class birthdays');title.id='birthday-directory-title';header.append(title,make('p','Choose a student to enter a birthday or celebrate now.'));
+  const actions=make('div');actions.className='birthday-directory-actions';
+  const bulk=make('button','Bulk add birthdays');bulk.id='birthday-bulk-open';bulk.className='primary';bulk.onclick=()=>{d.close();openBulkBirthdays(getChart,commit);};
+  const sis=make('button','Import SIS report across lists');sis.id='birthday-sis-open';sis.onclick=()=>{d.close();openSISBirthdays(getState,commit);};actions.append(bulk,sis);
+  const grid=make('div');grid.className='birthday-directory-grid';grid.setAttribute('role','group');grid.setAttribute('aria-label','Students in birthday order');
+  for(const st of [...c.students].sort((a,b)=>(a.birthday||'99').localeCompare(b.birthday||'99')||a.name.localeCompare(b.name))){
+   const card=make('button');card.type='button';card.className='birthday-directory-card';card.dataset.glyphDone='true';card.setAttribute('aria-label',`${st.name} · ${st.birthday||'Add birthday'}`);
+   const name=make('span',st.name),date=make('span',st.birthday?new Date(2000,Number(st.birthday.slice(0,2))-1,Number(st.birthday.slice(3))).toLocaleDateString('en',{month:'short',day:'numeric'}):'Add birthday');name.className='birthday-directory-name';date.className='birthday-directory-date';card.append(name,date);card.onclick=()=>{d.close();editBirthday(st,getChart,commit);};grid.append(card);
+  }
+  if(!c.students.length)grid.append(make('p','Add students to this classroom to enter their birthdays.'));
+  const footer=make('footer'),close=make('button','Close');close.type='button';close.onclick=()=>d.close();footer.append(close);d.append(header,actions,grid,footer);d.onclose=()=>d.remove();document.body.append(d);d.showModal();
+ };document.getElementById('random-picker-open').before(button);setInterval(check,1500);document.addEventListener('visibilitychange',check);
 }
