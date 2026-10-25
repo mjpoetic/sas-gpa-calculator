@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.1","changes":["Import SIS birthday reports locally across saved student lists and classrooms"]},
  {"version":"2026.10.24.5","changes":["Align birthday CSV upload and template buttons with a separate filename status"]},
  {"version":"2026.10.24.4","changes":["Add bulk birthday entry with preview and downloadable roster template"]},
  {"version":"2026.10.24.3","changes":["Fix cached birthday confetti styles and add a rose birthday glyph button"]},

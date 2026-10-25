@@ -1,7 +1,7 @@
-import {validateBirthday} from './celebration-date.mjs?v=20261024-release5';
+import {validateBirthday} from './celebration-date.mjs?v=20261025-release1';
 
 const nameKey=value=>String(value).normalize('NFC').trim().replace(/\s+/gu,' ').toLocaleLowerCase('en');
-export function parseBirthdayRows(text){
+export function parseBirthdayRows(text,{keepHeader=false}={}){
  if(typeof text!=='string'||text.length>200000)throw new Error('Use a birthday list under 200,000 characters.');
  text=text.replace(/^\uFEFF/,'');
  // Excel/Sheets paste tabs; CSV files use commas. Ignore separators inside quotes.
@@ -14,7 +14,7 @@ export function parseBirthdayRows(text){
  if(c==='"'&&!field.trim()&&!closed){inQuotes=true;field='';continue;}if(c==='"'||(closed&&!/\s/.test(c)))throw new Error('Check the quotation marks in your birthday list.');if(!closed)field+=c;
  }
  if(inQuotes)throw new Error('Check the quotation marks in your birthday list.');if(field||row.length)record();
- if(rows.length&&/^(student(?: name)?|name)$/i.test(rows[0][0])&&/^birthday\b/i.test(rows[0][1]||''))rows.shift();if(rows.length>1000)throw new Error('Import up to 1,000 birthday rows at a time.');return rows;
+ if(!keepHeader&&rows.length&&/^(student(?: name)?|name)$/i.test(rows[0][0])&&/^birthday\b/i.test(rows[0][1]||''))rows.shift();if(rows.length>1000)throw new Error('Import up to 1,000 birthday rows at a time.');return rows;
 }
 export function previewBirthdays(text,students){
  const rows=parseBirthdayRows(text),index=new Map();for(const student of students){const key=nameKey(student.name);if(!index.has(key))index.set(key,[]);index.get(key).push(student);}

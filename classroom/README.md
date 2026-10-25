@@ -296,3 +296,13 @@ Birthday celebrations include continuous falling confetti (static decoration wit
 Choose **Birthdays → Bulk add birthdays**. **Download template** exports a CSV with the current roster's full names and any saved birthdays. Fill in the second column using **MM/DD** (no year), then upload the CSV or paste the two columns directly from Excel/Google Sheets. Blank birthdays are skipped and never clear saved dates.
 
 Choose **Preview birthdays** to review matches. Full names match without regard to capitalization or extra spaces. Unmatched names, ambiguous roster names, duplicate rows, and invalid dates must be corrected before saving. Changes to existing dates are shown explicitly and require **Apply changes to existing birthdays**. Editing the pasted list invalidates its preview; roster changes also require a new preview. Saving updates the current classroom in one undoable step. Canceling leaves birthdays unchanged.
+
+#### SIS reports across saved lists and classrooms
+
+Choose **Birthdays → Import SIS report across lists**. Upload CSV or a text-based PDF, or paste spreadsheet/report text. PDF parsing uses a locally bundled PDF.js worker; there is no AI/OCR service or report upload. Scanned-image PDFs need a CSV export instead. PDF reports can have repeated **Student / Grade / Birthdate** groups across the page. CSV supports those groups, separate First Name/Last Name columns, and standard two-column birthday templates. Full dates use US month/day/year order; only month/day is saved.
+
+Matching searches every saved student list and existing classroom using full names, with case/space normalization and `Last, First` to `First Last` conversion. Grade is displayed for teacher review; it is not inferred from a list's title. Each report row shows all proposed destinations with individual checkboxes. Unmatched students and blank birthdays are skipped without creating students. Duplicate report names, invalid dates, and same-named students within a destination require correction, selection, or explicitly skipping the row. Same-named students across different grades must be distinguished by reviewing the destinations; there is no fuzzy-name matching.
+
+Before saving, check **I reviewed the names and selected lists/classrooms**, and explicitly approve any changes to existing birthdays. Saving updates the selected destinations in one undoable change. A change to the underlying roster invalidates the preview. Only month/day birthdays are added to normal classroom data; report text and grade/birth-year values are not saved. Normal account cloud sync still applies to the confirmed birthday data.
+
+Third-party PDF library: `classroom/vendor/pdfjs/` contains PDF.js and its Apache 2.0 license.
