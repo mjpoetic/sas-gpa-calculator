@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.15","changes":["Add teacher avatar hover halos and optional colored outlines for room label text"]},
  {"version":"2026.10.25.14","changes":["Replace classroom hover dimming with a strong blue halo around the focused object"]},
  {"version":"2026.10.25.13","changes":["Celebrate weekend birthdays on Friday and add opt-in push reminder controls"]},
  {"version":"2026.10.25.12","changes":["Fit classroom action buttons to their labels on larger screens"]},

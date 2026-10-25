@@ -1,18 +1,18 @@
-import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release14';
-import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release14';
+import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release15';
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release15';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release14';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release14';
-import {openAvatarEditor} from './avatar-editor.js?v=20261025-release14';
-import {transferStudent} from './seat-transfer.mjs?v=20261025-release14';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release14';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release14';
-import {furnitureArt} from './furniture-art.mjs?v=20261025-release14';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release15';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release15';
+import {openAvatarEditor} from './avatar-editor.js?v=20261025-release15';
+import {transferStudent} from './seat-transfer.mjs?v=20261025-release15';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release15';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release15';
+import {furnitureArt} from './furniture-art.mjs?v=20261025-release15';
 import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-names1';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release14';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release15';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
@@ -119,7 +119,7 @@ function renderRoom() {
     if(color) {node.style.background=color;node.style.setProperty('--furniture-color',color);const rgb=color.slice(1).match(/../g).map(c=>parseInt(c,16));node.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#172c3e':'#ffffff';}
     if(it.type==='label'){node.style.background=it.labelStyle?.background?it.labelStyle.fill:'transparent';node.style.border=it.labelStyle?.outline?'2px solid '+it.labelStyle.border:'0';node.style.color=(it.labelStyle||defaultLabelStyle()).text;}
     const caption=element('span','item-caption',it.label);if(it.type==='label'||it.showLabel===true)node.append(caption);
-    if(it.type==='label'){caption.classList.add('editable-room-label');caption.tabIndex=0;caption.setAttribute('role','textbox');caption.setAttribute('aria-label','Room label; click to rename');caption.title='Click to rename; drag the border to move';if(it.labelFont){caption.style.fontFamily=fontCSS(it.labelFont);void loadFont(it.labelFont,it.fontWeight||400).then(async()=>{if(document.fonts?.load)await document.fonts.load(`${it.fontWeight||400} 100px ${fontCSS(it.labelFont)}`);fitCaption(caption,it);}).catch(e=>say(e.message));}const observer=new ResizeObserver(()=>fitCaption(caption,it));observer.observe(node);labelObservers.push(observer);caption.oninput=()=>fitCaption(caption,it);caption.onpointerdown=e=>e.stopPropagation();caption.onclick=e=>{e.stopPropagation();choose(it);room.querySelectorAll('.item').forEach(n=>n.classList.toggle('selected',n===node));renderInspector();caption.contentEditable='true';caption.focus();};caption.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();caption.blur();}if(e.key==='Escape'){caption.textContent=it.label;caption.blur();}};caption.onblur=()=>{caption.contentEditable='false';const value=caption.textContent.trim().slice(0,60)||'Room label';if(value!==it.label)change(()=>{it.label=value;},'Room label updated.');};}
+    if(it.type==='label'){if(it.labelStyle?.textOutline){caption.style.webkitTextStroke=`${Math.max(1,(it.labelFontSize||40)*.035)}px ${it.labelStyle.textOutlineColor||'#20354e'}`;caption.style.paintOrder='stroke fill';}caption.classList.add('editable-room-label');caption.tabIndex=0;caption.setAttribute('role','textbox');caption.setAttribute('aria-label','Room label; click to rename');caption.title='Click to rename; drag the border to move';if(it.labelFont){caption.style.fontFamily=fontCSS(it.labelFont);void loadFont(it.labelFont,it.fontWeight||400).then(async()=>{if(document.fonts?.load)await document.fonts.load(`${it.fontWeight||400} 100px ${fontCSS(it.labelFont)}`);fitCaption(caption,it);}).catch(e=>say(e.message));}const observer=new ResizeObserver(()=>fitCaption(caption,it));observer.observe(node);labelObservers.push(observer);caption.oninput=()=>fitCaption(caption,it);caption.onpointerdown=e=>e.stopPropagation();caption.onclick=e=>{e.stopPropagation();choose(it);room.querySelectorAll('.item').forEach(n=>n.classList.toggle('selected',n===node));renderInspector();caption.contentEditable='true';caption.focus();};caption.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();caption.blur();}if(e.key==='Escape'){caption.textContent=it.label;caption.blur();}};caption.onblur=()=>{caption.contentEditable='false';const value=caption.textContent.trim().slice(0,60)||'Room label';if(value!==it.label)change(()=>{it.label=value;},'Room label updated.');};}
 
     if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type,it.height,it.rugStyle,it.clockFormat);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=HEIGHT-1||f.x+f.width>=WIDTH-1),wallFlip=it.type==='door'&&((f.y+f.height>=HEIGHT-1&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=WIDTH-1&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);if(color&&!art.innerHTML.includes('var(--furniture-color')){const rects=[...art.querySelectorAll('rect')].sort((a,b)=>Number(b.getAttribute('width'))*Number(b.getAttribute('height'))-Number(a.getAttribute('width'))*Number(a.getAttribute('height')));(rects[0]||art.querySelector('circle'))?.setAttribute('fill',color);}requestAnimationFrame(()=>fitCaption(caption,it));}
     if(teacherSeatTypes.includes(it.type)){
@@ -228,7 +228,7 @@ function renderInspector() {
   $('item-show-label').checked=it.showLabel===true;$('item-label-visibility').hidden=it.type==='label';
   $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-width').min=['mug','mouse'].includes(it.type)?16:40;$('item-width').step=['mug','mouse'].includes(it.type)?1:10;$('item-height').min=it.type==='powerstrip'?8:['mug','mouse'].includes(it.type)?12:['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
   $('label-font-size').value=it.labelFontSize||'';$('label-font-controls').hidden=it.type!=='label';$('label-font-source').value=it.labelFont?.source||'preset';$('label-font-family').value=it.labelFont?.family||'system';
-  const style=it.labelStyle||defaultLabelStyle();for(const key of ['background','outline'])$('label-'+key).checked=style[key];for(const key of ['fill','border','text'])$('label-'+key).value=style[key];
+  const style={...defaultLabelStyle(),...it.labelStyle};for(const key of ['background','outline','textOutline'])$('label-'+key).checked=style[key];for(const key of ['fill','border','text','textOutlineColor'])$('label-'+key).value=style[key];
   $('digital-clock-controls').hidden=it.type!=='digitalclock';$('digital-clock-format').value=it.clockFormat||'12';
   $('rug-controls').hidden=it.type!=='rug';$('rug-pattern').value=it.rugStyle?.pattern||'plain';$('rug-pattern-color').value=it.rugStyle?.color||'#547b93';$('rug-pattern-color-label').hidden=($('rug-pattern').value==='plain');
   $('item-color').value=it.color || appearance().color || '#e8d7bb';
@@ -433,8 +433,8 @@ $('room').addEventListener('pointerleave',()=>{hoverOwner=null;updateObjectContr
 
 $('room').addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){hoverOwner=null;updateObjectControls();}},true);
 
-function defaultLabelStyle(){return {background:false,outline:false,fill:document.documentElement.classList.contains('dark')?'#20384b':'#edf5fa',border:'#66899f',text:document.documentElement.classList.contains('dark')?'#e0edf6':'#294c6b'};}
-for(const key of ['background','outline','fill','border','text'])$('label-'+key).onchange=()=>{const it=selected();if(it?.type==='label')change(()=>{const style=it.labelStyle||defaultLabelStyle();style[key]=['background','outline'].includes(key)?$('label-'+key).checked:$('label-'+key).value;it.labelStyle=style;});};
+function defaultLabelStyle(){return {background:false,outline:false,textOutline:false,textOutlineColor:'#20354e',fill:document.documentElement.classList.contains('dark')?'#20384b':'#edf5fa',border:'#66899f',text:document.documentElement.classList.contains('dark')?'#e0edf6':'#294c6b'};}
+for(const key of ['background','outline','fill','border','text','textOutline','textOutlineColor'])$('label-'+key).onchange=()=>{const it=selected();if(it?.type==='label')change(()=>{const style=it.labelStyle||defaultLabelStyle();style[key]=['background','outline','textOutline'].includes(key)?$('label-'+key).checked:$('label-'+key).value;it.labelStyle=style;});};
 
 function rosterGlyph(button,path){button.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${path}"/></svg>`;}
 
