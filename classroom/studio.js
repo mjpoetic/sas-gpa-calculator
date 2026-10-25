@@ -1,18 +1,18 @@
-import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release21';
-import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release21';
+import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release22';
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release22';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release21';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release21';
-import {openAvatarEditor} from './avatar-editor.js?v=20261025-release21';
-import {transferStudent} from './seat-transfer.mjs?v=20261025-release21';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release21';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release21';
-import {furnitureArt} from './furniture-art.mjs?v=20261025-release21';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release22';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release22';
+import {openAvatarEditor} from './avatar-editor.js?v=20261025-release22';
+import {transferStudent} from './seat-transfer.mjs?v=20261025-release22';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release22';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release22';
+import {furnitureArt} from './furniture-art.mjs?v=20261025-release22';
 import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-names1';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release21';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release22';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
@@ -140,7 +140,8 @@ function renderRoom() {
   room.style.fontFamily=fontCSS(appearance().font);
   room.style.setProperty('--chart-font-size',`${appearance().fontSize}px`);
   const font=appearance().font,weight=appearance().weight||400;$('chart-font-status').textContent=font.source==='google'?'Loading '+font.family+'…':'Font applied: '+(fontOptions[font.family]?.label||font.family);void loadFont(font,weight).then(async()=>{if(document.fonts?.load)await document.fonts.load(`${weight} 14px ${fontCSS(font)}`);if(JSON.stringify(appearance().font)===JSON.stringify(font))$('chart-font-status').textContent='Font applied: '+(fontOptions[font.family]?.label||font.family);}).catch(error=>{$('chart-font-status').textContent=error.message;say(error.message);});
-  const layers=new Map([...chart().items].sort((a,b)=>b.width*b.height-a.width*a.height).map((it,i)=>[it.id,i+1]));
+  const tabletop=new Set(['digitalclock','globe','mug','bottle','keyboard','mouse','laptop','printer','sharpener']);
+  const layers=new Map([...chart().items].sort((a,b)=>Number(tabletop.has(a.type))-Number(tabletop.has(b.type))||b.width*b.height-a.width*a.height).map((it,i)=>[it.id,i+1]));
   for(const it of chart().items) {
     const node = element('div',`item ${it.type}${!selectedSeatKeys.size&&selectedIds.has(it.id) ? ' selected' : ''}`);
     node.ondblclick=e=>{if(it.type==='label'||e.target.closest('.seat'))return;if(e.target.closest('.furniture-actions,.resize-handle'))return;e.preventDefault();e.stopPropagation();choose(it);renderInspector();document.dispatchEvent(new Event('sas-furniture-details'));$('item-color').focus();$('item-color').click();};
@@ -150,6 +151,7 @@ function renderRoom() {
     const color=it.color || appearance().color;
     if(color) {node.style.background=color;node.style.setProperty('--furniture-color',color);const rgb=color.slice(1).match(/../g).map(c=>parseInt(c,16));node.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#172c3e':'#ffffff';}
     if(it.type==='label'){node.style.background=it.labelStyle?.background?it.labelStyle.fill:'transparent';node.style.border=it.labelStyle?.outline?'2px solid '+it.labelStyle.border:'0';node.style.color=(it.labelStyle||defaultLabelStyle()).text;}
+    if(it.type==='globe'&&it.globeStyle){node.style.setProperty('--globe-ocean',it.globeStyle.ocean);node.style.setProperty('--globe-land',it.globeStyle.land);}
     const caption=element('span','item-caption',it.label);if(it.type==='label'||it.showLabel===true)node.append(caption);
     if(it.type==='label'){if(it.labelStyle?.textOutline){caption.style.webkitTextStroke=`${labelOutlineWidth(it)}px ${it.labelStyle.textOutlineColor||'#20354e'}`;caption.style.paintOrder='stroke fill';}caption.classList.add('editable-room-label');caption.tabIndex=0;caption.setAttribute('role','textbox');caption.setAttribute('aria-label','Room label; click to rename');caption.title='Click to rename; drag the border to move';if(it.labelFont){caption.style.fontFamily=fontCSS(it.labelFont);void loadFont(it.labelFont,it.fontWeight||400).then(async()=>{if(document.fonts?.load)await document.fonts.load(`${it.fontWeight||400} 100px ${fontCSS(it.labelFont)}`);fitCaption(caption,it);}).catch(e=>say(e.message));}const observer=new ResizeObserver(()=>fitCaption(caption,it));observer.observe(node);labelObservers.push(observer);caption.oninput=()=>fitCaption(caption,it);caption.onpointerdown=e=>e.stopPropagation();caption.onclick=e=>{e.stopPropagation();choose(it);room.querySelectorAll('.item').forEach(n=>n.classList.toggle('selected',n===node));renderInspector();caption.contentEditable='true';caption.focus();};caption.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();caption.blur();}if(e.key==='Escape'){caption.textContent=it.label;caption.blur();}};caption.onblur=()=>{caption.contentEditable='false';const value=caption.textContent.trim().slice(0,60)||'Room label';if(value!==it.label)change(()=>{it.label=value;},'Room label updated.');};}
 
@@ -213,18 +215,18 @@ function renderRoom() {
         if(!moved){checkpoint();moved=true;node.classList.add('resizing');}
         if(members.length>1){members.forEach((item,i)=>Object.assign(item,original[i]));scaleGroup(members,Math.max(.1,1+(dx+dy)/(bounds.width+bounds.height)));paintPositions();return;}
         const angle=it.rotation*Math.PI/180,step=1;
-        it.width=Math.max(['mug','mouse'].includes(it.type)?16:40,Math.min(400,Math.round((start.w+dx*Math.cos(angle)+dy*Math.sin(angle))/step)*step));
+        it.width=Math.max(['mug','mouse','globe'].includes(it.type)?16:40,Math.min(400,Math.round((start.w+dx*Math.cos(angle)+dy*Math.sin(angle))/step)*step));
         it.height=Math.max(8,Math.min(300,Math.round((start.h-dx*Math.sin(angle)+dy*Math.cos(angle))/step)*step));if(['door','board','smartboard','bulletin','window'].includes(it.type))resizeFurniture(it,it.width,it.height,'width');else if(proportionalTypes.has(it.type)||it.type==='cabinet')resizeFurniture(it,it.width,it.height,Math.abs(dx*Math.cos(angle)+dy*Math.sin(angle))/start.w>=Math.abs(-dx*Math.sin(angle)+dy*Math.cos(angle))/start.h?'width':'height');else constrain(it);snapResize(it);
         Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});if(it.type==='cabinet')node.querySelector('.furniture-art').innerHTML=furnitureArt(it.type,it.height,it.rugStyle,it.clockFormat);showGuides([it]);
       };
-      const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(['mug','mouse'].includes(it.type)?16:40,Math.min(400,Math.round(it.width/(['mug','mouse'].includes(it.type)?2:10))*(['mug','mouse'].includes(it.type)?2:10)));it.height=Math.max(8,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height);}save();render();}};
+      const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(['mug','mouse','globe'].includes(it.type)?16:40,Math.min(400,Math.round(it.width/(['mug','mouse','globe'].includes(it.type)?2:10))*(['mug','mouse','globe'].includes(it.type)?2:10)));it.height=Math.max(8,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height);}save();render();}};
       resize.addEventListener('pointermove',move);resize.addEventListener('pointerup',end);resize.addEventListener('pointercancel',end);
     };node.append(resize);if(selectedIds.size<2)controlEntries.push({node,actions,resize});node.addEventListener('pointerenter',updateObjectControls);node.addEventListener('focusin',()=>{if(document.activeElement===node)hoverOwner=null;updateObjectControls();});
     node.addEventListener('pointerdown', e => {
       if(e.button !== 0 || e.target.closest('button')||studentDragging) return;
       if(e.shiftKey||e.metaKey||(multiMode&&!selectedIds.has(it.id))){choose(it,true);renderRoom();renderInspector();return;}
       if(!selectedIds.has(it.id))choose(it);
-      selection={id:it.id,seat:null};room.querySelectorAll('.item').forEach(n=>n.classList.toggle('selected',selectedIds.has(n.dataset.id)));renderInspector();document.dispatchEvent(new Event('sas-furniture-details'));
+      selection={id:it.id,seat:null};room.querySelectorAll('.item').forEach(n=>n.classList.toggle('selected',selectedIds.has(n.dataset.id)));updateObjectControls();renderInspector();document.dispatchEvent(new Event('sas-furniture-details'));
       const members=selectedItems(),original=structuredClone(members),start={x:e.clientX,y:e.clientY};let moved=false;
       node.setPointerCapture(e.pointerId);
       const move=ev=>{const dx=(ev.clientX-start.x)/zoom,dy=(ev.clientY-start.y)/zoom;if(!moved&&Math.hypot(dx,dy)<3)return;if(!moved){checkpoint();moved=true;node.classList.add('dragging');}members.forEach((item,i)=>Object.assign(item,original[i]));moveGroup(members,dx,dy);if($('snap').checked)snapGroup(members,chart().items.filter(x=>!selectedIds.has(x.id)));if(members.length===1)snapToWall(members[0]);paintPositions();};
@@ -259,10 +261,11 @@ function renderInspector() {
   if(!it) return;
   for(const field of ['label','width','height','x','y']) $('item-'+field).value = it[field];
   $('item-show-label').checked=it.showLabel===true;$('item-label-visibility').hidden=it.type==='label';
-  $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-width').min=['mug','mouse'].includes(it.type)?16:40;$('item-width').step=['mug','mouse'].includes(it.type)?1:10;$('item-height').min=it.type==='powerstrip'?8:['mug','mouse'].includes(it.type)?12:['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
+  $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-width').min=['mug','mouse','globe'].includes(it.type)?16:40;$('item-width').step=['mug','mouse','globe'].includes(it.type)?1:10;$('item-height').min=it.type==='powerstrip'?8:['mug','mouse','globe'].includes(it.type)?12:['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
   $('label-font-size').value=it.labelFontSize||'';$('label-font-controls').hidden=it.type!=='label';$('label-font-source').value=it.labelFont?.source||'preset';$('label-font-family').value=it.labelFont?.family||'system';
   const style={...defaultLabelStyle(),...it.labelStyle};for(const key of ['background','outline','textOutline'])$('label-'+key).checked=style[key];for(const key of ['fill','border','text','textOutlineColor'])$('label-'+key).value=style[key];
   $('label-textOutlineWidth').value=Number(labelOutlineWidth(it).toFixed(2));
+  $('globe-controls').hidden=it.type!=='globe';$('globe-ocean').value=it.globeStyle?.ocean||'#78bfd6';$('globe-land').value=it.globeStyle?.land||'#6f9f74';
   $('digital-clock-controls').hidden=it.type!=='digitalclock';$('digital-clock-format').value=it.clockFormat||'12';
   $('rug-controls').hidden=it.type!=='rug';$('rug-pattern').value=it.rugStyle?.pattern||'plain';$('rug-pattern-color').value=it.rugStyle?.color||'#547b93';$('rug-pattern-color-label').hidden=($('rug-pattern').value==='plain');
   $('item-color').value=it.color || appearance().color || '#e8d7bb';
@@ -414,7 +417,7 @@ function updateObjectControls(){
  for(const panel of document.querySelectorAll('.library:not([hidden]),.inspector:not([hidden])')){if(getComputedStyle(panel).position!=='fixed')continue;const p=panel.getBoundingClientRect();if(p.width>=b.width*.8&&p.top>b.top)bounds.bottom=Math.min(bounds.bottom,p.top-5);else if(p.right>=b.right-20&&p.left>b.left)bounds.right=Math.min(bounds.right,p.left-5);}
  const obstacles=[...document.querySelectorAll('.canvas-zoom,.room-view-tools')].filter(n=>n.getClientRects().length).map(n=>n.getBoundingClientRect());
  let active=false;const touch=matchMedia('(pointer:coarse)').matches,base=touch?44:32;
- for(const {node,actions,resize} of controlEntries){if(!node.isConnected)continue;const spotlight=node.dataset.id===hoverOwner;node.classList.toggle('hover-spotlight',spotlight);if(node.dataset.baseLayer)node.style.zIndex=spotlight?'2000':node.dataset.baseLayer;if(!(node.classList.contains('group-selection')||node.dataset.id===hoverOwner||(!hoverOwner&&(node.classList.contains('selected')||node.matches(':focus-within'))))){node.classList.remove('controls-visible');continue;}const box=node.getBoundingClientRect(),visible=box.right>bounds.left&&box.left<bounds.right&&box.bottom>bounds.top&&box.top<bounds.bottom;
+ for(const {node,actions,resize} of controlEntries){if(!node.isConnected)continue;const spotlight=!selectedIds.size&&node.dataset.id===hoverOwner;node.classList.toggle('hover-spotlight',spotlight);if(node.dataset.baseLayer)node.style.zIndex=spotlight?'2000':node.classList.contains('selected')?'1999':node.dataset.baseLayer;if(!(node.classList.contains('group-selection')||(selectedIds.size?node.classList.contains('selected'):node.dataset.id===hoverOwner||node.matches(':focus-within')))){node.classList.remove('controls-visible');continue;}const box=node.getBoundingClientRect(),visible=box.right>bounds.left&&box.left<bounds.right&&box.bottom>bounds.top&&box.top<bounds.bottom;
  const showing=visible;node.classList.toggle('controls-visible',showing);if(!showing)continue;active=true;
  const angle=Number(node.dataset.rotation||0),r=angle*Math.PI/180,w=parseFloat(node.style.width),h=parseFloat(node.style.height),cx=box.x+box.width/2,cy=box.y+box.height/2;
  function place(el,x,y,factor){const dx=x-cx,dy=y-cy;el.style.left=(w/2+(dx*Math.cos(r)+dy*Math.sin(r))/zoom)+'px';el.style.top=(h/2+(-dx*Math.sin(r)+dy*Math.cos(r))/zoom)+'px';el.style.right='auto';el.style.bottom='auto';el.style.transform=`translate(-50%,-50%) rotate(${-angle}deg) scale(${factor})`;}
@@ -458,7 +461,7 @@ function renderGroupControls(){
 
 // Hover never changes furniture stacking: smaller objects remain above their surfaces.
 $('room').addEventListener('pointermove',e=>{
- if(e.pointerType==='touch')return;
+ if(e.pointerType==='touch'||selectedIds.size)return;
  const control=e.target.closest('.furniture-actions,.resize-handle');let target=e.target.closest('.item');if(!control){for(const entry of controlEntries)if(entry.node.dataset.baseLayer)entry.node.style.zIndex=entry.node.dataset.baseLayer;target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.item');for(const entry of controlEntries)if(entry.node.dataset.id===hoverOwner)entry.node.style.zIndex='2000';}const previous=controlEntries.find(entry=>entry.node.dataset.id===hoverOwner);
  if(previous&&target!==previous.node&&!e.target.closest('.furniture-actions,.resize-handle')){const a=previous.actions.getBoundingClientRect(),n=previous.node.getBoundingClientRect();const corridor=e.clientX>=Math.min(a.left,n.left)-4&&e.clientX<=Math.max(a.right,n.right)+4&&e.clientY>=Math.min(a.top,n.top)-4&&e.clientY<=Math.max(n.top,a.bottom)+6;if(corridor)return;}
  const owner=target?.dataset.id||null;if(owner!==hoverOwner){hoverOwner=owner;updateObjectControls();}
@@ -750,3 +753,7 @@ setupBirthdays(chart,change,()=>state);
 setInterval(()=>{for(const node of document.querySelectorAll("#room .item.clock .furniture-art,#room .item.digitalclock .furniture-art,#room .item.calendar .furniture-art")){const item=chart().items.find(it=>it.id===node.parentElement.dataset.id);if(item)node.innerHTML=furnitureArt(item.type,item.height,item.rugStyle,item.clockFormat);}},1000);
 
 $('digital-clock-format').onchange=()=>{const item=selected(),format=$('digital-clock-format').value;if(item?.type==='digitalclock'&&['12','24'].includes(format))change(()=>{item.clockFormat=format;},'Digital clock time format updated.');};
+
+for(const id of ['globe-ocean','globe-land'])$(id).onchange=()=>{const it=selected();if(it?.type==='globe')change(()=>{it.globeStyle={ocean:$('globe-ocean').value,land:$('globe-land').value};},'Globe colors updated.');};
+$('globe-monochrome').onclick=()=>{const it=selected();if(it?.type==='globe')change(()=>{it.globeStyle={ocean:'#164c3b',land:'#bfc5c4'};},'Dark green and silver globe applied.');};
+$('globe-reset').onclick=()=>{const it=selected();if(it?.type==='globe')change(()=>{delete it.globeStyle;},'Globe colors reset.');};

@@ -1,9 +1,9 @@
-import {validateBirthday} from './celebration-date.mjs?v=20261025-release21';
+import {validateBirthday} from './celebration-date.mjs?v=20261025-release22';
 import {validateStudentExclusions} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {validateWeeklyJobs} from './weekly-jobs.mjs?v=20261020-names1';
-import {validateAvatar} from './avatars.mjs?v=20261025-release21';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261025-release21';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261025-release21';
+import {validateAvatar} from './avatars.mjs?v=20261025-release22';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261025-release22';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261025-release22';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -130,11 +130,12 @@ export function validateBackup(data) {
     for(const student of students)if(student.avoid!==undefined&&(!Array.isArray(student.avoid)||student.avoid.length>500||student.avoid.some(ref=>typeof ref!=='string'||ref===student.id||!studentIds.has(ref))))throw new Error('Invalid student separation preferences.');
     const items = c.items.map(it => {
       if(it.showLabel!==undefined&&typeof it.showLabel!=='boolean')throw new Error('Invalid furniture label visibility.');
+      if(it.globeStyle!==undefined&&(it.type!=='globe'||!it.globeStyle||['ocean','land'].some(key=>!/^#[\da-f]{6}$/i.test(it.globeStyle[key]))))throw new Error('Invalid globe colors.');
       if(it.clockFormat!==undefined&&(it.type!=='digitalclock'||!['12','24'].includes(it.clockFormat)))throw new Error('Invalid digital clock format.');
       if(it.rugStyle!==undefined&&it.type!=='rug')throw new Error('Invalid rug style.');
       if(it.color!==undefined && !/^#[\da-f]{6}$/i.test(it.color)) throw new Error('Invalid furniture color.');
       if (!Object.hasOwn(catalog, it.type) || !Array.isArray(it.seats) || it.seats.length !== catalog[it.type].seats || (!Number.isFinite(it.rotation) || it.rotation<0 || it.rotation>=360)) throw new Error('Invalid furniture in backup.');
-      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.showLabel!==undefined?{showLabel:it.showLabel}:{}),...(it.clockFormat!==undefined?{clockFormat:it.clockFormat}:{}), ...(it.rugStyle!==undefined?{rugStyle:validateRugStyle(it.rugStyle)}:{}), ...(it.color!==undefined?{color:it.color}:{}),...(it.font!==undefined?{font:validateFont(it.font)}:{}),...(it.fontWeight!==undefined?{fontWeight:validateWeight(it.fontWeight)}:{}), ...(it.labelFont!==undefined?{labelFont:validateFont(it.labelFont)}:{}),...(it.labelFontSize!==undefined?{labelFontSize:validateLabelFontSize(it.labelFontSize)}:{}), ...(it.labelStyle!==undefined?{labelStyle:validateLabelStyle(it.labelStyle)}:{}), ...(it.flipX===true?{flipX:true}:{}), ...(it.flipY===true?{flipY:true}:{}), width: dimension(it.width,['mug','mouse'].includes(it.type)?16:40,400), height: dimension(it.height,8,300), x:num(it.x,-300,1900), y:num(it.y,-300,1900), rotation:it.rotation, seats:it.seats.map(s => {
+      return constrain({id: id(it.id), type: it.type, label: str(it.label, 60), ...(it.showLabel!==undefined?{showLabel:it.showLabel}:{}),...(it.clockFormat!==undefined?{clockFormat:it.clockFormat}:{}),...(it.globeStyle!==undefined?{globeStyle:{ocean:it.globeStyle.ocean,land:it.globeStyle.land}}:{}), ...(it.rugStyle!==undefined?{rugStyle:validateRugStyle(it.rugStyle)}:{}), ...(it.color!==undefined?{color:it.color}:{}),...(it.font!==undefined?{font:validateFont(it.font)}:{}),...(it.fontWeight!==undefined?{fontWeight:validateWeight(it.fontWeight)}:{}), ...(it.labelFont!==undefined?{labelFont:validateFont(it.labelFont)}:{}),...(it.labelFontSize!==undefined?{labelFontSize:validateLabelFontSize(it.labelFontSize)}:{}), ...(it.labelStyle!==undefined?{labelStyle:validateLabelStyle(it.labelStyle)}:{}), ...(it.flipX===true?{flipX:true}:{}), ...(it.flipY===true?{flipY:true}:{}), width: dimension(it.width,['mug','mouse','globe'].includes(it.type)?16:40,400), height: dimension(it.height,8,300), x:num(it.x,-300,1900), y:num(it.y,-300,1900), rotation:it.rotation, seats:it.seats.map(s => {
         if (typeof s.locked !== 'boolean' || (s.student !== null && (!studentIds.has(s.student) || assigned.has(s.student)))) throw new Error('Invalid student assignment in backup.');
         if (s.student) assigned.add(s.student);
         if(s.textColor!==undefined&&!/^#[\da-f]{6}$/i.test(s.textColor))throw new Error('Invalid seat text color.');
@@ -164,7 +165,7 @@ export function footprint(it) {
 export function groupBounds(items) {const boxes=items.map(footprint),x=Math.min(...boxes.map(b=>b.x)),y=Math.min(...boxes.map(b=>b.y));return {x,y,width:Math.max(...boxes.map(b=>b.x+b.width))-x,height:Math.max(...boxes.map(b=>b.y+b.height))-y};}
 export function moveGroup(items,dx,dy) {const b=groupBounds(items);dx=Math.max(-b.x,Math.min(WIDTH-b.x-b.width,dx));dy=Math.max(-b.y,Math.min(HEIGHT-b.y-b.height,dy));items.forEach(it=>{it.x+=dx;it.y+=dy;});}
 export function scaleGroup(items,requested) {
- const b=groupBounds(items),min=Math.max(...items.flatMap(it=>[(['mug','mouse'].includes(it.type)?16:40)/it.width,8/it.height])),max=Math.min((WIDTH-b.x)/b.width,(HEIGHT-b.y)/b.height,...items.flatMap(it=>[400/it.width,300/it.height]));
+ const b=groupBounds(items),min=Math.max(...items.flatMap(it=>[(['mug','mouse','globe'].includes(it.type)?16:40)/it.width,8/it.height])),max=Math.min((WIDTH-b.x)/b.width,(HEIGHT-b.y)/b.height,...items.flatMap(it=>[400/it.width,300/it.height]));
  const scale=Math.min(max,Math.max(items.some(it=>it.type==='cabinet')?Math.max(1,min):min,requested));
  items.forEach(it=>{it.x=b.x+(it.x-b.x)*scale;it.y=b.y+(it.y-b.y)*scale;it.width=it.type==='cabinet'?80:it.width*scale;it.height*=scale;});return scale;
 }
@@ -184,7 +185,7 @@ export function resizeFurniture(it,width,height,axis='width') {
  else if(proportionalTypes.has(it.type)){
   const spec=catalog[it.type],ratio=spec.width/spec.height;
   let w=axis==='height'?height*ratio:width;
-  w=Math.max(['mug','mouse'].includes(it.type)?16:40,(['mug','mouse'].includes(it.type)?12:['window','powerstrip'].includes(it.type)?8:30)*ratio,Math.min(400,300*ratio,w));it.width=w;it.height=w/ratio;
+  w=Math.max(['mug','mouse','globe'].includes(it.type)?16:40,(['mug','mouse','globe'].includes(it.type)?12:['window','powerstrip'].includes(it.type)?8:30)*ratio,Math.min(400,300*ratio,w));it.width=w;it.height=w/ratio;
  }else{it.width=Math.max(40,Math.min(400,width));it.height=Math.max(30,Math.min(300,height));}
  constrain(it);
 }
@@ -198,7 +199,7 @@ export function vacantPosition(item,others,preferred={x:320,y:220}) {
 
 export function reshapeRoom(chart,width,height){
  const old=chart.room||{width:960,height:680},room=validateRoom({width,height}),scale=Math.min(1,width/old.width,height/old.height);
- chart.items.forEach(it=>{it.x*=width/old.width;it.y*=height/old.height;it.width=Math.max(['mug','mouse'].includes(it.type)?16:40,it.width*scale);it.height=Math.max(8,it.height*scale);constrain(it,room);});for(const person of [chart.teacher,...(chart.assistants||[])].filter(Boolean))if(person.position)person.position=teacherPoint({room,teacher:person},{x:person.position.x*width/old.width,y:person.position.y*height/old.height});chart.room=room;setRoomSize(room);
+ chart.items.forEach(it=>{it.x*=width/old.width;it.y*=height/old.height;it.width=Math.max(['mug','mouse','globe'].includes(it.type)?16:40,it.width*scale);it.height=Math.max(8,it.height*scale);constrain(it,room);});for(const person of [chart.teacher,...(chart.assistants||[])].filter(Boolean))if(person.position)person.position=teacherPoint({room,teacher:person},{x:person.position.x*width/old.width,y:person.position.y*height/old.height});chart.room=room;setRoomSize(room);
 }
 export function rotateRoom(chart,direction=1){const old=chart.room||{width:960,height:680},room={width:old.height,height:old.width};chart.items.forEach(it=>{const cx=it.x+it.width/2,cy=it.y+it.height/2;it.x=(direction<0?cy:old.height-cy)-it.width/2;it.y=(direction<0?old.width-cx:cx)-it.height/2;it.rotation=(it.rotation+(direction<0?270:90))%360;constrain(it,room);});for(const person of [chart.teacher,...(chart.assistants||[])].filter(Boolean))if(person.position){const {x,y}=person.position;person.position=teacherPoint({room,teacher:person},{x:direction<0?y:old.height-y,y:direction<0?old.width-x:x});}chart.room=room;setRoomSize(room);}
 
@@ -220,7 +221,7 @@ export function rotateGroup(items,degrees){
  const after=groupBounds(items);if(after.width>WIDTH+1e-6||after.height>HEIGHT+1e-6){items.forEach((it,i)=>Object.assign(it,original[i]));return false;}moveGroup(items,0,0);return true;
 }
 
-export const wallFixtures=new Set(['door','board','smartboard','window','bulletin','clock','digitalclock','calendar']);
+export const wallFixtures=new Set(['door','board','smartboard','window','bulletin','clock','calendar']);
 export function snapToWall(item,threshold=24){
  if(!wallFixtures.has(item.type))return null;
  const b=footprint(item),cx=b.x+b.width/2,cy=b.y+b.height/2;

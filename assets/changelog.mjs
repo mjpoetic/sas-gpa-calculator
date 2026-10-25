@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.22","changes":["Fix tabletop clock placement, keep selected resize controls visible, and add smaller globes with customizable colors"]},
  {"version":"2026.10.25.21","changes":["Search furniture quickly and copy selected furniture between rooms with size and orientation preserved"]},
  {"version":"2026.10.25.20","changes":["Default room label text outlines to 3 pixels"]},
  {"version":"2026.10.25.19","changes":["Preserve room label outline thickness when saving and syncing charts"]},
