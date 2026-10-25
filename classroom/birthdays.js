@@ -1,8 +1,8 @@
-import {openSISBirthdays} from './birthday-sis.js?v=20261025-release8';
-import {openBulkBirthdays} from './birthday-bulk.js?v=20261025-release8';
-import {paintBirthdayPortrait} from './birthday-portrait.js?v=20261025-release8';
-import {seatName} from './student-names.mjs?v=20261025-release8';
-import {validateBirthday,birthdayToday} from './celebration-date.mjs?v=20261025-release8';
+import {openSISBirthdays} from './birthday-sis.js?v=20261025-release9';
+import {openBulkBirthdays} from './birthday-bulk.js?v=20261025-release9';
+import {paintBirthdayPortrait} from './birthday-portrait.js?v=20261025-release9';
+import {seatName} from './student-names.mjs?v=20261025-release9';
+import {validateBirthday,birthdayToday} from './celebration-date.mjs?v=20261025-release9';
 const make=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 export function editBirthday(student,getChart,commit){
  const chartId=getChart().id,d=make('dialog');d.className='workspace-dialog';d.setAttribute('aria-label','Student birthday');

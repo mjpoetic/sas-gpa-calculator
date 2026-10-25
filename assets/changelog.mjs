@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.9","changes":["Center and proportion classroom action buttons and glyphs"]},
  {"version":"2026.10.25.8","changes":["Display class birthdays in a responsive grid with visible actions and close control"]},
  {"version":"2026.10.25.7","changes":["Show the Classroom Studio Details introduction only on the first visit"]},
  {"version":"2026.10.25.6","changes":["Choose a few, more, or every braid strand for beads and cuffs"]},
