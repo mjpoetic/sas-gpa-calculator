@@ -1,7 +1,7 @@
-import {avatarMaskSVG} from './avatar-masks.mjs?v=20261025-release3';
-import {hairColorDetails,hairOrnamentSVG,hairEdgesSVG,braidDecorationSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261025-release3';
+import {avatarMaskSVG} from './avatar-masks.mjs?v=20261025-release4';
+import {hairColorDetails,hairOrnamentSVG,hairEdgesSVG,braidDecorationSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261025-release4';
 export {supportsHairTips};
-import {teacherClothing,layeredClothingSVG,shortSleevesSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG,glassesStrapSVG} from './avatar-props.mjs?v=20261025-release3';
+import {teacherClothing,layeredClothingSVG,shortSleevesSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG,glassesStrapSVG} from './avatar-props.mjs?v=20261025-release4';
 export {teacherClothing};
 export const accessoryColorDefaults={"sunglassLensColor":"#25333e","frogEyeWhiteColor":"#ffffff","headphoneBandColor":"#3b526a","headphoneCupColor":"#8596c7","headphonePadColor":"#263445","starColor":"#f8d264","starEdgeColor":"#ba8c3f","flowerColor":"#f3c565","flowerCenterColor":"#9b673f","flowerLeafColor":"#6c9b69","flowerBandColor":"#6c8252","catBandColor":"#65517d","catEarColor":"#8a79a8","catInnerColor":"#e1a4b6","antennaStemColor":"#536c87","antennaLeftColor":"#dc8cb6","antennaRightColor":"#7baed6","crownColor":"#f4cd5d","crownEdgeColor":"#c79a3d","crownGemColor":"#d77a9e","frogColor":"#71af73","frogBrimColor":"#86c06f","frogBumpColor":"#92c783","frogEyeColor":"#334039"};
 const accessoryPalette=[['#302420','Espresso'],['#ffffff','White'],['#34445f','Navy'],['#f4ce70','Gold'],['#f09fbc','Pink'],['#438aaf','Blue'],['#228b22','Forest green']];
@@ -95,6 +95,16 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
   ];
   return `<g data-hair-detail="full-braid-crown"><path d="M28 44C23 26 29 9 57 8C86 5 99 24 92 44L87 36C83 28 77 24 70 23Q60 20 50 23C40 25 35 32 33 39L31 44Z"/><g data-hair-detail="braid-root-texture" fill="none" stroke-linecap="round">${roots.map(d=>`<path d="${d}" stroke="${strand}" stroke-width="3.1"/><path d="${d}" stroke="${ridge}" stroke-width="1.5" stroke-dasharray="1.2 1.5"/>`).join('')}</g><g data-hair-detail="fine-scalp-parts" fill="none" stroke="${skin}" stroke-opacity=".72" stroke-width=".6" stroke-linecap="round"><path d="M61 9Q59 15 60 21M58 14Q43 12 34 24M57 18Q45 17 39 25M64 14Q80 14 87 26M64 18Q76 18 82 27"/></g></g>`;
  };
+ // Rear strands span the whole nape; the head, neck and shirt occlude them.
+ const braidCurtain=()=>{
+  const box=a.hair==='boxbraids',count=box?19:21,width=box?4.4:3.5;
+  return `<g data-hair-detail="full-braid-curtain" fill="none" stroke-linecap="round">${Array.from({length:count},(_,i)=>{
+   const x=(box?20:25)+i*(box?80:70)/(count-1),root=37+(x-20)*.57,end=102+(i%3)*2;
+   const d=`M${root} 25C${x} 39 ${x} 55 ${x} ${end}`;
+   let texture='';for(let y=51;y<end-2;y+=4)texture+=`<path d="M${x-1} ${y}l2 1.1-2 1.1" stroke="${strand}" stroke-width=".7"/>`;
+   return `<g data-hair-detail="rear-braid"><path d="${d}" stroke="${strand}" stroke-width="${width+.6}"/><path d="${d}" stroke="${hair}" stroke-width="${width}"/>${texture}</g>`;
+  }).join('')}</g>`;
+ };
  let back={long:`<path d="M27 40Q25 12 59 14Q96 14 93 57L99 100H20Z" fill="${hair}"/>`,braids:`<path d="M30 45Q25 18 59 16Q94 17 91 49" fill="${hair}"/><g fill="${hair}">${[61,72,83,94].map(y=>`<ellipse cx="29" cy="${y}" rx="10" ry="8"/><ellipse cx="91" cy="${y}" rx="10" ry="8"/>`).join('')}</g>`,ponytail:`<ellipse cx="93" cy="42" rx="16" ry="27" fill="${hair}"/><path d="M88 31l8 3" stroke="#d994b0" stroke-width="6"/>`,bob:`<path d="M26 45Q22 15 59 14Q96 15 95 49L94 80H25Z" fill="${hair}"/>`,afro:`<path d="M23 69Q5 47 24 28Q23 10 44 9Q62-2 79 12Q104 10 102 34Q119 53 95 73Z" fill="${hair}"/>`}[a.hair]||'';
  let front={crop:`<path d="M31 41Q29 16 59 17Q91 18 89 42L78 30 66 34 52 29 39 36Z"/>`,swoop:`<path d="M30 43Q26 14 60 14Q91 16 91 41L81 35 78 26Q60 46 31 46Z"/>`,curls:`<path d="M29 43Q16 28 33 23Q30 10 46 15Q54 1 66 14Q84 8 86 23Q104 25 91 44L80 36Q69 45 60 34Q47 44 39 34Z"/>`,coils:`${[29,40,52,64,76,88].map((x,i)=>`<circle cx="${x}" cy="${i===0||i===5?34:24}" r="12"/>`).join('')}`,afro:'<path d="M31 43Q29 23 60 22Q88 21 90 43L76 33 61 38 44 32Z"/>',bob:'<path d="M29 45Q27 14 60 15Q95 17 92 45L77 29 70 40 43 34 36 46Z"/>',long:'<path d="M29 46Q24 16 59 14Q96 15 92 47L79 31Q62 20 45 35L32 53Z"/>',braids:'<path d="M30 40Q28 14 60 16Q94 15 91 42Q74 33 60 25Q43 37 30 40Z"/>',ponytail:'<path d="M30 43Q26 16 60 15Q93 16 91 43L80 30 65 35 49 28 35 44Z"/>',bald:''}[a.hair];
 
@@ -183,14 +193,7 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
   front+=twist(31,36,26,88,4.5)+twist(89,36,94,92,4.5);
  }
  if(a.hair==='braids'){
-  // The braids drop vertically behind the head and torso.
-  back=`<g data-hairstyle="straight-braids" fill="none" stroke-linecap="round">${[0,1,2,3].map(i=>{
-   const root=34+i*4,x=27+i*3.7,end=104+i%2*3;
-   const left=`M${root} 29Q${x} 37 ${x} 47V${end}`;
-   const right=`M${120-root} 29Q${120-x} 37 ${120-x} 47V${end}`;
-   let detail='';for(let y=50;y<end-2;y+=4.7)detail+=`<path d="M${x-.8} ${y}l1.5 1.2-1 1M${120-x+.8} ${y}l-1.5 1.2 1 1" stroke="${strand}" stroke-width=".65"/>`;
-   return `<path d="${left}" stroke="${hair}" stroke-width="2.8"/><path d="${right}" stroke="${hair}" stroke-width="2.8"/>${detail}`;
-  }).join('')}</g>`;
+  back=`<g data-hairstyle="straight-braids">${braidCurtain()}</g>`;
   scalp='';front=braidCrown();
 
  }
@@ -212,7 +215,7 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
  }
  if(a.hair==='boxbraids'){
   const braid=(x,y,endX,endY)=>{const steps=Math.round((endY-y)/4),point=t=>({x:x+(endX-x)*t,y:y+(endY-y)*t});return `<path d="M${x} ${y}L${endX} ${endY}" fill="none" stroke="${hair}" stroke-width="4.5" stroke-linecap="round"/>`+Array.from({length:steps},(_,i)=>{const p=point((i+.5)/steps);return `<path d="m${p.x-1.2} ${p.y-1.2} 2.4 1.2-2.4 1.2" fill="none" stroke="${strand}" stroke-width="1" stroke-linecap="round"/>`;}).join('');};
-  back=[ [35,25,19,99],[39,22,26,105],[44,24,33,100],[48,25,40,95],[72,25,80,96],[76,24,87,103],[81,22,94,106],[85,25,101,99] ].map(p=>braid(...p)).join('');
+  back=braidCurtain();
   scalp='';front=braidCrown();
   front+=[ [42,22,30,43],[78,22,90,43],[32,35,26,96],[88,35,94,100] ].map(p=>braid(...p)).join('');
  }

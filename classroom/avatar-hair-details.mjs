@@ -41,11 +41,12 @@ export function hairOrnamentSVG(a){
 export function hairEdgesSVG(a){
  if(a.hair==='bald'||a.hairEdges==='none')return '';
  const curls=a.hairEdges==='curls',braided=['braids','boxbraids'].includes(a.hair);
- // Short tapered swoops stay attached to the temples rather than forming a
- // row of loops across the forehead. Other hairstyles keep their own hairline.
- const swoop='<path d="M37 30C35 33 37 36 41 34C38 35 36 33 37 30ZM83 30C85 33 83 36 79 34C82 35 84 33 83 30Z"/>';
- const curl=curls?'<path d="M43 26C41 28 42 31 45 30C47 29 45 27 44 28C45 27.5 46 29 44.5 29C43 29 42.5 27.5 43 26ZM77 26C79 28 78 31 75 30C73 29 75 27 76 28C75 27.5 74 29 75.5 29C77 29 77.5 27.5 77 26Z"/>':'';
- return `<g data-hair-detail="edges-${a.hairEdges}" transform="translate(0 ${braided?0:6})" fill="${a.hairColor}">${swoop}${curl}<g fill="none" stroke="${a.hairColor}" stroke-width=".7" stroke-linecap="round"><path d="M33 37C31 39 32 43 34 42M87 37C89 39 88 43 86 42"/>${curls?'<path d="M34 35C32 37 34 39 35 38M86 35C88 37 86 39 85 38"/>':''}</g></g>`;
+ // Filled, tapered waves return a little of the hairline to the forehead.
+ // Mirror the temple styling while keeping the center of the forehead open.
+ const side=`<path d="M60 21C57 22 56 25 52 25C49 25 47 23 48 22C45 25 47 29 51 29C56 29 59 25 60 21Z"/><path d="M49 22C45 22 41 24 40 28C39 32 44 33 48 29C44 31 42 29 43 27C44 24 47 24 49 22Z"/><path d="M40 26C35 29 32 34 32 39C32 43 36 45 39 41C35 43 34 40 35 37C36 34 41 33 41 30C41 28 40 27 40 26Z"/><path d="M33 39C31 42 31 46 34 48C37 49 39 46 37 44C38 47 34 48 34 45C33 43 34 41 33 39Z"/>`;
+ const curl=curls?'<path d="M48 23C46 25 48 28 51 27C54 26 52 23 50 24C49 25 50 26 51 25" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>':'';
+ const detail='<path d="M58 23C54 29 48 27 48 25M56 23C53 27 50 26 49 24M46 24C42 25 40 29 43 30M38 29C34 33 33 38 35 40" fill="none" stroke="#ffffff" stroke-opacity=".18" stroke-width=".45" stroke-linecap="round"/>';
+ return `<g data-hair-detail="edges-${a.hairEdges}" data-edge-style="full-tapered-waves" transform="translate(0 ${braided?0:6})" fill="${a.hairColor}" color="${a.hairColor}"><g>${side}${curl}${detail}</g><g transform="translate(120 0) scale(-1 1)">${side}${curl}${detail}</g></g>`;
 }
 export function braidDecorationSVG(a){
  if(!['braids','boxbraids'].includes(a.hair)||a.braidDecoration==='none')return '';

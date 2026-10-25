@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.4","changes":["Full rear braid coverage and fuller sculpted forehead waves and curls"]},
  {"version":"2026.10.25.3","changes":["Refined braid hairlines with more forehead, fine scalp partings, and subtle temple edges"]},
  {"version":"2026.10.25.2","changes":["Fuller braid crowns, optional laid edges, and colorful braid beads and cuffs"]},
  {"version":"2026.10.25.1","changes":["Import SIS birthday reports locally across saved student lists and classrooms"]},
