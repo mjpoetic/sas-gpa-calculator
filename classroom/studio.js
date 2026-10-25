@@ -1,18 +1,18 @@
-import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release18';
-import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release18';
+import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release20';
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release20';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release18';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release18';
-import {openAvatarEditor} from './avatar-editor.js?v=20261025-release18';
-import {transferStudent} from './seat-transfer.mjs?v=20261025-release18';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release18';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release18';
-import {furnitureArt} from './furniture-art.mjs?v=20261025-release18';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release20';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release20';
+import {openAvatarEditor} from './avatar-editor.js?v=20261025-release20';
+import {transferStudent} from './seat-transfer.mjs?v=20261025-release20';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release20';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release20';
+import {furnitureArt} from './furniture-art.mjs?v=20261025-release20';
 import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261020-names1';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release18';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release20';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
@@ -434,7 +434,7 @@ $('room').addEventListener('pointerleave',()=>{hoverOwner=null;updateObjectContr
 
 $('room').addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){hoverOwner=null;updateObjectControls();}},true);
 
-function labelOutlineWidth(it){const width=Number(it.labelStyle?.textOutlineWidth);return Number.isFinite(width)&&width>=.5?Math.min(12,width):Math.max(1,(it.labelFontSize||40)*.035);}
+function labelOutlineWidth(it){const width=Number(it.labelStyle?.textOutlineWidth);return Number.isFinite(width)&&width>=.5?Math.min(12,width):3;}
 $('label-textOutlineWidth').onchange=()=>{const it=selected(),input=$('label-textOutlineWidth'),width=Number(input.value);if(it?.type!=='label')return;if(!input.checkValidity()||!Number.isFinite(width)||width<.5||width>12){input.value=Number(labelOutlineWidth(it).toFixed(2));return;}change(()=>{it.labelStyle={...defaultLabelStyle(),...it.labelStyle,textOutlineWidth:width};});};
 function defaultLabelStyle(){return {background:false,outline:false,textOutline:false,textOutlineColor:'#20354e',fill:document.documentElement.classList.contains('dark')?'#20384b':'#edf5fa',border:'#66899f',text:document.documentElement.classList.contains('dark')?'#e0edf6':'#294c6b'};}
 for(const key of ['background','outline','fill','border','text','textOutline','textOutlineColor'])$('label-'+key).onchange=()=>{const it=selected();if(it?.type==='label')change(()=>{const style=it.labelStyle||defaultLabelStyle();style[key]=['background','outline','textOutline'].includes(key)?$('label-'+key).checked:$('label-'+key).value;it.labelStyle=style;});};

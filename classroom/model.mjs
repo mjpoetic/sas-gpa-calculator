@@ -1,9 +1,9 @@
-import {validateBirthday} from './celebration-date.mjs?v=20261025-release18';
+import {validateBirthday} from './celebration-date.mjs?v=20261025-release20';
 import {validateStudentExclusions} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {validateWeeklyJobs} from './weekly-jobs.mjs?v=20261020-names1';
-import {validateAvatar} from './avatars.mjs?v=20261025-release18';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261025-release18';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261025-release18';
+import {validateAvatar} from './avatars.mjs?v=20261025-release20';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261025-release20';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261025-release20';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -228,7 +228,7 @@ export function snapToWall(item,threshold=24){
  if(!edges.length)return null;const edge=edges[0];item.rotation=edge.angle;constrain(item);const rotated=footprint(item);if(edge.edge==='top')item.y-=rotated.y;if(edge.edge==='bottom')item.y+=HEIGHT-rotated.y-rotated.height;if(edge.edge==='left')item.x-=rotated.x;if(edge.edge==='right')item.x+=WIDTH-rotated.x-rotated.width;return edge.edge;
 }
 
-export function validateLabelStyle(value){if(!value||typeof value.background!=='boolean'||typeof value.outline!=='boolean'||['fill','border','text'].some(key=>!/^#[\da-f]{6}$/i.test(value[key])))throw new Error('Invalid room label style.');if(value.textOutline!==undefined&&typeof value.textOutline!=='boolean'||value.textOutlineColor!==undefined&&!/^#[\da-f]{6}$/i.test(value.textOutlineColor))throw new Error('Invalid room label text outline.');return {background:value.background,outline:value.outline,fill:value.fill,border:value.border,text:value.text,...(value.textOutline!==undefined?{textOutline:value.textOutline}:{}),...(value.textOutlineColor!==undefined?{textOutlineColor:value.textOutlineColor}:{})};}
+export function validateLabelStyle(value){if(!value||typeof value.background!=='boolean'||typeof value.outline!=='boolean'||['fill','border','text'].some(key=>!/^#[\da-f]{6}$/i.test(value[key])))throw new Error('Invalid room label style.');if(value.textOutline!==undefined&&typeof value.textOutline!=='boolean'||value.textOutlineColor!==undefined&&!/^#[\da-f]{6}$/i.test(value.textOutlineColor))throw new Error('Invalid room label text outline.');if(value.textOutlineWidth!==undefined&&(!Number.isFinite(value.textOutlineWidth)||value.textOutlineWidth<.5||value.textOutlineWidth>12))throw new Error('Invalid room label text outline thickness.');return {background:value.background,outline:value.outline,fill:value.fill,border:value.border,text:value.text,...(value.textOutlineWidth!==undefined?{textOutlineWidth:value.textOutlineWidth}:{}),...(value.textOutline!==undefined?{textOutline:value.textOutline}:{}),...(value.textOutlineColor!==undefined?{textOutlineColor:value.textOutlineColor}:{})};}
 
 export function validateSeatFontSize(value){if(!Number.isFinite(value)||value<8||value>36)throw new Error('Seat name size must be between 8 and 36.');return value;}
 

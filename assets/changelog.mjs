@@ -1,5 +1,7 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.20","changes":["Default room label text outlines to 3 pixels"]},
+ {"version":"2026.10.25.19","changes":["Preserve room label outline thickness when saving and syncing charts"]},
  {"version":"2026.10.25.18","changes":["Keep custom room label colors visible while editing text"]},
  {"version":"2026.10.25.17","changes":["Fix fractional text outline thickness values reverting"]},
  {"version":"2026.10.25.16","changes":["Choose the text outline thickness for room labels"]},
