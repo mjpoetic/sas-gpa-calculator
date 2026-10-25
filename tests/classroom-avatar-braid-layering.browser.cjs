@@ -16,8 +16,8 @@ const assert=require('node:assert/strict');
     for(const [bodyBuild] of avatarOptions.bodyBuild)for(const [bodyHeight] of avatarOptions.bodyHeight)for(const [style] of avatarOptions.style){
      const avatar={...defaultAvatar(),hair,bodyBuild,bodyHeight,style,clothing:'tee',clothingColor:'#4c95b9'};
      const base=(await pixels(avatarSVG(avatar))).getImageData(0,0,240,240).data;
-     for(const braidDecoration of ['beads','cuffs']){
-      const decorated=(await pixels(avatarSVG({...avatar,braidDecoration,braidDecorationColor:'#ff00ff'}))).getImageData(0,0,240,240).data;
+     for(const braidDecoration of ['beads','cuffs'])for(const braidDecorationCoverage of ['few','more','all']){
+      const decorated=(await pixels(avatarSVG({...avatar,braidDecoration,braidDecorationCoverage,braidDecorationColor:'#ff00ff'}))).getImageData(0,0,240,240).data;
       for(let i=0;i<base.length;i+=4)if(base[i]===76&&base[i+1]===149&&base[i+2]===185&&[0,1,2].some(k=>base[i+k]!==decorated[i+k])){failures.push({hair,bodyBuild,bodyHeight,style,braidDecoration});break;}
       comparisons++;
      }

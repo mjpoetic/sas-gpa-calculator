@@ -89,3 +89,15 @@ test('full braid crowns, optional edges and decorations survive backups with saf
  for(const hair of ['bald','crop','long']){const svg=avatarSVG({...defaultAvatar(),hair,hairEdges:'curls',braidDecoration:'beads'});assert.ok(!svg.includes('data-avatar-accessory="braid-'));assert.equal(svg.includes('data-hair-detail="edges-'),hair!=='bald');}
  for(const [key,value] of [['hairEdges','bad'],['braidDecoration','bad'],['braidDecorationColor','url(bad)']])assert.throws(()=>validateAvatar({...defaultAvatar(),[key]:value}));
 });
+
+test('braid coverage adds distinct decorated strands and saves safely',()=>{
+ const legacy=defaultAvatar();delete legacy.braidDecorationCoverage;assert.equal(validateAvatar(legacy).braidDecorationCoverage,'few');
+ assert.throws(()=>validateAvatar({...legacy,braidDecorationCoverage:'invalid'}),/braidDecorationCoverage/);
+ for(const hair of ['braids','boxbraids'])for(const braidDecoration of ['beads','cuffs']){
+  let previous=0;for(const braidDecorationCoverage of ['few','more','all']){
+   const avatar={...defaultAvatar(),hair,braidDecoration,braidDecorationCoverage},svg=avatarSVG(avatar);
+   const strands=new Set([...svg.matchAll(/data-decorated-strand="(\d+)"/g)].map(m=>m[1]));assert.ok(strands.size>previous);previous=strands.size;
+   const chart=newChart();chart.students=[{id:'decorated',name:'Alex',avatar}];assert.deepEqual(validateBackup({version:1,active:chart.id,charts:[chart]}).charts[0].students[0].avatar,avatar);
+  }
+ }
+});

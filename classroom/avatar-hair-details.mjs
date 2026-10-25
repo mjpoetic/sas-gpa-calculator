@@ -52,6 +52,13 @@ export function braidDecorationSVG(a){
  if(!['braids','boxbraids'].includes(a.hair)||a.braidDecoration==='none')return '';
  // Follow the outer rear strands. Render with rear hair so clothing naturally
  // hides any beads or cuffs on strands passing behind the shoulders.
- const positions=a.hair==='braids'?[[25.5,63],[94.5,63],[25,77],[95,77]]:[[20.5,63],[99.5,63],[20,77],[100,77]];
- return `<g data-avatar-accessory="braid-${a.braidDecoration}">${positions.map(([x,y])=>a.braidDecoration==='beads'?`<g fill="${a.braidDecorationColor}" stroke="#00000038" stroke-width=".5">${[0,4,8].map(d=>`<rect x="${x-2.8}" y="${y+d}" width="5.6" height="3.7" rx="1.4"/><path d="M${x-1} ${y+d+1}v1" stroke="#ffffff90"/>`).join('')}</g>`:`<g><rect x="${x-2.7}" y="${y}" width="5.4" height="7" rx="1" fill="${a.braidDecorationColor}" stroke="#00000038" stroke-width=".6"/><path d="M${x-2} ${y+2}h4m-4 3h4" stroke="#ffffff90" stroke-width=".7"/></g>`).join('')}</g>`;
+ const box=a.hair==='boxbraids',count=box?19:21,dense=a.braidDecorationCoverage!=='few';
+ const positions=dense?Array.from({length:count},(_,i)=>{
+  // Match the rear strand's cubic curve at the decoration's height.
+  const x=(box?20:25)+i*(box?80:70)/(count-1),root=37+(x-20)*.57,y=67+i%3*4,end=102+i%3*2;
+  let low=0,high=1;for(let n=0;n<18;n++){const t=(low+high)/2,u=1-t,cy=u*u*u*25+3*u*u*t*39+3*u*t*t*55+t*t*t*end;if(cy<y)low=t;else high=t;}
+  const t=(low+high)/2;return [x+(root-x)*(1-t)**3,y,i];
+ }).filter(([, ,i])=>a.braidDecorationCoverage==='all'||i%2===0):box?[[20.5,63,0],[99.5,63,18],[20,77,0],[100,77,18]]:[[25.5,63,0],[94.5,63,20],[25,77,0],[95,77,20]];
+ const ornament=a.braidDecoration==='beads'?`<g fill="${a.braidDecorationColor}" stroke="#00000038" stroke-width=".5">${[0,4,8].map(d=>`<rect x="-2.8" y="${d}" width="5.6" height="3.7" rx="1.4"/><path d="M-1 ${d+1}v1" stroke="#ffffff90"/>`).join('')}</g>`:`<rect x="-2.7" width="5.4" height="7" rx="1" fill="${a.braidDecorationColor}" stroke="#00000038" stroke-width=".6"/><path d="M-2 2h4m-4 3h4" stroke="#ffffff90" stroke-width=".7"/>`;
+ return `<g data-avatar-accessory="braid-${a.braidDecoration}" data-braid-coverage="${a.braidDecorationCoverage}">${positions.map(([x,y,i])=>`<g data-decorated-strand="${i}" transform="translate(${x} ${y}) scale(${dense?.52:1} 1)">${ornament}</g>`).join('')}</g>`;
 }
