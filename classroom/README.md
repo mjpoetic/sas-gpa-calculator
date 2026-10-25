@@ -287,7 +287,7 @@ Verification: `node --test tests/*.test.mjs`; browser suites `tests/classroom-av
 
 Use **Birthdays** in the toolbar or **Birthday** under a student's roster options to save a month and day (no birth year). Saved student lists and backups retain birthdays. **Celebrate now** previews or reopens a celebration, including on a different day. While Studio is open, today's birthdays appear one at a time when no other dialog is open. Each large celebration shows a smiling avatar, party hat, and balloons, and stays until dismissed. Dismissal is remembered for that student, classroom, and local date in this browser; multiple birthdays are shown in turn. February 29 is celebrated on February 29.
 
-The furniture catalog's **Calendar**, **Analog clock**, and **Digital clock** use the device's current local date/time and update while Studio is open. Existing calendar and wall-clock furniture automatically become live. Digital clocks display 24-hour time.
+The furniture catalog's **Calendar**, **Analog clock**, and **Digital clock** use the device's current local date/time and update while Studio is open. Existing calendar and wall-clock furniture automatically become live. Digital clocks default to 12-hour time with AM/PM. Select a digital clock and use **Details → Time format** to choose 12-hour or 24-hour time for that clock. The choice is saved with the classroom and retained in backups and duplicates.
 
 Birthday celebrations include continuous falling confetti (static decoration with reduced motion). The party hat temporarily replaces headgear and hair ornaments, while retaining glasses and headphones worn around the neck. Its placement follows the rendered central hair silhouette for each hairstyle and avatar size; the saved avatar is unchanged.
 
