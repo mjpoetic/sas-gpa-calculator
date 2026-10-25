@@ -1,19 +1,19 @@
-import {planFurnitureSync,applyFurnitureSync} from './furniture-sync.mjs?v=20261025-release32';
-import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release32';
-import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release32';
+import {planFurnitureSync,applyFurnitureSync} from './furniture-sync.mjs?v=20261025-release33';
+import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release33';
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release33';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release32';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release32';
-import {openAvatarEditor} from './avatar-editor.js?v=20261025-release32';
-import {transferStudent} from './seat-transfer.mjs?v=20261025-release32';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release32';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release32';
-import {furnitureArt} from './furniture-art.mjs?v=20261025-release32';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261025-release32';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release32';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release33';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release33';
+import {openAvatarEditor} from './avatar-editor.js?v=20261025-release33';
+import {transferStudent} from './seat-transfer.mjs?v=20261025-release33';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release33';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release33';
+import {furnitureArt} from './furniture-art.mjs?v=20261025-release33';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261025-release33';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release33';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
@@ -259,11 +259,11 @@ function renderRoom() {
         if(!moved){checkpoint();moved=true;node.classList.add('resizing');}
         if(members.length>1){edgeGroupScale(members,original,bounds,dx,dy,d);paintPositions();return;}
         const angle=it.rotation*Math.PI/180,step=1,lx=(dx*Math.cos(angle)+dy*Math.sin(angle))*d.x,ly=(-dx*Math.sin(angle)+dy*Math.cos(angle))*d.y;Object.assign(it,original[0]);
-        it.width=Math.max(['mug','mouse','globe','calendar'].includes(it.type)?16:40,Math.min(400,Math.round((start.w+lx)/step)*step));
+        it.width=Math.max(['mug','mouse','globe','calendar','digitalclock'].includes(it.type)?16:40,Math.min(400,Math.round((start.w+lx)/step)*step));
         it.height=Math.max(8,Math.min(300,Math.round((start.h+ly)/step)*step));if(['door','board','smartboard','bulletin','window'].includes(it.type))resizeFurniture(it,it.width,it.height,d.x?'width':'height');else if(proportionalTypes.has(it.type)||it.type==='cabinet')resizeFurniture(it,it.width,it.height,Math.abs(lx)/start.w>=Math.abs(ly)/start.h?'width':'height');else constrain(it);snapResize(it);anchorResize(it,original[0],d);
         Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});if(it.type==='cabinet')node.querySelector('.furniture-art').innerHTML=furnitureArt(it.type,it.height,it.rugStyle,it.clockFormat,it.calendarStyle,it.clockStyle);showGuides([it]);
       };
-      const end=ev=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(ev.type==='pointercancel'){members.forEach((item,i)=>Object.assign(item,original[i]));history=priorHistory;redoHistory=priorRedo;render();return;}if(members.length===1&&$('snap').checked){if(!d.edge||d.x)it.width=Math.max(['mug','mouse','globe','calendar'].includes(it.type)?16:40,Math.min(400,Math.round(it.width/(['mug','mouse','globe','calendar'].includes(it.type)?2:10))*(['mug','mouse','globe','calendar'].includes(it.type)?2:10)));if(!d.edge||d.y)it.height=Math.max(8,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height,d.x?'width':'height');anchorResize(it,original[0],d);}save();render();}};
+      const end=ev=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(ev.type==='pointercancel'){members.forEach((item,i)=>Object.assign(item,original[i]));history=priorHistory;redoHistory=priorRedo;render();return;}if(members.length===1&&$('snap').checked){if(!d.edge||d.x)it.width=Math.max(['mug','mouse','globe','calendar','digitalclock'].includes(it.type)?16:40,Math.min(400,Math.round(it.width/(['mug','mouse','globe','calendar','digitalclock'].includes(it.type)?2:10))*(['mug','mouse','globe','calendar','digitalclock'].includes(it.type)?2:10)));if(!d.edge||d.y)it.height=Math.max(8,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height,d.x?'width':'height');anchorResize(it,original[0],d);}save();render();}};
       resize.addEventListener('pointermove',move);resize.addEventListener('pointerup',end);resize.addEventListener('pointercancel',end);
     };node.append(resize);attachResizeEdges(node,resize);if(selectedIds.size<2)controlEntries.push({node,actions,resize});node.addEventListener('pointerenter',updateObjectControls);node.addEventListener('focusin',()=>{if(document.activeElement===node)hoverOwner=null;updateObjectControls();});
     node.addEventListener('pointerdown', e => {
@@ -305,7 +305,7 @@ function renderInspector() {
   if(!it) return;
   for(const field of ['label','width','height','x','y']) $('item-'+field).value = it[field];
   $('item-show-label').checked=it.showLabel===true;$('item-label-visibility').hidden=it.type==='label';
-  $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-width').min=['mug','mouse','globe','calendar'].includes(it.type)?16:40;$('item-width').step=['mug','mouse','globe','calendar'].includes(it.type)?1:10;$('item-height').min=it.type==='powerstrip'?8:['mug','mouse','globe','calendar'].includes(it.type)?12:['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
+  $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-width').min=['mug','mouse','globe','calendar','digitalclock'].includes(it.type)?16:40;$('item-width').step=['mug','mouse','globe','calendar','digitalclock'].includes(it.type)?1:10;$('item-height').min=it.type==='powerstrip'?8:['mug','mouse','globe','calendar','digitalclock'].includes(it.type)?12:['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
   $('label-font-size').value=it.labelFontSize||'';$('label-font-controls').hidden=it.type!=='label';$('label-font-source').value=it.labelFont?.source||'preset';$('label-font-family').value=it.labelFont?.family||'system';
   const style={...defaultLabelStyle(),...it.labelStyle};for(const key of ['background','outline','textOutline'])$('label-'+key).checked=style[key];for(const key of ['fill','border','text','textOutlineColor'])$('label-'+key).value=style[key];
   $('label-textOutlineWidth').value=Number(labelOutlineWidth(it).toFixed(2));

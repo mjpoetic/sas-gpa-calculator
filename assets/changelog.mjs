@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.33","changes":["Allow digital clocks to resize smaller with finer size adjustments"]},
  {"version":"2026.10.25.32","changes":["Refine wooden digital clock with a straight-on rectangular face and level wood grain"]},
  {"version":"2026.10.25.31","changes":["Resize Classroom Studio furniture, groups, and free-standing avatars from any edge or corner with familiar mouse cursors; retain touch and keyboard resize controls."]},
  {"version":"2026.10.25.30","changes":["Sync missing furniture into rooms while updating existing items without duplicates"]},
