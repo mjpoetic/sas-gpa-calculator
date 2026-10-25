@@ -1,8 +1,9 @@
+import {validateBirthday} from './celebration-date.mjs?v=20261024-release1';
 import {validateStudentExclusions} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {validateWeeklyJobs} from './weekly-jobs.mjs?v=20261020-names1';
-import {validateAvatar} from './avatars.mjs?v=20261021-release7';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261021-release7';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261021-release7';
+import {validateAvatar} from './avatars.mjs?v=20261024-release1';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261024-release1';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261024-release1';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -43,7 +44,8 @@ export const catalog = {
   bulletin:{label:'Bulletin board',width:180,height:9,seats:0},
   trash:{label:'Trash can',width:55,height:55,seats:0},
   sidetable:{label:'Side table',width:85,height:85,seats:0},
-  clock:{label:'Wall clock',width:50,height:50,seats:0},
+  digitalclock:{label:'Digital clock',width:100,height:50,seats:0},
+  clock:{label:'Analog clock',width:50,height:50,seats:0},
   globe:{label:'Globe',width:50,height:50,seats:0},
   mug:{label:'Tea / coffee mug',width:45,height:40,seats:0},
   bottle:{label:'Water bottle',width:40,height:40,seats:0},
@@ -123,7 +125,7 @@ export function validateBackup(data) {
   const charts = data.charts.map(c => {
     if (!Array.isArray(c.students) || c.students.length > 500 || !Array.isArray(c.items) || c.items.length > 500) throw new Error('Backup exceeds classroom limits.');
     const room=c.room===undefined?{width:960,height:680}:validateRoom(c.room);
-    const students = c.students.map(s => ({id: id(s.id), name: normalizeStudentName(str(s.name,80)),...(s.nickname!==undefined?{nickname:validateNickname(s.nickname)}:{}),...(s.avatar!==undefined?{avatar:validateAvatar(s.avatar)}:{}),...(s.avoid!==undefined?{avoid:s.avoid}: {})}));
+    const students = c.students.map(s => ({id: id(s.id), name: normalizeStudentName(str(s.name,80)),...(s.birthday!==undefined?{birthday:validateBirthday(s.birthday)}:{}),...(s.nickname!==undefined?{nickname:validateNickname(s.nickname)}:{}),...(s.avatar!==undefined?{avatar:validateAvatar(s.avatar)}:{}),...(s.avoid!==undefined?{avoid:s.avoid}: {})}));
     const studentIds = new Set(students.map(s => s.id)), assigned = new Set();
     for(const student of students)if(student.avoid!==undefined&&(!Array.isArray(student.avoid)||student.avoid.length>500||student.avoid.some(ref=>typeof ref!=='string'||ref===student.id||!studentIds.has(ref))))throw new Error('Invalid student separation preferences.');
     const items = c.items.map(it => {
@@ -147,7 +149,7 @@ export function validateBackup(data) {
   });
   const studentLists=(data.studentLists||[]);
   if(!Array.isArray(studentLists)||studentLists.length>100)throw new Error('Invalid saved student lists.');
-  const lists=studentLists.map(list=>{if(!Array.isArray(list.names)||list.names.length>500)throw new Error('Invalid saved student list.');return {id:id(list.id),name:str(list.name,80),names:list.names.map(n=>normalizeStudentName(str(n,80))),...(list.nicknames!==undefined?{nicknames:validateListNicknames(list.nicknames,list.names.length)}:{}),...(list.avatars!==undefined?{avatars:validateListAvatars(list.avatars,list.names.length)}:{}),...(list.avoid!==undefined?{avoid:validateListAvoid(list.avoid,list.names.length)}:{})};});
+  const lists=studentLists.map(list=>{if(!Array.isArray(list.names)||list.names.length>500)throw new Error('Invalid saved student list.');return {id:id(list.id),name:str(list.name,80),names:list.names.map(n=>normalizeStudentName(str(n,80))),...(list.birthdays!==undefined?{birthdays:validateListBirthdays(list.birthdays,list.names.length)}:{}),...(list.nicknames!==undefined?{nicknames:validateListNicknames(list.nicknames,list.names.length)}:{}),...(list.avatars!==undefined?{avatars:validateListAvatars(list.avatars,list.names.length)}:{}),...(list.avoid!==undefined?{avoid:validateListAvoid(list.avoid,list.names.length)}:{})};});
   const chartOrder=data.chartOrder;if(chartOrder!==undefined&&(!Array.isArray(chartOrder)||chartOrder.length>100||chartOrder.some(id=>typeof id!=='string')||new Set(chartOrder).size!==chartOrder.length))throw new Error('Invalid classroom order.');
   const teacherProfile=data.teacherProfile===undefined?null:{name:str(data.teacherProfile?.name,80).trim(),avatar:validateAvatar(data.teacherProfile?.avatar)};
   return {version:1,...(teacherProfile?{teacherProfile}:{}), ...(chartOrder?{chartOrder:chartOrder.filter(id=>charts.some(c=>c.id===id))}:{}), ...(lists.length?{studentLists:lists}:{}), charts, active:charts.some(c => c.id === data.active) ? data.active : charts[0].id};
@@ -173,7 +175,7 @@ export function snapGroup(items,others,grid=true) {
  }if(b.x<9)dx=-b.x;else if(WIDTH-b.x-b.width<9)dx=WIDTH-b.x-b.width;if(b.y<9)dy=-b.y;else if(HEIGHT-b.y-b.height<9)dy=HEIGHT-b.y-b.height;moveGroup(items,dx,dy);return bestX<9||bestY<9;
 }
 
-export const proportionalTypes=new Set(['sanitizer','sink','petcage','fishbowl','computercart','powerstrip','tvtray','round','plant','laptop','keyboard','mouse','chair','stool','printer','couch','window','officechair','trash','sidetable','clock','globe','mug','bottle','sharpener','calendar']);
+export const proportionalTypes=new Set(['sanitizer','sink','petcage','fishbowl','computercart','powerstrip','tvtray','round','plant','laptop','keyboard','mouse','chair','stool','printer','couch','window','officechair','trash','sidetable','clock','digitalclock','globe','mug','bottle','sharpener','calendar']);
 export function resizeFurniture(it,width,height,axis='width') {
  if(it.type==='cabinet'){it.width=80;it.height=Math.max(60,Math.min(300,Math.round(height/30)*30));}
  else if(['door','board','smartboard','bulletin'].includes(it.type)){it.width=Math.max(8*(it.type==='door'?12:20),Math.min(400,axis==='height'?height*(it.type==='door'?12:20):width));it.height=it.width/(it.type==='door'?12:20);}
@@ -216,7 +218,7 @@ export function rotateGroup(items,degrees){
  const after=groupBounds(items);if(after.width>WIDTH+1e-6||after.height>HEIGHT+1e-6){items.forEach((it,i)=>Object.assign(it,original[i]));return false;}moveGroup(items,0,0);return true;
 }
 
-export const wallFixtures=new Set(['door','board','smartboard','window','bulletin','clock','calendar']);
+export const wallFixtures=new Set(['door','board','smartboard','window','bulletin','clock','digitalclock','calendar']);
 export function snapToWall(item,threshold=24){
  if(!wallFixtures.has(item.type))return null;
  const b=footprint(item),cx=b.x+b.width/2,cy=b.y+b.height/2;
@@ -233,3 +235,5 @@ export function validateLabelFontSize(value){if(!Number.isFinite(value)||value<8
 function validateListAvatars(values,length){if(!Array.isArray(values)||values.length!==length)throw new Error('Invalid saved list avatars.');return values.map(a=>a===null?null:validateAvatar(a));}
 
 function validateListNicknames(values,length){if(!Array.isArray(values)||values.length!==length)throw new Error('Invalid saved list nicknames.');return values.map(v=>v===null?null:validateNickname(v));}
+
+function validateListBirthdays(values,length){if(!Array.isArray(values)||values.length!==length)throw new Error('Invalid saved birthdays.');return values.map(v=>v===null?null:validateBirthday(v));}
