@@ -1,5 +1,5 @@
-import {parseBirthdayRows} from './birthday-import.mjs?v=20261025-release27';
-import {validateBirthday} from './celebration-date.mjs?v=20261025-release27';
+import {parseBirthdayRows} from './birthday-import.mjs?v=20261025-release28';
+import {validateBirthday} from './celebration-date.mjs?v=20261025-release28';
 
 export function reportNameKey(value){
  let name=String(value).normalize('NFC').trim().replace(/\s+/gu,' ');

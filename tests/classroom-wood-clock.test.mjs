@@ -1,0 +1,6 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {furniture,newChart,resizeFurniture,validateBackup} from '../classroom/model.mjs';
+import {liveFurnitureArt} from '../classroom/live-furniture.mjs';
+test('calendar can shrink to 16 pixels and survive backup validation',()=>{const c=newChart('Small calendar'),it=furniture('calendar');resizeFurniture(it,16,12);assert.equal(it.width,16);c.items=[it];assert.equal(validateBackup({version:1,active:c.id,charts:[c]}).charts[0].items[0].width,16);});
+test('wood clock preserves style and renders live segmented time in either format',()=>{const c=newChart('Clock'),it=furniture('digitalclock');it.clockStyle='wood';c.items=[it];const backup={version:1,active:c.id,charts:[c]};assert.equal(validateBackup(backup).charts[0].items[0].clockStyle,'wood');for(const format of ['12','24']){const art=liveFurnitureArt('digitalclock',new Date(2026,9,25,15,9),format,undefined,'wood');assert.match(art,/<polyline/);assert.match(art,format==='12'?/3:09 PM/:/15:09/);assert.match(art,/var\(--furniture-color/);assert.notEqual(art,liveFurnitureArt('digitalclock',new Date(2026,9,25,15,10),format,undefined,'wood'));}it.clockStyle='bad';assert.throws(()=>validateBackup(backup),/clock style/);});

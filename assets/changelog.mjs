@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.28","changes":["Allow smaller calendars and add a live wooden wedge digital clock style"]},
  {"version":"2026.10.25.27","changes":["Refresh cached calendar behavior and place new furniture within the current zoomed view"]},
  {"version":"2026.10.25.26","changes":["Rename the Classroom Studio Furniture tab to Items"]},
  {"version":"2026.10.25.25","changes":["Allow clocks, calendars, and the new Bible to move without snapping; add customizable live wooden block and flip calendars"]},

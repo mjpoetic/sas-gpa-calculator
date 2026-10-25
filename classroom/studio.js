@@ -1,18 +1,18 @@
-import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release27';
-import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release27';
+import {setupBirthdays,editBirthday} from './birthdays.js?v=20261025-release28';
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261025-release28';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release27';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release27';
-import {openAvatarEditor} from './avatar-editor.js?v=20261025-release27';
-import {transferStudent} from './seat-transfer.mjs?v=20261025-release27';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release27';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release27';
-import {furnitureArt} from './furniture-art.mjs?v=20261025-release27';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261025-release27';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release27';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261025-release28';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261025-release28';
+import {openAvatarEditor} from './avatar-editor.js?v=20261025-release28';
+import {transferStudent} from './seat-transfer.mjs?v=20261025-release28';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261025-release28';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261025-release28';
+import {furnitureArt} from './furniture-art.mjs?v=20261025-release28';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261025-release28';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261025-release28';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
@@ -157,7 +157,7 @@ function renderRoom() {
     const caption=element('span','item-caption',it.label);if(it.type==='label'||it.showLabel===true)node.append(caption);
     if(it.type==='label'){if(it.labelStyle?.textOutline){caption.style.webkitTextStroke=`${labelOutlineWidth(it)}px ${it.labelStyle.textOutlineColor||'#20354e'}`;caption.style.paintOrder='stroke fill';}caption.classList.add('editable-room-label');caption.tabIndex=0;caption.setAttribute('role','textbox');caption.setAttribute('aria-label','Room label; click to rename');caption.title='Click to rename; drag the border to move';if(it.labelFont){caption.style.fontFamily=fontCSS(it.labelFont);void loadFont(it.labelFont,it.fontWeight||400).then(async()=>{if(document.fonts?.load)await document.fonts.load(`${it.fontWeight||400} 100px ${fontCSS(it.labelFont)}`);fitCaption(caption,it);}).catch(e=>say(e.message));}const observer=new ResizeObserver(()=>fitCaption(caption,it));observer.observe(node);labelObservers.push(observer);caption.oninput=()=>fitCaption(caption,it);caption.onpointerdown=e=>e.stopPropagation();caption.onclick=e=>{e.stopPropagation();choose(it);room.querySelectorAll('.item').forEach(n=>n.classList.toggle('selected',n===node));renderInspector();caption.contentEditable='true';caption.focus();};caption.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();caption.blur();}if(e.key==='Escape'){caption.textContent=it.label;caption.blur();}};caption.onblur=()=>{caption.contentEditable='false';const value=caption.textContent.trim().slice(0,60)||'Room label';if(value!==it.label)change(()=>{it.label=value;},'Room label updated.');};}
 
-    if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type,it.height,it.rugStyle,it.clockFormat,it.calendarStyle);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=HEIGHT-1||f.x+f.width>=WIDTH-1),wallFlip=it.type==='door'&&((f.y+f.height>=HEIGHT-1&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=WIDTH-1&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);if(color&&!art.innerHTML.includes('var(--furniture-color')){const rects=[...art.querySelectorAll('rect')].sort((a,b)=>Number(b.getAttribute('width'))*Number(b.getAttribute('height'))-Number(a.getAttribute('width'))*Number(a.getAttribute('height')));(rects[0]||art.querySelector('circle'))?.setAttribute('fill',color);}requestAnimationFrame(()=>fitCaption(caption,it));}
+    if(!it.seats.length&&it.type!=='teacher'){const art=element('div','furniture-art');art.setAttribute('aria-hidden','true');art.innerHTML=furnitureArt(it.type,it.height,it.rugStyle,it.clockFormat,it.calendarStyle,it.clockStyle);const f=footprint(it),wall=it.type==='door'&&(f.y<=1||f.x<=1||f.y+f.height>=HEIGHT-1||f.x+f.width>=WIDTH-1),wallFlip=it.type==='door'&&((f.y+f.height>=HEIGHT-1&&it.rotation===0)||(f.y<=1&&it.rotation===180)||(f.x+f.width>=WIDTH-1&&it.rotation===270)||(f.x<=1&&it.rotation===90));art.style.transform=`scale(${it.flipX?-1:1},${(wall?wallFlip:it.flipY)?-1:1})`;node.prepend(art);if(color&&!art.innerHTML.includes('var(--furniture-color')){const rects=[...art.querySelectorAll('rect')].sort((a,b)=>Number(b.getAttribute('width'))*Number(b.getAttribute('height'))-Number(a.getAttribute('width'))*Number(a.getAttribute('height')));(rects[0]||art.querySelector('circle'))?.setAttribute('fill',color);}requestAnimationFrame(()=>fitCaption(caption,it));}
     if(teacherSeatTypes.includes(it.type)){
       node.classList.add('teacher-drop-seat');
       for(const person of [chart().teacher,...(chart().assistants||[])].filter(Boolean))if(person.seatId===it.id&&person.avatar.enabled){const portrait=createTeacherPortrait(it,person.id||null);if(it.seats.some(s=>s.student))node.classList.add('teacher-occupied-desk');node.append(portrait);}
@@ -217,11 +217,11 @@ function renderRoom() {
         if(!moved){checkpoint();moved=true;node.classList.add('resizing');}
         if(members.length>1){members.forEach((item,i)=>Object.assign(item,original[i]));scaleGroup(members,Math.max(.1,1+(dx+dy)/(bounds.width+bounds.height)));paintPositions();return;}
         const angle=it.rotation*Math.PI/180,step=1;
-        it.width=Math.max(['mug','mouse','globe'].includes(it.type)?16:40,Math.min(400,Math.round((start.w+dx*Math.cos(angle)+dy*Math.sin(angle))/step)*step));
+        it.width=Math.max(['mug','mouse','globe','calendar'].includes(it.type)?16:40,Math.min(400,Math.round((start.w+dx*Math.cos(angle)+dy*Math.sin(angle))/step)*step));
         it.height=Math.max(8,Math.min(300,Math.round((start.h-dx*Math.sin(angle)+dy*Math.cos(angle))/step)*step));if(['door','board','smartboard','bulletin','window'].includes(it.type))resizeFurniture(it,it.width,it.height,'width');else if(proportionalTypes.has(it.type)||it.type==='cabinet')resizeFurniture(it,it.width,it.height,Math.abs(dx*Math.cos(angle)+dy*Math.sin(angle))/start.w>=Math.abs(-dx*Math.sin(angle)+dy*Math.cos(angle))/start.h?'width':'height');else constrain(it);snapResize(it);
-        Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});if(it.type==='cabinet')node.querySelector('.furniture-art').innerHTML=furnitureArt(it.type,it.height,it.rugStyle,it.clockFormat,it.calendarStyle);showGuides([it]);
+        Object.assign(node.style,{width:`${it.width}px`,height:`${it.height}px`,left:`${it.x}px`,top:`${it.y}px`});if(it.type==='cabinet')node.querySelector('.furniture-art').innerHTML=furnitureArt(it.type,it.height,it.rugStyle,it.clockFormat,it.calendarStyle,it.clockStyle);showGuides([it]);
       };
-      const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(['mug','mouse','globe'].includes(it.type)?16:40,Math.min(400,Math.round(it.width/(['mug','mouse','globe'].includes(it.type)?2:10))*(['mug','mouse','globe'].includes(it.type)?2:10)));it.height=Math.max(8,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height);}save();render();}};
+      const end=()=>{resize.removeEventListener('pointermove',move);resize.removeEventListener('pointerup',end);resize.removeEventListener('pointercancel',end);if(moved){if(members.length===1&&$('snap').checked){it.width=Math.max(['mug','mouse','globe','calendar'].includes(it.type)?16:40,Math.min(400,Math.round(it.width/(['mug','mouse','globe','calendar'].includes(it.type)?2:10))*(['mug','mouse','globe','calendar'].includes(it.type)?2:10)));it.height=Math.max(8,Math.min(300,Math.round(it.height/10)*10));resizeFurniture(it,it.width,it.height);}save();render();}};
       resize.addEventListener('pointermove',move);resize.addEventListener('pointerup',end);resize.addEventListener('pointercancel',end);
     };node.append(resize);if(selectedIds.size<2)controlEntries.push({node,actions,resize});node.addEventListener('pointerenter',updateObjectControls);node.addEventListener('focusin',()=>{if(document.activeElement===node)hoverOwner=null;updateObjectControls();});
     node.addEventListener('pointerdown', e => {
@@ -263,13 +263,13 @@ function renderInspector() {
   if(!it) return;
   for(const field of ['label','width','height','x','y']) $('item-'+field).value = it[field];
   $('item-show-label').checked=it.showLabel===true;$('item-label-visibility').hidden=it.type==='label';
-  $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-width').min=['mug','mouse','globe'].includes(it.type)?16:40;$('item-width').step=['mug','mouse','globe'].includes(it.type)?1:10;$('item-height').min=it.type==='powerstrip'?8:['mug','mouse','globe'].includes(it.type)?12:['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
+  $('item-angle').value=it.rotation;$('item-width').disabled=it.type==='cabinet';$('item-width').min=['mug','mouse','globe','calendar'].includes(it.type)?16:40;$('item-width').step=['mug','mouse','globe','calendar'].includes(it.type)?1:10;$('item-height').min=it.type==='powerstrip'?8:['mug','mouse','globe','calendar'].includes(it.type)?12:['door','board','smartboard','bulletin'].includes(it.type)?8:30;$('item-height').step=1;
   $('label-font-size').value=it.labelFontSize||'';$('label-font-controls').hidden=it.type!=='label';$('label-font-source').value=it.labelFont?.source||'preset';$('label-font-family').value=it.labelFont?.family||'system';
   const style={...defaultLabelStyle(),...it.labelStyle};for(const key of ['background','outline','textOutline'])$('label-'+key).checked=style[key];for(const key of ['fill','border','text','textOutlineColor'])$('label-'+key).value=style[key];
   $('label-textOutlineWidth').value=Number(labelOutlineWidth(it).toFixed(2));
   $('globe-controls').hidden=it.type!=='globe';$('globe-ocean').value=it.globeStyle?.ocean||'#78bfd6';$('globe-land').value=it.globeStyle?.land||'#6f9f74';
   $('calendar-controls').hidden=it.type!=='calendar';$('calendar-design').value=it.calendarStyle?.design||'classic';for(const [key,value] of Object.entries({wood:'#b99569',cards:'#242626',text:'#f2f4f3',accent:'#292e30'}))$('calendar-'+key).value=it.calendarStyle?.[key]||value;
-  $('digital-clock-controls').hidden=it.type!=='digitalclock';$('digital-clock-format').value=it.clockFormat||'12';
+  $('digital-clock-controls').hidden=it.type!=='digitalclock';$('digital-clock-format').value=it.clockFormat||'12';$('digital-clock-style').value=it.clockStyle||'classic';
   $('rug-controls').hidden=it.type!=='rug';$('rug-pattern').value=it.rugStyle?.pattern||'plain';$('rug-pattern-color').value=it.rugStyle?.color||'#547b93';$('rug-pattern-color-label').hidden=($('rug-pattern').value==='plain');
   $('item-color').value=it.color || appearance().color || '#e8d7bb';
   if(selection.seat !== null) {
@@ -753,7 +753,7 @@ $('jobs-share').onclick=()=>{
 };
 
 setupBirthdays(chart,change,()=>state);
-setInterval(()=>{for(const node of document.querySelectorAll("#room .item.clock .furniture-art,#room .item.digitalclock .furniture-art,#room .item.calendar .furniture-art")){const item=chart().items.find(it=>it.id===node.parentElement.dataset.id);if(item)node.innerHTML=furnitureArt(item.type,item.height,item.rugStyle,item.clockFormat,item.calendarStyle);}},1000);
+setInterval(()=>{for(const node of document.querySelectorAll("#room .item.clock .furniture-art,#room .item.digitalclock .furniture-art,#room .item.calendar .furniture-art")){const item=chart().items.find(it=>it.id===node.parentElement.dataset.id);if(item)node.innerHTML=furnitureArt(item.type,item.height,item.rugStyle,item.clockFormat,item.calendarStyle,item.clockStyle);}},1000);
 
 $('digital-clock-format').onchange=()=>{const item=selected(),format=$('digital-clock-format').value;if(item?.type==='digitalclock'&&['12','24'].includes(format))change(()=>{item.clockFormat=format;},'Digital clock time format updated.');};
 
@@ -762,3 +762,5 @@ $('globe-monochrome').onclick=()=>{const it=selected();if(it?.type==='globe')cha
 $('globe-reset').onclick=()=>{const it=selected();if(it?.type==='globe')change(()=>{delete it.globeStyle;},'Globe colors reset.');};
 
 for(const id of ['design','wood','cards','text','accent'])$('calendar-'+id).onchange=()=>{const it=selected();if(it?.type==='calendar')change(()=>{it.calendarStyle=Object.fromEntries(['design','wood','cards','text','accent'].map(key=>[key,$('calendar-'+key).value]));},'Calendar appearance updated.');};
+
+$('digital-clock-style').onchange=()=>{const it=selected();if(it?.type==='digitalclock')change(()=>{it.clockStyle=$('digital-clock-style').value;},'Digital clock style updated.');};
