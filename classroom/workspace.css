@@ -172,3 +172,19 @@
 .chart-first .workspace-dock>#sync-furniture-room svg{width:19px;height:19px;margin:0}
 .furniture-sync-targets{display:grid;gap:8px;margin:12px 0}.furniture-sync-targets label{margin:0;padding:8px;border:1px solid var(--studio-glass-edge,#abc3d4);border-radius:8px}
 @media(max-width:420px){.chart-first .workspace-dock>button{font-size:0;min-width:0;padding:6px 4px}.chart-first .workspace-dock>button .button-glyph{width:19px;height:19px;margin:0}}
+
+/* OS-style resize borders: narrow edges and larger corner hit areas. */
+.resize-edge{display:none;position:absolute;z-index:6;touch-action:none;pointer-events:auto}
+@media(hover:hover) and (pointer:fine){
+ .item>.resize-edge,.group-selection>.resize-edge,.teacher-free-placement>.resize-edge{display:block}
+ .resize-edge[data-direction=n],.resize-edge[data-direction=s]{left:8px;right:8px;height:8px}
+ .resize-edge[data-direction=n]{top:-4px}.resize-edge[data-direction=s]{bottom:-4px}
+ .resize-edge[data-direction=e],.resize-edge[data-direction=w]{top:8px;bottom:8px;width:8px}
+ .resize-edge[data-direction=e]{right:-4px}.resize-edge[data-direction=w]{left:-4px}
+ .resize-edge[data-direction=ne],.resize-edge[data-direction=se],.resize-edge[data-direction=sw],.resize-edge[data-direction=nw]{width:16px;height:16px;z-index:7}
+ .resize-edge[data-direction=ne]{right:-6px;top:-6px}.resize-edge[data-direction=se]{right:-6px;bottom:-6px}
+ .resize-edge[data-direction=sw]{left:-6px;bottom:-6px}.resize-edge[data-direction=nw]{left:-6px;top:-6px}
+ #room .resize-handle:not(:focus-visible){opacity:0!important;pointer-events:none}
+ #room:has(.group-selection) .item>.resize-edge,#room[data-seat-selection=true] .resize-edge,.student-dragging .resize-edge,.teacher-dragging .resize-edge,.two-finger-panning .resize-edge{display:none}
+}
+@media print{.resize-edge{display:none!important}}

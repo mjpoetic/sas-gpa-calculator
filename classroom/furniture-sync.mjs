@@ -1,4 +1,4 @@
-import {footprint} from './model.mjs?v=20261020-names1';
+import {footprint,uid} from './model.mjs?v=20261020-names1';
 
 const identity=item=>item.syncKey||item.id;
 const visualFields=['type','label','showLabel','width','height','x','y','rotation','flipX','flipY','color','rugStyle','calendarStyle','clockStyle','clockFormat','globeStyle','font','fontWeight','labelFont'];
@@ -11,13 +11,17 @@ export function planFurnitureSync(source,target,items=source.items){
  const pending=sources.filter(item=>!pairs.some(pair=>pair.source===item));
  const edges=pending.flatMap(item=>[...available].filter(other=>other.type===item.type).map(other=>({source:item,target:other,named:item.label.trim().toLowerCase()===other.label.trim().toLowerCase(),distance:Math.hypot(item.x-other.x,item.y-other.y)}))).sort((a,b)=>Number(b.named)-Number(a.named)||a.distance-b.distance);
  const used=new Set();for(const edge of edges)if(!used.has(edge.source)&&available.has(edge.target)){pairs.push({source:edge.source,target:edge.target});used.add(edge.source);available.delete(edge.target);}
+ const additions=sources.filter(item=>!pairs.some(pair=>pair.source===item));
+ const overLimit=target.items.length+additions.length>500;
  const room=target.room||{width:960,height:680};
- const outside=pairs.some(({source:item})=>{const b=footprint(item);return b.x<-.001||b.y<-.001||b.x+b.width>room.width+.001||b.y+b.height>room.height+.001;});
- return {source,target,pairs,unmatched:sources.length-pairs.length,outside};
+ const outside=sources.some(item=>{const b=footprint(item);return b.x<-.001||b.y<-.001||b.x+b.width>room.width+.001||b.y+b.height>room.height+.001;});
+ return {source,target,pairs,additions,outside,overLimit};
 }
 
 export function applyFurnitureSync(plan){
+ if(plan.overLimit)throw new Error('The destination room would exceed the 500 furniture limit.');
  if(plan.outside)throw new Error('Enlarge the destination room to fit the exact furniture positions.');
+ const additions=plan.additions.map(source=>{const copy=structuredClone(source);copy.id=uid();copy.syncKey=identity(source);copy.seats.forEach(seat=>{seat.student=null;seat.locked=false;});if(!source.color&&plan.source.appearance?.color)copy.color=plan.source.appearance.color;return copy;});
  for(const {source,target} of plan.pairs){
   // Keep destination IDs and complete seat objects, including assignments,
   // locks, name colors and fonts. Teachers continue to reference the same IDs.
@@ -25,4 +29,5 @@ export function applyFurnitureSync(plan){
   if(!source.color&&plan.source.appearance?.color)target.color=plan.source.appearance.color;
   target.syncKey=identity(source);
  }
+ plan.target.items.push(...additions);
 }

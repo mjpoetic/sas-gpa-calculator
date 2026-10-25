@@ -1,5 +1,7 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.31","changes":["Resize Classroom Studio furniture, groups, and free-standing avatars from any edge or corner with familiar mouse cursors; retain touch and keyboard resize controls."]},
+ {"version":"2026.10.25.30","changes":["Sync missing furniture into rooms while updating existing items without duplicates"]},
  {"version":"2026.10.25.29","changes":["Sync matching furniture across rooms with exact styling, preserved class assignments, and undo"]},
  {"version":"2026.10.25.28","changes":["Allow smaller calendars and add a live wooden wedge digital clock style"]},
  {"version":"2026.10.25.27","changes":["Refresh cached calendar behavior and place new furniture within the current zoomed view"]},
