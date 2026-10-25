@@ -1,6 +1,6 @@
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261024-release1';
-import {seatName} from './student-names.mjs?v=20261024-release1';
-import {validateBirthday,birthdayToday} from './celebration-date.mjs?v=20261024-release1';
+import {paintBirthdayPortrait} from './birthday-portrait.js?v=20261024-release2';
+import {seatName} from './student-names.mjs?v=20261024-release2';
+import {validateBirthday,birthdayToday} from './celebration-date.mjs?v=20261024-release2';
 const make=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 export function editBirthday(student,getChart,commit){
  const chartId=getChart().id,d=make('dialog');d.className='workspace-dialog';d.setAttribute('aria-label','Student birthday');
@@ -17,8 +17,8 @@ export function editBirthday(student,getChart,commit){
 function celebrate(student,onDismiss=()=>{}){
  const d=make('dialog');d.className='workspace-dialog random-picker birthday-celebration';d.setAttribute('aria-label',`Happy birthday, ${seatName(student,[student])}!`);
  const title=make('h2','Happy Birthday!'),stage=make('div'),portrait=make('div'),name=make('div',seatName(student,[student])),close=make('button','Dismiss celebration');stage.className='random-picker-stage';portrait.className='random-picker-avatar birthday-portrait';name.className='random-picker-name';
- portrait.innerHTML=avatarSVG({...defaultAvatar(),...student.avatar,enabled:true,expression:'grin',eyes:'happy',accessory:'none'})+'<svg class="birthday-hat" viewBox="0 0 120 60" aria-hidden="true"><path d="M36 55 60 4 84 55Z" fill="#ac63cf" stroke="#fff" stroke-width="2"/><path d="m44 38 24-18m-18 30 25-19" stroke="#ffdc72" stroke-width="5"/><circle cx="60" cy="5" r="5" fill="#ffdc72"/></svg>';
- const decor=make('div','🎈  ✦  🎉  ✦  🎈');decor.className='birthday-decor';decor.setAttribute('aria-hidden','true');stage.append(decor,portrait,name);d.append(title,stage,close);let dismissed=false;const finish=()=>{if(!dismissed){dismissed=true;onDismiss();}};close.onclick=()=>{finish();d.close();};d.addEventListener('cancel',finish);d.onclose=()=>{finish();d.remove();};document.body.append(d);d.showModal();
+
+ const decor=make('div','🎈  ✦  🎉  ✦  🎈');decor.className='birthday-decor';decor.setAttribute('aria-hidden','true');stage.append(decor,portrait,name);const confetti=make('div');confetti.className='birthday-confetti';confetti.setAttribute('aria-hidden','true');for(let i=0;i<64;i++){const piece=make('i');piece.style.cssText=`--x:${(i*37)%100}%;--drift:${(i%2?1:-1)*(20+i%7*12)}px;--delay:${-(i%16)*.37}s;--duration:${4+i%7*.4}s;--spin:${i%2?720:-720}deg;--color:${['#ae62d5','#f4bf46','#42b8ba','#ef789d','#679bea'][i%5]}`;confetti.append(piece);}d.append(confetti,title,stage,close);let dismissed=false;const finish=()=>{if(!dismissed){dismissed=true;onDismiss();}};close.onclick=()=>{finish();d.close();};d.addEventListener('cancel',finish);d.onclose=()=>{finish();d.remove();};document.body.append(d);d.showModal();paintBirthdayPortrait(portrait,student.avatar);
 }
 export function setupBirthdays(getChart,commit){
  let active=false;const dismissed=new Set();

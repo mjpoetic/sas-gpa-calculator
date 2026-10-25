@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.24.2","changes":["Add animated birthday confetti and fit party hats to every hairstyle"]},
  {"version":"2026.10.24.1","changes":["Celebrate student birthdays and add live calendar and clock furniture"]},
  {"version":"2026.10.21.7","changes":["Make spiky hairstyles fuller and curlier, smooth temple fades into bare skin, and keep mohawk sides shaved"]},
  {"version":"2026.10.21.6","changes":["Add fauxhawk, mohawk, spiky afro and faded spiky high top hairstyles, dyed spike tips, and natural braces with customizable band colors"]},
