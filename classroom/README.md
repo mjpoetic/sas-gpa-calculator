@@ -290,3 +290,9 @@ Use **Birthdays** in the toolbar or **Birthday** under a student's roster option
 The furniture catalog's **Calendar**, **Analog clock**, and **Digital clock** use the device's current local date/time and update while Studio is open. Existing calendar and wall-clock furniture automatically become live. Digital clocks display 24-hour time.
 
 Birthday celebrations include continuous falling confetti (static decoration with reduced motion). The party hat temporarily replaces headgear and hair ornaments, while retaining glasses and headphones worn around the neck. Its placement follows the rendered central hair silhouette for each hairstyle and avatar size; the saved avatar is unchanged.
+
+#### Bulk birthday entry
+
+Choose **Birthdays → Bulk add birthdays**. **Download template** exports a CSV with the current roster's full names and any saved birthdays. Fill in the second column using **MM/DD** (no year), then upload the CSV or paste the two columns directly from Excel/Google Sheets. Blank birthdays are skipped and never clear saved dates.
+
+Choose **Preview birthdays** to review matches. Full names match without regard to capitalization or extra spaces. Unmatched names, ambiguous roster names, duplicate rows, and invalid dates must be corrected before saving. Changes to existing dates are shown explicitly and require **Apply changes to existing birthdays**. Editing the pasted list invalidates its preview; roster changes also require a new preview. Saving updates the current classroom in one undoable step. Canceling leaves birthdays unchanged.
