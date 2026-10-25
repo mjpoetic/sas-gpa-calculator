@@ -76,3 +76,16 @@ test('mohawk sides stay bare and smooth temple fades are clipped to the scalp',(
   else {assert.match(svg,/data-hair-detail="side-fade" clip-path="url\(#avatar-temple-fade-\d+-scalp\)"/);assert.match(svg,/offset="1" stop-color="#[\da-f]+" stop-opacity="0"/);assert.equal((svg.match(/data-hair-detail="side-fade"/g)||[]).length,1);}
  }
 });
+
+test('full braid crowns, optional edges and decorations survive backups with safe defaults',()=>{
+ const old=defaultAvatar();for(const key of ['hairEdges','braidDecoration','braidDecorationColor'])delete old[key];
+ assert.equal(validateAvatar(old).hairEdges,'none');assert.equal(validateAvatar(old).braidDecoration,'none');
+ for(const hair of ['braids','boxbraids'])for(const hairEdges of ['none','swoops','curls'])for(const braidDecoration of ['none','beads','cuffs']){
+  const avatar={...defaultAvatar(),hair,hairEdges,braidDecoration,braidDecorationColor:'#ce80af',hairAccessory:'bow'};
+  const chart=newChart();chart.students=[{id:'braids',name:'Alex',avatar}];
+  assert.deepEqual(validateBackup({version:1,active:chart.id,charts:[chart]}).charts[0].students[0].avatar,avatar);
+  for(const [style] of avatarOptions.style){const svg=avatarSVG({...avatar,style});assert.match(svg,/data-hair-detail="full-braid-crown"/);assert.equal(svg.includes('data-hair-detail="edges-'),hairEdges!=='none');assert.equal(svg.includes('data-avatar-accessory="braid-'),braidDecoration!=='none');assert.match(svg,/data-avatar-accessory="hair-bow"/);}
+ }
+ for(const hair of ['bald','crop','long']){const svg=avatarSVG({...defaultAvatar(),hair,hairEdges:'curls',braidDecoration:'beads'});assert.ok(!svg.includes('data-avatar-accessory="braid-'));assert.equal(svg.includes('data-hair-detail="edges-'),hair!=='bald');}
+ for(const [key,value] of [['hairEdges','bad'],['braidDecoration','bad'],['braidDecorationColor','url(bad)']])assert.throws(()=>validateAvatar({...defaultAvatar(),[key]:value}));
+});

@@ -36,3 +36,16 @@ export function hairOrnamentSVG(a){
  const ornament=a.hairAccessory==='bow'?bow(a.hair==='bun'?60:x,a.hair==='bun'?16:y):a.hairAccessory==='bows'?bow(x,y)+bow(120-x,y):a.hairAccessory==='clip'?`<g transform="translate(${x} ${y}) rotate(-30)"><rect x="-3" y="-9" width="7" height="20" rx="3" fill="${a.hairAccessoryColor}" stroke="${a.hairAccessoryAccentColor}" stroke-width="1.2"/><path d="M.5-5V7" stroke="${a.hairAccessoryAccentColor}" stroke-width="1.1" stroke-linecap="round"/></g>`:`<g transform="translate(${x} ${y}) rotate(-15)"><path d="M0-9 3-3 10-2 5 3 6 10 0 6-6 10-5 3-10-2-3-3Z" fill="${a.hairAccessoryColor}" stroke="${a.hairAccessoryAccentColor}" stroke-width="1.3"/><path d="m-3 0 2-3" stroke="#ffffff99" stroke-width="1" stroke-linecap="round"/></g>`;
  return `<g data-avatar-accessory="hair-${a.hairAccessory}">${ornament}</g>`;
 }
+
+// Follow the exposed hairline; use the selected hair color for gelled baby hairs.
+export function hairEdgesSVG(a){
+ if(a.hair==='bald'||a.hairEdges==='none')return '';
+ const curls=a.hairEdges==='curls';
+ return `<g data-hair-detail="edges-${a.hairEdges}" fill="none" stroke="${a.hairColor}" stroke-width="1.5" stroke-linecap="round"><path d="M36 34C37 40 44 40 46 36M74 36C76 40 83 40 84 34"/>${curls?'<path d="M49 34c-2 6 7 9 8 4s-5-4-4-1M71 34c2 6-7 9-8 4s5-4 4-1M34 39c-4 3-2 8 1 6M86 39c4 3 2 8-1 6"/>':'<path d="M48 33Q52 40 58 35M62 35Q68 40 72 33M34 39q-3 3 0 6M86 39q3 3 0 6"/>'}</g>`;
+}
+export function braidDecorationSVG(a){
+ if(!['braids','boxbraids'].includes(a.hair)||a.braidDecoration==='none')return '';
+ // Sit on the visible outer strands, clear of the face and above the shoulders.
+ const positions=a.hair==='braids'?[[27,63],[93,63],[27,77],[93,77]]:[[28,63],[92,67],[27,81],[93,85]];
+ return `<g data-avatar-accessory="braid-${a.braidDecoration}">${positions.map(([x,y])=>a.braidDecoration==='beads'?`<g fill="${a.braidDecorationColor}" stroke="#00000038" stroke-width=".5">${[0,4,8].map(d=>`<rect x="${x-2.8}" y="${y+d}" width="5.6" height="3.7" rx="1.4"/><path d="M${x-1} ${y+d+1}v1" stroke="#ffffff90"/>`).join('')}</g>`:`<g><rect x="${x-2.7}" y="${y}" width="5.4" height="7" rx="1" fill="${a.braidDecorationColor}" stroke="#00000038" stroke-width=".6"/><path d="M${x-2} ${y+2}h4m-4 3h4" stroke="#ffffff90" stroke-width=".7"/></g>`).join('')}</g>`;
+}
