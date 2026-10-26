@@ -1,5 +1,5 @@
-import {enhance as enhanceColorPicker} from '../assets/color-palette.js?v=20261025-release37';
-import {hairGroups,supportsHairTips,teacherClothing,teacherAvatarParts,accessoryColorDefaults,avatarOptions,defaultAvatar,validateAvatar,randomAvatar,avatarSVG} from './avatars.mjs?v=20261025-release37';
+import {enhance as enhanceColorPicker} from '../assets/color-palette.js?v=20261025-release38';
+import {hairGroups,supportsHairTips,teacherClothing,teacherAvatarParts,accessoryColorDefaults,avatarOptions,defaultAvatar,validateAvatar,randomAvatar,avatarSVG} from './avatars.mjs?v=20261025-release38';
 export function openAvatarEditor(student,{showAvatars,firstAvatar,onSave,onRemove,studentPass=false,teacher=false,assistant=false,removable=!!student.avatar}){
  // A double-click can emit both our rapid-tap fallback and native dblclick.
  const existing=document.querySelector('.avatar-editor[open]');if(existing)return;
@@ -13,7 +13,7 @@ export function openAvatarEditor(student,{showAvatars,firstAvatar,onSave,onRemov
  preview.tabIndex=0;preview.setAttribute('role','button');preview.setAttribute('aria-label','Hold to enlarge avatar preview');preview.title='Press and hold to enlarge';
  let heldPointer=null;
  const dismissPreview=()=>{enlarged.hidden=true;if(heldPointer!==null&&preview.hasPointerCapture(heldPointer))preview.releasePointerCapture(heldPointer);heldPointer=null;};
- const enlargePreview=()=>{enlarged.innerHTML=avatarSVG(draft);enlarged.hidden=false;};
+ const enlargePreview=()=>{enlarged.innerHTML=avatarSVG(draft);const name=document.createElement('strong');name.className='avatar-preview-name';name.textContent=d.querySelector('.teacher-avatar-name')?.value.trim()||student.name;enlarged.append(name);enlarged.hidden=false;};
  preview.addEventListener('pointerdown',event=>{if(!event.isPrimary||event.button!==0)return;event.preventDefault();preview.focus({preventScroll:true});heldPointer=event.pointerId;preview.setPointerCapture(event.pointerId);enlargePreview();});
  for(const type of ['pointerup','pointercancel','lostpointercapture'])preview.addEventListener(type,dismissPreview);
  preview.addEventListener('contextmenu',event=>event.preventDefault());

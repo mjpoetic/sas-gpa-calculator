@@ -65,3 +65,9 @@
 .avatar-enlarged-preview svg{display:block;width:min(78vw,78dvh,680px);height:min(78vw,78dvh,680px);filter:drop-shadow(0 16px 32px #0006)}
 
 .avatar-hair-search{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.avatar-hair-search input{flex:1 1 150px;min-width:0;width:100%}.avatar-hair-search select{flex:1 1 160px;min-width:0;max-width:100%}.avatar-hair-group{grid-column:1/-1;font-size:13px;margin:12px 0 2px}.avatar-hair-group:first-child{margin-top:0}
+
+.avatar-enlarged-preview{align-content:center;gap:16px}
+.avatar-preview-name{display:block;max-width:90vw;padding:0 16px;color:#fff;font:700 clamp(20px,4vw,32px)/1.3 Arial,sans-serif;text-align:center;overflow-wrap:anywhere}
+.room-avatar-preview{z-index:10000}
+.room-avatar-preview-art{display:contents}
+.avatar-enlarged-preview svg{width:min(78vw,68dvh,680px);height:min(78vw,68dvh,680px)}
