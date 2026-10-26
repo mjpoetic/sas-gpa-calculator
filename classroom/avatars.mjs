@@ -1,7 +1,7 @@
-import {avatarMaskSVG} from './avatar-masks.mjs?v=20261025-release33';
-import {hairColorDetails,hairOrnamentSVG,hairEdgesSVG,braidDecorationSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261025-release33';
+import {avatarMaskSVG} from './avatar-masks.mjs?v=20261025-release34';
+import {hairColorDetails,hairOrnamentSVG,hairEdgesSVG,braidDecorationSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261025-release34';
 export {supportsHairTips};
-import {teacherClothing,layeredClothingSVG,shortSleevesSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG,glassesStrapSVG} from './avatar-props.mjs?v=20261025-release33';
+import {teacherClothing,layeredClothingSVG,shortSleevesSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG,glassesStrapSVG} from './avatar-props.mjs?v=20261025-release34';
 export {teacherClothing};
 export const accessoryColorDefaults={"sunglassLensColor":"#25333e","frogEyeWhiteColor":"#ffffff","headphoneBandColor":"#3b526a","headphoneCupColor":"#8596c7","headphonePadColor":"#263445","starColor":"#f8d264","starEdgeColor":"#ba8c3f","flowerColor":"#f3c565","flowerCenterColor":"#9b673f","flowerLeafColor":"#6c9b69","flowerBandColor":"#6c8252","catBandColor":"#65517d","catEarColor":"#8a79a8","catInnerColor":"#e1a4b6","antennaStemColor":"#536c87","antennaLeftColor":"#dc8cb6","antennaRightColor":"#7baed6","crownColor":"#f4cd5d","crownEdgeColor":"#c79a3d","crownGemColor":"#d77a9e","frogColor":"#71af73","frogBrimColor":"#86c06f","frogBumpColor":"#92c783","frogEyeColor":"#334039"};
 const accessoryPalette=[['#302420','Espresso'],['#ffffff','White'],['#34445f','Navy'],['#f4ce70','Gold'],['#f09fbc','Pink'],['#438aaf','Blue'],['#228b22','Forest green']];
@@ -41,7 +41,7 @@ export const avatarOptions={
  backpackColor:propPalette('#537ea3'),backpackPocketColor:propPalette('#3b5d80'),backpackStrapColor:propPalette('#34445f'),
  style:[['junior','Round'],['middle','Oval'],['senior','Narrow oval']],
  skin:[['#f6d7b0','Light warm'],['#edc6a4','Light tan'],['#dca878','Golden tan'],['#c78e64','Warm brown'],['#a86d49','Medium brown'],['#855337','Deep brown'],['#603d2c','Dark brown'],['#ecc5bd','Light rose']],
- hair:[['fauxhawk','Fauxhawk'],['spikyhightop','Spiky high top'],['mohawk','Mohawk'],['spikyafro','Spiky afro'],['crop','Short crop'],['swoop','Side sweep'],['curls','Soft curls'],['afro','Rounded afro'],['sponge','Sponge curl high top'],['spongeafro','Sponge curl afro'],['coils','Coils'],['bob','Bob'],['long','Long hair'],['longcurly','Long curly hair'],['braids','Braids'],['ponytail','Ponytail'],['curlyponytail','Curly Ponytail'],['bun','High bun'],['curlybun','Braided curly bun'],['evencut','Even low cut'],['shortafro','Short curly afro'],['lowtaper','Low taper fade'],['fade','Fade'],['curlytop','Curly top'],['waves','Waves'],['cornrows','Cornrows'],['boxbraids','Box braids'],['locs','Long locs'],['shortlocs','Short locs'],['twists','Two-strand twists'],['puffs','Afro puffs'],['bald','No hair']],
+ hair:[['fauxhawk','Fauxhawk'],['spikyhightop','Spiky high top'],['mohawk','Mohawk'],['spikyafro','Spiky afro'],['crop','Short crop'],['swoop','Side sweep'],['texturedcurtains','Textured curtains'],['fringeundercut','Long fringe undercut'],['softmiddlepart','Soft middle part'],['curls','Soft curls'],['afro','Rounded afro'],['sponge','Sponge curl high top'],['spongeafro','Sponge curl afro'],['coils','Coils'],['bob','Bob'],['long','Long hair'],['longcurly','Long curly hair'],['braids','Braids'],['ponytail','Ponytail'],['curlyponytail','Curly Ponytail'],['bun','High bun'],['curlybun','Braided curly bun'],['evencut','Even low cut'],['shortafro','Short curly afro'],['lowtaper','Low taper fade'],['fade','Fade'],['curlytop','Curly top'],['waves','Waves'],['cornrows','Cornrows'],['boxbraids','Box braids'],['locs','Long locs'],['shortlocs','Short locs'],['twists','Two-strand twists'],['puffs','Afro puffs'],['bald','No hair']],
  hairEdges:[['none','Natural hairline'],['swoops','Laid edges'],['curls','Curled edges']],
  braidDecoration:[['none','No braid decorations'],['beads','Braid beads'],['cuffs','Braid cuffs']],
  braidDecorationCoverage:[['few','A few strands'],['more','More strands'],['all','Every strand']],
@@ -110,6 +110,27 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
  let front={crop:`<path d="M31 41Q29 16 59 17Q91 18 89 42L78 30 66 34 52 29 39 36Z"/>`,swoop:`<path d="M30 43Q26 14 60 14Q91 16 91 41L81 35 78 26Q60 46 31 46Z"/>`,curls:`<path d="M29 43Q16 28 33 23Q30 10 46 15Q54 1 66 14Q84 8 86 23Q104 25 91 44L80 36Q69 45 60 34Q47 44 39 34Z"/>`,coils:`${[29,40,52,64,76,88].map((x,i)=>`<circle cx="${x}" cy="${i===0||i===5?34:24}" r="12"/>`).join('')}`,afro:'<path d="M31 43Q29 23 60 22Q88 21 90 43L76 33 61 38 44 32Z"/>',bob:'<path d="M29 45Q27 14 60 15Q95 17 92 45L77 29 70 40 43 34 36 46Z"/>',long:'<path d="M29 46Q24 16 59 14Q96 15 92 47L79 31Q62 20 45 35L32 53Z"/>',braids:'<path d="M30 40Q28 14 60 16Q94 15 91 42Q74 33 60 25Q43 37 30 40Z"/>',ponytail:'<path d="M30 43Q26 16 60 15Q93 16 91 43L80 30 65 35 49 28 35 44Z"/>',bald:''}[a.hair];
 
  let hairFadeDefs='';
+ // Photo-inspired parted cuts share the head transform and color masks.
+ if(['texturedcurtains','fringeundercut','softmiddlepart'].includes(a.hair)){
+  scalp='';
+  const shapes={
+   texturedcurtains:'M29 46C22 32 27 17 38 13Q48 5 61 10Q77 5 89 17Q99 29 90 47L84 43L82 34Q77 46 68 45Q76 36 68 24L61 20Q50 23 47 34Q43 43 34 46L36 34Z',
+   fringeundercut:'M33 38L32 29Q29 16 45 12L43 8L54 10Q66 3 79 13Q94 16 93 32Q93 43 85 48L86 33Q82 42 74 47L77 35Q70 48 64 50Q68 40 64 28Q52 33 47 41L48 29L41 36L42 26Z',
+   softmiddlepart:'M29 48C22 31 28 14 43 10Q53 6 60 12Q69 5 82 12C96 19 98 36 89 48L84 43L83 34Q78 43 68 42Q62 34 60 22Q55 27 52 36Q45 43 34 45L35 35Z'
+  };
+  if(a.hair==='fringeundercut'){
+   const fadeId='avatar-fringe-fade-'+(++avatarClipSequence);
+   hairFadeDefs+=`<defs><linearGradient id="${fadeId}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${hair}" stop-opacity=".7"/><stop offset="1" stop-color="${hair}" stop-opacity=".08"/></linearGradient></defs>`;
+   scalp=`<g data-hair-detail="undercut-sides"><path d="M33 28Q28 36 34 49L39 34ZM84 29Q92 36 86 49L81 35Z" fill="url(#${fadeId})"/></g>`;
+  }
+  const lines=a.hair==='texturedcurtains'
+   ?['M58 14Q39 12 32 32','M54 18Q39 20 37 37','M59 19Q48 25 46 35','M65 13Q83 12 89 31','M66 18Q81 21 82 36','M69 24Q77 33 72 40','M36 19Q43 12 51 13']
+   :a.hair==='fringeundercut'
+   ?['M39 23Q51 12 64 14','M45 26Q60 14 72 17','M53 29Q70 16 79 21','M65 24Q78 23 70 42','M77 28Q85 23 81 38','M86 22Q92 27 88 36']
+   :['M57 14Q37 11 31 32','M57 18Q41 19 37 37','M55 24Q48 34 42 37','M64 14Q84 11 90 32','M64 18Q80 20 84 37','M65 24Q72 35 78 37'];
+  front=`<g data-hairstyle="${a.hair}"><path d="${shapes[a.hair]}"/><g fill="none" stroke="${ridge}" stroke-width="1.1" stroke-linecap="round">${lines.map(d=>`<path d="${d}"/>`).join('')}</g></g>`;
+ }
+
  // Faded temples stay translucent over skin; the raised center remains textured.
  if(['fauxhawk','mohawk','spikyhightop'].includes(a.hair)){
   scalp='';

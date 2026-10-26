@@ -1,8 +1,8 @@
-import './surface-motion.js?v=20261025-release33';
-import './dialog-motion.js?v=20261025-release33';
-import {refreshSite} from './refresh.js?v=20261025-release33';
-import './site-menus.js?v=20261025-release33';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights,validateWeight} from './font-options.mjs?v=20261025-release33';
+import './surface-motion.js?v=20261025-release34';
+import './dialog-motion.js?v=20261025-release34';
+import {refreshSite} from './refresh.js?v=20261025-release34';
+import './site-menus.js?v=20261025-release34';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights,validateWeight} from './font-options.mjs?v=20261025-release34';
 const KEY='sas-appearance-v1';
 const defaults=()=>({theme:'system',font:{source:'preset',family:'system'},scale:100,weight:400});
 let prefs=defaults(),internalTheme=false;

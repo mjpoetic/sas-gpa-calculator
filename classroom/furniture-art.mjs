@@ -1,5 +1,5 @@
-import {liveFurnitureArt} from './live-furniture.mjs?v=20261025-release33';
-import {roomDetailsArt} from './room-details-art.mjs?v=20261025-release33';
+import {liveFurnitureArt} from './live-furniture.mjs?v=20261025-release34';
+import {roomDetailsArt} from './room-details-art.mjs?v=20261025-release34';
 export function furnitureArt(type,height=110,rugStyle,clockFormat='12',calendarStyle,clockStyle){
  if(type==='bible')return '<svg viewBox="0 0 70 95" aria-hidden="true"><rect x="7" y="5" width="58" height="87" rx="5" fill="#ded7c3" stroke="#706754"/><path d="M12 84h50M12 87h50" stroke="#aaa18b"/><rect x="3" y="1" width="60" height="83" rx="5" fill="var(--furniture-color,#273d34)" stroke="#172c25" stroke-width="2"/><path d="M11 3v78" stroke="#b9a06b" stroke-width="1.5"/><path d="M37 16v25M28 24h18" stroke="#d5bd7b" stroke-width="4"/><text x="37" y="56" text-anchor="middle" fill="#e4d299" font-family="serif" font-size="9">HOLY</text><text x="37" y="68" text-anchor="middle" fill="#e4d299" font-family="serif" font-size="10">BIBLE</text><path d="M47 82v12l5-4 5 4V82" fill="#a74d4c"/></svg>';
  const live=liveFurnitureArt(type,new Date(),clockFormat,calendarStyle,clockStyle);if(live)return live;

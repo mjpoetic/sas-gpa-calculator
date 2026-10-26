@@ -101,3 +101,13 @@ test('braid coverage adds distinct decorated strands and saves safely',()=>{
   }
  }
 });
+
+test('parted cuts save for students, assistants, lists and teachers',()=>{
+ for(const hair of ['texturedcurtains','fringeundercut','softmiddlepart']){
+  const avatar={...defaultAvatar(),hair,hairHighlights:'on'},chart=newChart();
+  chart.students=[{id:'parted-student',name:'Alex',avatar}];chart.assistants=[{id:'parted-assistant',name:'Assistant',avatar,seatId:null}];
+  const doc={version:1,active:chart.id,charts:[chart],studentLists:[{id:'parted-list',name:'Class',names:['Alex'],avatars:[avatar]}]};saveTeacherProfile(doc,chart.id,'Teacher',avatar);
+  const saved=validateBackup(doc);assert.deepEqual(saved.charts[0].students[0].avatar,avatar);assert.deepEqual(saved.charts[0].assistants[0].avatar,avatar);assert.deepEqual(saved.teacherProfile.avatar,avatar);assert.deepEqual(saved.studentLists[0].avatars[0],avatar);
+  for(const [style] of avatarOptions.style){const svg=avatarSVG({...avatar,style});assert.match(svg,new RegExp(`data-hairstyle="${hair}"`));assert.match(svg,/data-hair-color="highlights"/);assert.equal(svg.includes('data-hair-detail="undercut-sides"'),hair==='fringeundercut');}
+ }
+});
