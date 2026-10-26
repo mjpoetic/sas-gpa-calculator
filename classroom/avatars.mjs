@@ -1,7 +1,7 @@
-import {avatarMaskSVG} from './avatar-masks.mjs?v=20261025-release40';
-import {hairColorDetails,hairOrnamentSVG,hairEdgesSVG,braidDecorationSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261025-release40';
+import {avatarMaskSVG} from './avatar-masks.mjs?v=20261026-release2';
+import {hairColorDetails,hairOrnamentSVG,hairEdgesSVG,braidDecorationSVG,supportsHairTips} from './avatar-hair-details.mjs?v=20261026-release2';
 export {supportsHairTips};
-import {teacherClothing,layeredClothingSVG,shortSleevesSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG,glassesStrapSVG} from './avatar-props.mjs?v=20261025-release40';
+import {teacherClothing,layeredClothingSVG,shortSleevesSVG,backpackSVG,facialHairSVG,teacherPropsSVG,positionGlassesSVG,glassesStrapSVG} from './avatar-props.mjs?v=20261026-release2';
 export {teacherClothing};
 export const accessoryColorDefaults={"sunglassLensColor":"#25333e","frogEyeWhiteColor":"#ffffff","headphoneBandColor":"#3b526a","headphoneCupColor":"#8596c7","headphonePadColor":"#263445","starColor":"#f8d264","starEdgeColor":"#ba8c3f","flowerColor":"#f3c565","flowerCenterColor":"#9b673f","flowerLeafColor":"#6c9b69","flowerBandColor":"#6c8252","catBandColor":"#65517d","catEarColor":"#8a79a8","catInnerColor":"#e1a4b6","antennaStemColor":"#536c87","antennaLeftColor":"#dc8cb6","antennaRightColor":"#7baed6","crownColor":"#f4cd5d","crownEdgeColor":"#c79a3d","crownGemColor":"#d77a9e","frogColor":"#71af73","frogBrimColor":"#86c06f","frogBumpColor":"#92c783","frogEyeColor":"#334039"};
 const accessoryPalette=[['#302420','Espresso'],['#ffffff','White'],['#34445f','Navy'],['#f4ce70','Gold'],['#f09fbc','Pink'],['#438aaf','Blue'],['#228b22','Forest green']];
@@ -109,7 +109,8 @@ export function avatarSVG(value){const a=validateAvatar(value),hair=a.hairColor,
  };
  // Rear strands span the whole nape; the head, neck and shirt occlude them.
  const braidCurtain=()=>{
-  const box=a.hair==='boxbraids',count=box?19:21,width=box?3.2:2.4;
+  // Slightly thicker curls close the large openings while preserving strand gaps.
+  const box=a.hair==='boxbraids',count=box?19:21,width=(box?3.2:2.4)+(a.braidTexture==='curly'?.9:0);
   return `<g data-hair-detail="full-braid-curtain" fill="none" stroke-linecap="round">${Array.from({length:count},(_,i)=>{
    const x=(box?20:25)+i*(box?80:70)/(count-1),root=37+(x-20)*.57,end=102+(i%3)*2;
    const curly=a.braidTexture==='curly',transition=49+i%4*3;

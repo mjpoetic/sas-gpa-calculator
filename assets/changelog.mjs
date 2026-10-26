@@ -1,5 +1,7 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.26.2","changes":["Slightly fill out avatar hairline edges and curls"]},
+ {"version":"2026.10.26.1","changes":["Make curly braid extensions fuller with smaller strand gaps"]},
  {"version":"2026.10.25.40","changes":["Pause avatar highlights and add loose curly braid extensions"]},
  {"version":"2026.10.25.39","changes":["Refine sponge taper curls and define the front hairline"]},
  {"version":"2026.10.25.38","changes":["Preview room avatars and names with a stationary press and hold."]},

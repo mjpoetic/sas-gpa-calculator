@@ -45,8 +45,8 @@ export function hairEdgesSVG(a){
  const curls=a.hairEdges==='curls',braided=['braids','boxbraids'].includes(a.hair);
  // Filled, tapered waves return a little of the hairline to the forehead.
  // Mirror the temple styling while keeping the center of the forehead open.
- const side=`<path d="M60 21C57 22 56 25 52 25C49 25 47 23 48 22C45 25 47 29 51 29C56 29 59 25 60 21Z"/><path d="M49 22C45 22 41 24 40 28C39 32 44 33 48 29C44 31 42 29 43 27C44 24 47 24 49 22Z"/><path d="M40 26C35 29 32 34 32 39C32 43 36 45 39 41C35 43 34 40 35 37C36 34 41 33 41 30C41 28 40 27 40 26Z"/><path d="M33 39C31 42 31 46 34 48C37 49 39 46 37 44C38 47 34 48 34 45C33 43 34 41 33 39Z"/>`;
- const curl=curls?'<path d="M48 23C46 25 48 28 51 27C54 26 52 23 50 24C49 25 50 26 51 25" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>':'';
+ const side=`<g stroke="currentColor" stroke-width=".35" stroke-linejoin="round"><path d="M60 21C57 22 56 25 52 25C49 25 47 23 48 22C45 25 47 29 51 29C56 29 59 25 60 21Z"/><path d="M49 22C45 22 41 24 40 28C39 32 44 33 48 29C44 31 42 29 43 27C44 24 47 24 49 22Z"/><path d="M40 26C35 29 32 34 32 39C32 43 36 45 39 41C35 43 34 40 35 37C36 34 41 33 41 30C41 28 40 27 40 26Z"/><path d="M33 39C31 42 31 46 34 48C37 49 39 46 37 44C38 47 34 48 34 45C33 43 34 41 33 39Z"/></g>`;
+ const curl=curls?'<path d="M48 23C46 25 48 28 51 27C54 26 52 23 50 24C49 25 50 26 51 25" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>':'';
  const detail='<path d="M58 23C54 29 48 27 48 25M56 23C53 27 50 26 49 24M46 24C42 25 40 29 43 30M38 29C34 33 33 38 35 40" fill="none" stroke="#ffffff" stroke-opacity=".18" stroke-width=".45" stroke-linecap="round"/>';
  return `<g data-hair-detail="edges-${a.hairEdges}" data-edge-style="full-tapered-waves" transform="translate(0 ${braided?0:6})" fill="${a.hairColor}" color="${a.hairColor}"><g>${side}${curl}${detail}</g><g transform="translate(120 0) scale(-1 1)">${side}${curl}${detail}</g></g>`;
 }
