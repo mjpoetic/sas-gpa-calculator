@@ -116,7 +116,7 @@ test('sponge taper renders curls and low temples across head shapes',()=>{
  for(const [style] of avatarOptions.style){
   const a={...defaultAvatar(),hair:'spongetaper',style,hairHighlights:'on'};
   assert.deepEqual(validateAvatar(a),a);
-  const svg=avatarSVG(a);assert.match(svg,/data-hairstyle="spongetaper"/);assert.match(svg,/data-hair-detail="low-temple-taper"/);assert.ok((svg.match(/data-hair-detail="sponge-coil"/g)||[]).length>35);
+  const svg=avatarSVG(a);assert.match(svg,/data-hairstyle="spongetaper"/);assert.match(svg,/data-hair-detail="low-temple-taper"/);assert.match(svg,/data-hair-detail="defined-line-up"/);assert.match(svg,/<g clip-path="url\(#avatar-sponge-taper-\d+-shape\)"/);assert.ok((svg.match(/data-hair-detail="sponge-coil"/g)||[]).length>35);
  }
 });
 

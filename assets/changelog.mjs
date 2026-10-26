@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.39","changes":["Refine sponge taper curls and define the front hairline"]},
  {"version":"2026.10.25.38","changes":["Preview room avatars and names with a stationary press and hold."]},
  {"version":"2026.10.25.37","changes":["Refine sponge afro reference and hairstyle search matching"]},
  {"version":"2026.10.25.36","changes":["Add low taper sponge afro and searchable hairstyle groups"]},
