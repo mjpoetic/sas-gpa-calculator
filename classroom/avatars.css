@@ -58,3 +58,8 @@
 #assistant-list .teacher-profile{margin-top:18px;padding-top:14px;border-top:1px solid #829eaf44}#assistant-list .teacher-avatar-card{margin-bottom:12px}
 
 @media(max-width:600px){.avatar-tabs button{font-size:11px;padding-left:1px;padding-right:1px}}
+
+.avatar-preview{cursor:zoom-in;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.avatar-preview:focus-visible{outline:3px solid #258ed2;outline-offset:4px;border-radius:24px}
+.avatar-enlarged-preview{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:rgb(12 23 38 / 78%);pointer-events:none;user-select:none;-webkit-user-select:none}
+.avatar-enlarged-preview svg{display:block;width:min(78vw,78dvh,680px);height:min(78vw,78dvh,680px);filter:drop-shadow(0 16px 32px #0006)}

@@ -1,5 +1,5 @@
-import './dialog-motion.js?v=20261025-release34';
-import {animateWorkspace} from './panel-motion.js?v=20261025-release34';
+import './dialog-motion.js?v=20261025-release35';
+import {animateWorkspace} from './panel-motion.js?v=20261025-release35';
 // Move existing controls into compact panels without changing their data bindings.
 const $=id=>document.getElementById(id),body=document.body;
 body.classList.add('chart-first');

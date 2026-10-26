@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.25.35","changes":["Hold the avatar preview to see it enlarged; release to dismiss."]},
  {"version":"2026.10.25.34","changes":["Add textured curtains, long fringe undercut, and soft middle part avatar hairstyles"]},
  {"version":"2026.10.25.33","changes":["Allow digital clocks to resize smaller with finer size adjustments"]},
  {"version":"2026.10.25.32","changes":["Refine wooden digital clock with a straight-on rectangular face and level wood grain"]},
