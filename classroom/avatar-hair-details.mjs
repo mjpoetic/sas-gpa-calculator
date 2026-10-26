@@ -2,6 +2,8 @@ export const tipHairstyles=['fauxhawk','spikyhightop','spikyafro','long','longcu
 export const supportsHairTips=hair=>tipHairstyles.includes(hair);
 // Reuse the actual hair geometry so color never paints the face or the gaps between braids.
 export function hairColorDetails(a,front,back,id){
+ // Highlights are paused; keep saved choices for a future redesign.
+ a={...a,hairHighlights:'none'};
  if(a.hair==='bald'||(a.hairHighlights!=='on'&&!(a.hairTips==='on'&&supportsHairTips(a.hair))))return {defs:'',front:'',back:''};
  const silhouette=markup=>markup.replace(/(fill|stroke)="([^"]*)"/g,(_,attr,color)=>`${attr}="${color==='none'?'none':(color===a.skin&&color!==a.hairColor)||color==='#d994b0'?'#000':'#fff'}"`);
  const upward=['fauxhawk','spikyhightop'].includes(a.hair),radial=a.hair==='spikyafro';

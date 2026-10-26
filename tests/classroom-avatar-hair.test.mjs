@@ -11,7 +11,7 @@ test('hair colors and ornaments survive student lists, shared teacher profiles a
 test('hair color masks have unique IDs and remain compatible with hairstyles, head shapes and hats',()=>{
  const ids=new Set();for(const [hair] of avatarOptions.hair)for(const [style] of avatarOptions.style)for(const extra of ['none','baseball','frog']){
  const svg=avatarSVG({...defaultAvatar(),...details,hair,style,extra});assert.ok(!/undefined|NaN|<image|<script|href=/.test(svg));const own=[...svg.matchAll(/ id="([^"]+)"/g)].map(m=>m[1]);for(const id of own){assert.ok(!ids.has(id));ids.add(id);}for(const [,ref] of svg.matchAll(/url\(#([^\)]+)\)/g))assert.ok(own.includes(ref));
- if(hair==='bald')assert.ok(!svg.includes('data-hair-color='));else assert.ok(svg.includes('data-hair-color="highlights"'));
+ assert.ok(!svg.includes('data-hair-color="highlights"'));
  assert.equal(svg.includes('data-hair-color="tips"'),supportsHairTips(hair));
  }
 });
@@ -32,23 +32,33 @@ test('short curly afro saves for students, assistants and personal teacher profi
  assert.ok(avatarOptions.hair.some(([id,label])=>id==='shortafro'&&label==='Short curly afro'));
  const a={...defaultAvatar(),hair:'shortafro',hairHighlights:'on'},c=newChart();c.students=[{id:'shortfro-student',name:'Alex',avatar:a}];c.assistants=[{id:'shortfro-assistant',name:'Ms. Chen',avatar:a,seatId:null}];const doc={version:1,active:c.id,charts:[c]};saveTeacherProfile(doc,c.id,'Teacher',a);const saved=validateBackup(doc);assert.equal(saved.charts[0].students[0].avatar.hair,'shortafro');assert.equal(saved.charts[0].assistants[0].avatar.hair,'shortafro');assert.equal(saved.teacherProfile.avatar.hair,'shortafro');assert.match(avatarSVG(a),/data-hairstyle="shortafro"/);
 });
-test('highlight gradients blend selected color with hair and stay inside the existing masks',()=>{
+test('highlights stay saved but do not render while paused',()=>{
  for(const hair of ['long','shortafro','afro','boxbraids','evencut']){
-  const a={...defaultAvatar(),hair,hairHighlights:'on',hairHighlightColor:'#d3ab72'},svg=avatarSVG(a);
-  assert.match(svg,/data-highlight-style="blended-gradient"/);assert.match(svg,/<radialGradient[^>]+gradientTransform="matrix\(/);assert.match(svg,/stop-color="#d3ab72" stop-opacity="0"/);assert.match(svg,/<g mask="url\(#avatar-hair-color-/);assert.ok(!svg.includes('stroke-width="3.5" stroke-linecap="round" opacity=".78"'));
-  assert.ok(!avatarSVG({...a,hairHighlights:'none'}).includes('data-highlight-style='));
+  const a={...defaultAvatar(),hair,hairHighlights:'on'};
+  assert.equal(validateAvatar(a).hairHighlights,'on');
+  assert.ok(!avatarSVG(a).includes('data-hair-color="highlights"'));
+ }
+});
+test('curly braid lengths save and render for both braid styles',()=>{
+ assert.equal(validateAvatar({...defaultAvatar(),braidTexture:undefined}).braidTexture,'braided');
+ assert.throws(()=>validateAvatar({...defaultAvatar(),braidTexture:'invalid'}),/braidTexture/);
+ for(const hair of ['braids','boxbraids']){
+  const avatar={...defaultAvatar(),hair,braidTexture:'curly'},chart=newChart();
+  chart.students=[{id:'curly-braids',name:'Alex',avatar}];
+  assert.deepEqual(validateBackup({version:1,active:chart.id,charts:[chart]}).charts[0].students[0].avatar,avatar);
+  for(const [style] of avatarOptions.style){const svg=avatarSVG({...avatar,style,hairTips:'on'});assert.match(svg,/data-braid-texture="curly"/);assert.match(svg,/data-hair-detail="full-braid-crown"/);assert.match(svg,/data-hair-color="tips"/);assert.ok(!/undefined|NaN/.test(svg));}
  }
 });
 test('long curly hair supports highlights and tips and survives saved lists, teachers and assistants',()=>{
  const a={...defaultAvatar(),...details,hair:'longcurly'},c=newChart();c.students=[{id:'curly-student',name:'Alex',avatar:a}];c.assistants=[{id:'curly-assistant',name:'Assistant',avatar:a,seatId:null}];const document={version:1,active:c.id,charts:[c],studentLists:[{id:'curly-list',name:'Class',names:['Alex'],avatars:[a]}]};saveTeacherProfile(document,c.id,'Teacher',a);const saved=validateBackup(document);assert.deepEqual(saved.charts[0].students[0].avatar,a);assert.deepEqual(saved.charts[0].assistants[0].avatar,a);assert.deepEqual(saved.teacherProfile.avatar,a);assert.deepEqual(saved.studentLists[0].avatars[0],a);assert.equal(supportsHairTips('longcurly'),true);
- for(const [style] of avatarOptions.style){const svg=avatarSVG({...a,style});assert.match(svg,/data-hairstyle="longcurly"/);assert.match(svg,/data-hairstyle="longcurly-rear"/);assert.match(svg,/data-hair-color="highlights"/);assert.match(svg,/data-hair-color="tips"/);}
+ for(const [style] of avatarOptions.style){const svg=avatarSVG({...a,style});assert.match(svg,/data-hairstyle="longcurly"/);assert.match(svg,/data-hairstyle="longcurly-rear"/);assert.ok(!svg.includes('data-hair-color="highlights"'));assert.match(svg,/data-hair-color="tips"/);}
 });
 test('fauxhawk, mohawk and spiky afro survive saved avatars with highlights',()=>{
  for(const hair of ['fauxhawk','mohawk','spikyafro']){
   const avatar={...defaultAvatar(),hair,hairHighlights:'on',mouthAccessory:'braces',bracesColor:'#cf43aa'};
   const chart=newChart();chart.students=[{id:'new-hair',name:'Alex',avatar}];
   assert.deepEqual(validateBackup({version:1,active:chart.id,charts:[chart]}).charts[0].students[0].avatar,avatar);
-  const svg=avatarSVG(avatar);assert.match(svg,new RegExp(`data-hairstyle="${hair}"`));assert.match(svg,/data-hair-color="highlights"/);
+  const svg=avatarSVG(avatar);assert.match(svg,new RegExp(`data-hairstyle="${hair}"`));assert.ok(!svg.includes('data-hair-color="highlights"'));
   if(hair==='fauxhawk')assert.match(svg,/data-hair-detail="side-fade"/);
  }
 });
@@ -108,7 +118,7 @@ test('parted cuts save for students, assistants, lists and teachers',()=>{
   chart.students=[{id:'parted-student',name:'Alex',avatar}];chart.assistants=[{id:'parted-assistant',name:'Assistant',avatar,seatId:null}];
   const doc={version:1,active:chart.id,charts:[chart],studentLists:[{id:'parted-list',name:'Class',names:['Alex'],avatars:[avatar]}]};saveTeacherProfile(doc,chart.id,'Teacher',avatar);
   const saved=validateBackup(doc);assert.deepEqual(saved.charts[0].students[0].avatar,avatar);assert.deepEqual(saved.charts[0].assistants[0].avatar,avatar);assert.deepEqual(saved.teacherProfile.avatar,avatar);assert.deepEqual(saved.studentLists[0].avatars[0],avatar);
-  for(const [style] of avatarOptions.style){const svg=avatarSVG({...avatar,style});assert.match(svg,new RegExp(`data-hairstyle="${hair}"`));assert.match(svg,/data-hair-color="highlights"/);assert.equal(svg.includes('data-hair-detail="undercut-sides"'),hair==='fringeundercut');}
+  for(const [style] of avatarOptions.style){const svg=avatarSVG({...avatar,style});assert.match(svg,new RegExp(`data-hairstyle="${hair}"`));assert.ok(!svg.includes('data-hair-color="highlights"'));assert.equal(svg.includes('data-hair-detail="undercut-sides"'),hair==='fringeundercut');}
  }
 });
 
