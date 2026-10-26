@@ -63,3 +63,5 @@
 .avatar-preview:focus-visible{outline:3px solid #258ed2;outline-offset:4px;border-radius:24px}
 .avatar-enlarged-preview{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:rgb(12 23 38 / 78%);pointer-events:none;user-select:none;-webkit-user-select:none}
 .avatar-enlarged-preview svg{display:block;width:min(78vw,78dvh,680px);height:min(78vw,78dvh,680px);filter:drop-shadow(0 16px 32px #0006)}
+
+.avatar-hair-search{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.avatar-hair-search input{flex:1 1 150px;min-width:0;width:100%}.avatar-hair-search select{flex:1 1 160px;min-width:0;max-width:100%}.avatar-hair-group{grid-column:1/-1;font-size:13px;margin:12px 0 2px}.avatar-hair-group:first-child{margin-top:0}

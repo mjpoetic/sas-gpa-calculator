@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {avatarSVG,avatarOptions,defaultAvatar,validateAvatar,supportsHairTips} from '../classroom/avatars.mjs';
+import {hairGroups,avatarSVG,avatarOptions,defaultAvatar,validateAvatar,supportsHairTips} from '../classroom/avatars.mjs';
 import {newChart,validateBackup,saveTeacherProfile} from '../classroom/model.mjs';
 const details={hairHighlights:'on',hairHighlightColor:'#d8d7d0',hairTips:'on',hairTipColor:'#9a69bc',hairAccessory:'bows',hairAccessoryColor:'#da7b99',hairAccessoryAccentColor:'#438aaf'};
 test('hair colors and ornaments survive student lists, shared teacher profiles and old backups',()=>{
@@ -110,4 +110,16 @@ test('parted cuts save for students, assistants, lists and teachers',()=>{
   const saved=validateBackup(doc);assert.deepEqual(saved.charts[0].students[0].avatar,avatar);assert.deepEqual(saved.charts[0].assistants[0].avatar,avatar);assert.deepEqual(saved.teacherProfile.avatar,avatar);assert.deepEqual(saved.studentLists[0].avatars[0],avatar);
   for(const [style] of avatarOptions.style){const svg=avatarSVG({...avatar,style});assert.match(svg,new RegExp(`data-hairstyle="${hair}"`));assert.match(svg,/data-hair-color="highlights"/);assert.equal(svg.includes('data-hair-detail="undercut-sides"'),hair==='fringeundercut');}
  }
+});
+
+test('sponge taper renders curls and low temples across head shapes',()=>{
+ for(const [style] of avatarOptions.style){
+  const a={...defaultAvatar(),hair:'spongetaper',style,hairHighlights:'on'};
+  assert.deepEqual(validateAvatar(a),a);
+  const svg=avatarSVG(a);assert.match(svg,/data-hairstyle="spongetaper"/);assert.match(svg,/data-hair-detail="low-temple-taper"/);assert.ok((svg.match(/data-hair-detail="sponge-coil"/g)||[]).length>35);
+ }
+});
+
+test('hairstyle groups cover every saved choice exactly once',()=>{
+ const grouped=hairGroups.flatMap(([,ids])=>ids);assert.equal(new Set(grouped).size,grouped.length);assert.deepEqual([...grouped].sort(),avatarOptions.hair.map(([id])=>id).sort());
 });
