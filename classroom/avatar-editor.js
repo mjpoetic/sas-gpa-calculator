@@ -1,5 +1,6 @@
-import {enhance as enhanceColorPicker} from '../assets/color-palette.js?v=20261026-release2';
-import {hairGroups,supportsHairTips,teacherClothing,teacherAvatarParts,accessoryColorDefaults,avatarOptions,defaultAvatar,validateAvatar,randomAvatar,avatarSVG} from './avatars.mjs?v=20261026-release2';
+import {openAvatarPreview} from './avatar-preview.js?v=20261026-release3';
+import {enhance as enhanceColorPicker} from '../assets/color-palette.js?v=20261026-release3';
+import {hairGroups,supportsHairTips,teacherClothing,teacherAvatarParts,accessoryColorDefaults,avatarOptions,defaultAvatar,validateAvatar,randomAvatar,avatarSVG} from './avatars.mjs?v=20261026-release3';
 export function openAvatarEditor(student,{showAvatars,firstAvatar,onSave,onRemove,studentPass=false,teacher=false,assistant=false,removable=!!student.avatar}){
  // A double-click can emit both our rapid-tap fallback and native dblclick.
  const existing=document.querySelector('.avatar-editor[open]');if(existing)return;
@@ -7,22 +8,18 @@ export function openAvatarEditor(student,{showAvatars,firstAvatar,onSave,onRemov
  if(teacher){d.querySelector('.avatar-remove').textContent='Remove from classroom';d.querySelector('h2').textContent=assistant?'Teacher / assistant avatar':'Create your teacher avatar';d.querySelector('.avatar-preview-column .hint').textContent=assistant?'Saved with this classroom. No account is needed.':'Saved for all your classroom layouts.';d.querySelector('.avatar-person-enabled').parentElement.lastChild.textContent=assistant?' Show this avatar in this classroom':' Show my avatar in this classroom';d.querySelector('.avatar-chart-enabled').parentElement.hidden=true;const label=document.createElement('label');label.className='teacher-avatar-name-label';label.textContent='Display name';const input=document.createElement('input');input.className='teacher-avatar-name';input.maxLength=80;input.value=student.name;label.append(input);d.querySelector('.avatar-student-name').replaceWith(label);input.oninput=()=>{input.setCustomValidity('');};}
  if(studentPass){d.querySelector('h2').textContent='Customize your avatar';for(const selector of ['.avatar-chart-enabled','.avatar-person-enabled'])d.querySelector(selector).parentElement.hidden=true;d.querySelector('.avatar-remove').hidden=true;}
  const preview=d.querySelector('.avatar-preview'),enabled=d.querySelector('.avatar-person-enabled'),chartEnabled=d.querySelector('.avatar-chart-enabled');enabled.checked=draft.enabled;chartEnabled.checked=showAvatars||firstAvatar;if(!teacher)d.querySelector('.avatar-student-name').textContent=student.nickname||student.name.split(' ')[0];
- // Keep the enlarged view in the modal top layer while retaining pointer capture
- // on the original preview, so releasing anywhere always dismisses it.
- const enlarged=document.createElement('div');enlarged.className='avatar-enlarged-preview';enlarged.hidden=true;enlarged.setAttribute('aria-hidden','true');d.append(enlarged);
  preview.tabIndex=0;preview.setAttribute('role','button');preview.setAttribute('aria-label','Hold to enlarge avatar preview');preview.title='Press and hold to enlarge';
- let heldPointer=null;
- const dismissPreview=()=>{enlarged.hidden=true;if(heldPointer!==null&&preview.hasPointerCapture(heldPointer))preview.releasePointerCapture(heldPointer);heldPointer=null;};
- const enlargePreview=()=>{enlarged.innerHTML=avatarSVG(draft);const name=document.createElement('strong');name.className='avatar-preview-name';name.textContent=d.querySelector('.teacher-avatar-name')?.value.trim()||student.name;enlarged.append(name);enlarged.hidden=false;};
- preview.addEventListener('pointerdown',event=>{if(!event.isPrimary||event.button!==0)return;event.preventDefault();preview.focus({preventScroll:true});heldPointer=event.pointerId;preview.setPointerCapture(event.pointerId);enlargePreview();});
+ let view=null;
+ const dismissPreview=event=>view?.release(event);
+ const enlargePreview=()=>{view=openAvatarPreview({avatar:draft,name:d.querySelector('.teacher-avatar-name')?.value.trim()||student.name},{parent:d,returnFocus:preview});};
+ preview.addEventListener('pointerdown',event=>{if(!event.isPrimary||event.button!==0)return;event.preventDefault();preview.focus({preventScroll:true});preview.setPointerCapture(event.pointerId);enlargePreview();});
  for(const type of ['pointerup','pointercancel','lostpointercapture'])preview.addEventListener(type,dismissPreview);
  preview.addEventListener('contextmenu',event=>event.preventDefault());
- preview.addEventListener('keydown',event=>{if(event.key===' '||event.key==='Enter'){event.preventDefault();if(!event.repeat)enlargePreview();}else if(event.key==='Escape'&&!enlarged.hidden){event.preventDefault();event.stopPropagation();dismissPreview();}});
- preview.addEventListener('keyup',event=>{if(event.key===' '||event.key==='Enter'){event.preventDefault();dismissPreview();}});
+ preview.addEventListener('keydown',event=>{if(event.key===' '||event.key==='Enter'){event.preventDefault();if(!event.repeat)enlargePreview();}});
+ preview.addEventListener('keyup',event=>{if(event.key===' '||event.key==='Enter'){event.preventDefault();dismissPreview(event);}});
  preview.addEventListener('blur',dismissPreview);
- window.addEventListener('blur',dismissPreview);
- const hideWhenAway=()=>{if(document.hidden)dismissPreview();};document.addEventListener('visibilitychange',hideWhenAway);
- d.addEventListener('close',()=>{dismissPreview();window.removeEventListener('blur',dismissPreview);document.removeEventListener('visibilitychange',hideWhenAway);},{once:true});
+ const openPreview=document.createElement('button');openPreview.type='button';openPreview.className='avatar-open-preview';openPreview.textContent='Open preview';openPreview.onclick=()=>{view=openAvatarPreview({avatar:draft,name:d.querySelector('.teacher-avatar-name')?.value.trim()||student.name},{parent:d,pinned:true,returnFocus:openPreview});};preview.after(openPreview);
+ d.addEventListener('close',()=>view?.close(),{once:true});
  let colorTarget=draft.headphones!=='none'?'headphones':'accessory';
  const colorOwners={braidTexture:'braidOptions',hairEdges:'hairOptions',braidDecoration:'braidOptions',braidDecorationCoverage:'braidColor',braidDecorationColor:'braidColor',bracesColor:'braces',beardGraying:'beardTone',mustacheColor:'mustache',sunglassTint:'sunglasses',maskColor:'mask',maskAccentColor:'mask',hairHighlights:'hairOptions',hairHighlightColor:'highlights',hairTips:'tipOptions',hairTipColor:'tips',hairAccessory:'hairOptions',hairAccessoryColor:'hairAccessory',hairAccessoryAccentColor:'hairAccessory',eyeColor:'iris',glassesPosition:'glassesConfig',glassesStrap:'glassesStrapConfig',glassesStrapColor:'glassesStrap',undershirtColor:'layers',lanyardColor:'neckwear',badgeColor:'neckwear',toolColor:'teachingTool',backpackColor:'backpack',backpackPocketColor:'backpack',backpackStrapColor:'backpack',facialHairColor:'facialHair',lipstickColor:'lipstick',drinkColor:'drink',sunglassLensColor:'sunglasses',frogEyeWhiteColor:'frog',glassesColor:'accessory',headphoneBandColor:'headphones',headphoneCupColor:'headphones',headphonePadColor:'headphones',capColor:'baseball',capBrimColor:'baseball',starColor:'star',starEdgeColor:'star',flowerColor:'flower',flowerCenterColor:'flower',flowerLeafColor:'flower',flowerBandColor:'flower',catBandColor:'cat',catEarColor:'cat',catInnerColor:'cat',antennaStemColor:'antenna',antennaLeftColor:'antenna',antennaRightColor:'antenna',crownColor:'crown',crownEdgeColor:'crown',crownGemColor:'crown',frogColor:'frog',frogBrimColor:'frog',frogBumpColor:'frog',frogEyeColor:'frog'};
  const conditionalFields=new Map();const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;

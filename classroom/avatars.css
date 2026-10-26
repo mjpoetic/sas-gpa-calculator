@@ -71,3 +71,11 @@
 .room-avatar-preview{z-index:10000}
 .room-avatar-preview-art{display:contents}
 .avatar-enlarged-preview svg{width:min(78vw,68dvh,680px);height:min(78vw,68dvh,680px)}
+
+.avatar-preview-controls{display:flex;gap:12px;pointer-events:auto}
+.avatar-preview-controls button{min-height:44px;padding:10px 18px;border:1px solid #ffffff88;border-radius:12px;background:#fff;color:#20354e;font:700 16px Arial,sans-serif;cursor:pointer}
+.avatar-preview-controls button:focus-visible{outline:3px solid #6fcfff;outline-offset:3px}
+.avatar-preview-hint{color:#fff;margin:0 16px;text-align:center;font:14px/1.4 Arial,sans-serif}
+.avatar-enlarged-preview.is-pinned{pointer-events:auto}
+.avatar-enlarged-preview svg{width:min(78vw,58dvh,620px);height:min(78vw,58dvh,620px)}
+@media print{.avatar-enlarged-preview{display:none!important}}
