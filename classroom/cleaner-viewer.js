@@ -1,2 +1,2 @@
-import {readSummary,renderSummary,downloadSummaryImage} from './cleaner-summary.js?v=20261027-release2';
+import {readSummary,renderSummary,downloadSummaryImage} from './cleaner-summary.js?v=20261027-release4';
 try{const data=await readSummary();renderSummary(document.getElementById('summary'),data);document.getElementById('pdf').onclick=()=>window.print();document.getElementById('image').onclick=async()=>{try{await downloadSummaryImage(data);}catch(error){document.getElementById('status').textContent=error.message;}};}catch{document.getElementById('status').textContent='This summary link is incomplete or invalid. Ask the teacher for a new link.';document.querySelector('.summary-actions').hidden=true;}

@@ -1,5 +1,7 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.27.4","changes":["Improve main footer version visibility"]},
+ {"version":"2026.10.27.3","changes":["Make the main site version more visible in the footer"]},
  {"version":"2026.10.27.2","changes":["Make Honors grade and homeroom groups collapsible"]},
  {"version":"2026.10.27.1","changes":["Separate Honors imports and certificates by grade and homeroom"]},
  {"version":"2026.10.26.3","changes":["Pin avatar previews to keep them open, or open a persistent preview from person controls."]},
