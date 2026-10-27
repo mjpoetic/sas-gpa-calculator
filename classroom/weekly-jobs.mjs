@@ -1,4 +1,4 @@
-import {seatName} from './student-names.mjs?v=20261026-release3';
+import {seatName} from './student-names.mjs?v=20261027-release1';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 // Local calendar dates avoid UTC shifting a classroom's week at midnight.
 export function weekStart(value = new Date()) {

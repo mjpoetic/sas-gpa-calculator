@@ -1,9 +1,9 @@
-import {openBirthdayReminders} from './birthday-reminders.js?v=20261026-release3';
-import {openSISBirthdays} from './birthday-sis.js?v=20261026-release3';
-import {openBulkBirthdays} from './birthday-bulk.js?v=20261026-release3';
-import {paintBirthdayPortrait} from './birthday-portrait.js?v=20261026-release3';
-import {seatName} from './student-names.mjs?v=20261026-release3';
-import {validateBirthday,birthdayOccasion,nextBirthday} from './celebration-date.mjs?v=20261026-release3';
+import {openBirthdayReminders} from './birthday-reminders.js?v=20261027-release1';
+import {openSISBirthdays} from './birthday-sis.js?v=20261027-release1';
+import {openBulkBirthdays} from './birthday-bulk.js?v=20261027-release1';
+import {paintBirthdayPortrait} from './birthday-portrait.js?v=20261027-release1';
+import {seatName} from './student-names.mjs?v=20261027-release1';
+import {validateBirthday,birthdayOccasion,nextBirthday} from './celebration-date.mjs?v=20261027-release1';
 const make=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 export function editBirthday(student,getChart,commit,preferences={}){
  const chartId=getChart().id,d=make('dialog');d.className='workspace-dialog';d.setAttribute('aria-label','Student birthday');
