@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.27.5","changes":["Add a colorful hover halo to the main version badge"]},
  {"version":"2026.10.27.4","changes":["Improve main footer version visibility"]},
  {"version":"2026.10.27.3","changes":["Make the main site version more visible in the footer"]},
  {"version":"2026.10.27.2","changes":["Make Honors grade and homeroom groups collapsible"]},
