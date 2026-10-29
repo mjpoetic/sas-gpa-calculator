@@ -1,26 +1,28 @@
-import {openAvatarPreview} from './avatar-preview.js?v=20261027-release5';
-import {planFurnitureSync,applyFurnitureSync} from './furniture-sync.mjs?v=20261027-release5';
-import {setupBirthdays,editBirthday} from './birthdays.js?v=20261027-release5';
-import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261027-release5';
+import {setupBoard} from './board.js?v=20261029-release1';
+import {openAvatarPreview} from './avatar-preview.js?v=20261029-release1';
+import {planFurnitureSync,applyFurnitureSync} from './furniture-sync.mjs?v=20261029-release1';
+import {setupBirthdays,editBirthday} from './birthdays.js?v=20261029-release1';
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261029-release1';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261027-release5';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261027-release5';
-import {openAvatarEditor} from './avatar-editor.js?v=20261027-release5';
-import {transferStudent} from './seat-transfer.mjs?v=20261027-release5';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261027-release5';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261027-release5';
-import {furnitureArt} from './furniture-art.mjs?v=20261027-release5';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261027-release5';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261027-release5';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261029-release1';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261029-release1';
+import {openAvatarEditor} from './avatar-editor.js?v=20261029-release1';
+import {transferStudent} from './seat-transfer.mjs?v=20261029-release1';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261029-release1';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261029-release1';
+import {furnitureArt} from './furniture-art.mjs?v=20261029-release1';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261029-release1';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261029-release1';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
 const KEY = 'sas-classroom-studio-v1';
 let controlFrame,controlEntries=[],groupOverlay,lastSeatTap,labelObservers=[],hoverOwner=null,studentDragging=false,suppressStudentClickUntil=0;
 let createdInitialChart=false;
+let boardView;
 let state, loadError = '', selection = null, history = [], redoHistory = [], zoom = 1;
 try {
   const saved = localStorage.getItem(KEY);
@@ -150,7 +152,7 @@ function render() {
   $('undo').disabled = !history.length;$('redo').disabled=!redoHistory.length;$('delete-chart').disabled = state.charts.length === 1;
   if(!selection){selectedIds.clear();selectedSeatKeys.clear();}else if(!selectedIds.has(selection.id))selectedIds=new Set([selection.id]);
   renderRoom();renderInspector();renderRoster();renderTeacherProfile();
-  renderAppearance();renderJobs();
+  renderAppearance();renderJobs();boardView?.render();
 }
 function renderAppearance() {
   const a=appearance();$('chart-font-preview').style.fontFamily=fontCSS(a.font);$('chart-font-preview').style.fontWeight=a.weight||400;$('chart-font-weight').value=a.weight||400;$('chart-font-source').value=a.font.source;$('chart-font').value=a.font.source==='preset'?a.font.family:'system';
@@ -349,7 +351,7 @@ $('charts').onchange = () => {state.active = $('charts').value;selection=null;sa
 $('name').onchange = () => change(() => {chart().name = $('name').value.trim() || 'Untitled classroom';});
 $('new-chart').onclick = () => {if(state.charts.length >= 100) return say('You can keep up to 100 charts.');change(() => {const c = newChart(`Classroom ${state.charts.length+1}`);if(savedTeacherProfile(state))useSavedTeacher(state,c);c.assistants?.forEach(person=>person.id=uid());state.charts.push(c);state.active=c.id;selection=null;},'New chart created.');};
 $('copy-chart').onclick = () => {if(state.charts.length >= 100) return say('You can keep up to 100 charts.');change(() => {
-  const c = structuredClone(chart());c.id=uid();c.name=`${c.name.slice(0,73)} (copy)`;const map = new Map();c.students.forEach(s => {const old=s.id;s.id=uid();map.set(old,s.id);});c.items.forEach(it => {const previousId=it.id;it.id=uid();for(const person of [c.teacher,...(c.assistants||[])].filter(Boolean))if(person.seatId===previousId)person.seatId=it.id;it.seats.forEach(s => {s.student=map.get(s.student)||null;});});c.assistants?.forEach(person=>person.id=uid());state.charts.push(c);state.active=c.id;selection=null;
+  const c = structuredClone(chart());c.id=uid();c.name=`${c.name.slice(0,73)} (copy)`;const map = new Map();c.students.forEach(s => {const old=s.id;s.id=uid();map.set(old,s.id);});c.items.forEach(it => {const previousId=it.id;it.id=uid();for(const person of [c.teacher,...(c.assistants||[])].filter(Boolean))if(person.seatId===previousId)person.seatId=it.id;it.seats.forEach(s => {s.student=map.get(s.student)||null;});});c.assistants?.forEach(person=>person.id=uid());c.board?.notes.forEach(note=>note.id=uid());state.charts.push(c);state.active=c.id;selection=null;
 },'Chart duplicated with its roster and assignments.');};
 $('delete-chart').onclick = () => {if(state.charts.length<2 || !confirm(`Delete “${chart().name}”? Undo will restore it.`)) return;change(() => {state.charts=state.charts.filter(c => c.id !== state.active);if(state.chartOrder)state.chartOrder=state.chartOrder.filter(id=>id!==state.active);state.active=state.charts[0].id;selection=null;},'Chart deleted. Undo is available.');};
 $('apply-preset').onclick = () => {if(!confirm('Replace the room furniture with this layout? Your student list stays. Undo will restore the previous room.')) return;change(() => {chart().items=layout($('preset').value);assignUnseated(chart());selection=null;},'Layout applied. Students seated in roster order.');};
@@ -820,3 +822,5 @@ $('globe-reset').onclick=()=>{const it=selected();if(it?.type==='globe')change((
 for(const id of ['design','wood','cards','text','accent'])$('calendar-'+id).onchange=()=>{const it=selected();if(it?.type==='calendar')change(()=>{it.calendarStyle=Object.fromEntries(['design','wood','cards','text','accent'].map(key=>[key,$('calendar-'+key).value]));},'Calendar appearance updated.');};
 
 $('digital-clock-style').onchange=()=>{const it=selected();if(it?.type==='digitalclock')change(()=>{it.clockStyle=$('digital-clock-style').value;},'Digital clock style updated.');};
+
+boardView=setupBoard({getChart:chart,commit:change,uid});

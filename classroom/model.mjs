@@ -1,9 +1,10 @@
-import {validateBirthday} from './celebration-date.mjs?v=20261027-release5';
+import {validateBoard} from './board-model.mjs?v=20261029-release1';
+import {validateBirthday} from './celebration-date.mjs?v=20261029-release1';
 import {validateStudentExclusions} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {validateWeeklyJobs} from './weekly-jobs.mjs?v=20261020-names1';
-import {validateAvatar} from './avatars.mjs?v=20261027-release5';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261027-release5';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261027-release5';
+import {validateAvatar} from './avatars.mjs?v=20261029-release1';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261029-release1';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261029-release1';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -150,7 +151,7 @@ export function validateBackup(data) {
     const teacher=c.teacher===undefined?null:validatePerson(c.teacher);
     if(c.assistants!==undefined&&(!Array.isArray(c.assistants)||c.assistants.length>100))throw new Error('Invalid teachers / assistants.');
     const assistants=c.assistants?.map(person=>({id:id(person?.id),...validatePerson(person)}));
-    return {id:id(c.id), name:str(c.name,80), students, items,...(c.studentExclusions!==undefined?{studentExclusions:validateStudentExclusions(c.studentExclusions)}:{}),...(c.weeklyJobs!==undefined?{weeklyJobs:validateWeeklyJobs(c.weeklyJobs)}:{}),...(assistants?{assistants}:{}),...(teacher?{teacher}:{}),...(c.room!==undefined?{room}:{}),...(c.appearance!==undefined?{appearance:validateAppearance(c.appearance)}:{})};
+    return {id:id(c.id), name:str(c.name,80), students, items,...(c.board!==undefined?{board:validateBoard(c.board,id)}:{}),...(c.studentExclusions!==undefined?{studentExclusions:validateStudentExclusions(c.studentExclusions)}:{}),...(c.weeklyJobs!==undefined?{weeklyJobs:validateWeeklyJobs(c.weeklyJobs)}:{}),...(assistants?{assistants}:{}),...(teacher?{teacher}:{}),...(c.room!==undefined?{room}:{}),...(c.appearance!==undefined?{appearance:validateAppearance(c.appearance)}:{})};
   });
   const studentLists=(data.studentLists||[]);
   if(!Array.isArray(studentLists)||studentLists.length>100)throw new Error('Invalid saved student lists.');

@@ -320,3 +320,11 @@ The production migration and `birthday-reminders` Edge Function were deployed to
 Validation: birthday/date and delivery-rule Node tests; `tests/classroom-birthday-reminders.browser.cjs` (mocked provider, no real messages); `tests/classroom-birthday-push.integration.sql` (transactional disposable database); and the Deno encryption runtime test. The browser/server copies of `celebration-date.mjs` must remain identical.
 
 The avatar Hair tab includes a live hairstyle search and seven shape/texture groups, with no gender labels. Search matches style and group names; the group filter can narrow results further. Sponge curl afro · low taper adds a full rounded coil silhouette, shaped front hairline and low temple fades.
+
+### Classroom board
+
+The homepage opens Classroom Studio directly; the former `/teacher-tools/` URL forwards here. Switch between **Room** (seating and classroom management) and **Board** (teaching notes). Each classroom has one board, saved in the same document as its room and included in backups and the existing cloud save flow.
+
+Choose **Add tool → Note** for a title, formatted text, lists, or checklists. Bold uses `**text**`; list buttons format the selected lines. Notes have colors, text size and alignment, position locking, hide/show, duplication, and deletion. Drag the top handle to move, drag the corner to resize, or use arrow keys on either handle (Shift for fine adjustments). The Notes list provides access to hidden notes. Present hides editing controls; Exit presentation or Escape returns to editing. Checklists remain interactive while presenting.
+
+Boards use a fixed 1600 × 900 canvas fitted to the available viewport. On small screens, the Notes list opens a full-size editor. Saved note text is rendered as text and a limited formatting vocabulary, never as saved HTML. Boards support up to 100 notes, each with 12,000 characters.
