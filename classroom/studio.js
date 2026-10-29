@@ -1,21 +1,22 @@
-import {setupBoard} from './board.js?v=20261029-release1';
-import {openAvatarPreview} from './avatar-preview.js?v=20261029-release1';
-import {planFurnitureSync,applyFurnitureSync} from './furniture-sync.mjs?v=20261029-release1';
-import {setupBirthdays,editBirthday} from './birthdays.js?v=20261029-release1';
-import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261029-release1';
+import {setupRoomTools} from './room-tools.js?v=20261029-release2';
+import {setupBoard} from './board.js?v=20261029-release2';
+import {openAvatarPreview} from './avatar-preview.js?v=20261029-release2';
+import {planFurnitureSync,applyFurnitureSync} from './furniture-sync.mjs?v=20261029-release2';
+import {setupBirthdays,editBirthday} from './birthdays.js?v=20261029-release2';
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261029-release2';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261029-release1';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261029-release1';
-import {openAvatarEditor} from './avatar-editor.js?v=20261029-release1';
-import {transferStudent} from './seat-transfer.mjs?v=20261029-release1';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261029-release1';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261029-release1';
-import {furnitureArt} from './furniture-art.mjs?v=20261029-release1';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261029-release1';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261029-release1';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261029-release2';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261029-release2';
+import {openAvatarEditor} from './avatar-editor.js?v=20261029-release2';
+import {transferStudent} from './seat-transfer.mjs?v=20261029-release2';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261029-release2';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261029-release2';
+import {furnitureArt} from './furniture-art.mjs?v=20261029-release2';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261029-release2';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights} from '../assets/font-options.mjs?v=20261029-release2';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
@@ -351,7 +352,7 @@ $('charts').onchange = () => {state.active = $('charts').value;selection=null;sa
 $('name').onchange = () => change(() => {chart().name = $('name').value.trim() || 'Untitled classroom';});
 $('new-chart').onclick = () => {if(state.charts.length >= 100) return say('You can keep up to 100 charts.');change(() => {const c = newChart(`Classroom ${state.charts.length+1}`);if(savedTeacherProfile(state))useSavedTeacher(state,c);c.assistants?.forEach(person=>person.id=uid());state.charts.push(c);state.active=c.id;selection=null;},'New chart created.');};
 $('copy-chart').onclick = () => {if(state.charts.length >= 100) return say('You can keep up to 100 charts.');change(() => {
-  const c = structuredClone(chart());c.id=uid();c.name=`${c.name.slice(0,73)} (copy)`;const map = new Map();c.students.forEach(s => {const old=s.id;s.id=uid();map.set(old,s.id);});c.items.forEach(it => {const previousId=it.id;it.id=uid();for(const person of [c.teacher,...(c.assistants||[])].filter(Boolean))if(person.seatId===previousId)person.seatId=it.id;it.seats.forEach(s => {s.student=map.get(s.student)||null;});});c.assistants?.forEach(person=>person.id=uid());c.board?.notes.forEach(note=>note.id=uid());state.charts.push(c);state.active=c.id;selection=null;
+  const c = structuredClone(chart());c.id=uid();c.name=`${c.name.slice(0,73)} (copy)`;const map = new Map();c.students.forEach(s => {const old=s.id;s.id=uid();map.set(old,s.id);});c.items.forEach(it => {const previousId=it.id;it.id=uid();for(const person of [c.teacher,...(c.assistants||[])].filter(Boolean))if(person.seatId===previousId)person.seatId=it.id;it.seats.forEach(s => {s.student=map.get(s.student)||null;});});c.assistants?.forEach(person=>person.id=uid());c.board?.notes.forEach(note=>note.id=uid());c.board?.timers?.forEach(timer=>timer.id=uid());if(c.groupMaker){c.groupMaker.excluded=c.groupMaker.excluded.map(id=>map.get(id)).filter(Boolean);c.groupMaker.groups=c.groupMaker.groups.map(g=>g.map(id=>map.get(id)).filter(Boolean));}state.charts.push(c);state.active=c.id;selection=null;
 },'Chart duplicated with its roster and assignments.');};
 $('delete-chart').onclick = () => {if(state.charts.length<2 || !confirm(`Delete “${chart().name}”? Undo will restore it.`)) return;change(() => {state.charts=state.charts.filter(c => c.id !== state.active);if(state.chartOrder)state.chartOrder=state.chartOrder.filter(id=>id!==state.active);state.active=state.charts[0].id;selection=null;},'Chart deleted. Undo is available.');};
 $('apply-preset').onclick = () => {if(!confirm('Replace the room furniture with this layout? Your student list stays. Undo will restore the previous room.')) return;change(() => {chart().items=layout($('preset').value);assignUnseated(chart());selection=null;},'Layout applied. Students seated in roster order.');};
@@ -823,4 +824,6 @@ for(const id of ['design','wood','cards','text','accent'])$('calendar-'+id).onch
 
 $('digital-clock-style').onchange=()=>{const it=selected();if(it?.type==='digitalclock')change(()=>{it.clockStyle=$('digital-clock-style').value;},'Digital clock style updated.');};
 
-boardView=setupBoard({getChart:chart,commit:change,uid});
+boardView=setupBoard({getChart:chart,commit:change,uid,saveEdit:fn=>{checkpoint();fn();save();$('undo').disabled=!history.length;$('redo').disabled=!redoHistory.length;boardView?.render();}});
+
+setupRoomTools(chart,change);

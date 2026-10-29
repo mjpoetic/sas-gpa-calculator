@@ -3,7 +3,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
 await p.locator('#room').waitFor();
 
 await p.evaluate(()=>{const key='sas-classroom-studio-v1',s=JSON.parse(localStorage.getItem(key)),c=s.charts.find(c=>c.id===s.active)||s.charts[0];c.students=[{id:'a',name:'Alex Rivera'},{id:'b',name:'Jordan Lee',birthday:'02-15'},{id:'c',name:'Casey, Smith'}];localStorage.setItem(key,JSON.stringify(s));});await p.reload();
-const open=async()=>{await p.locator('#birthdays-open').click();await p.getByRole('button',{name:'Bulk add birthdays',exact:true}).click();};
+const open=async()=>{await p.locator('#room-tools-open').click();await p.locator('#birthdays-open').click();await p.getByRole('button',{name:'Bulk add birthdays',exact:true}).click();};
 await open();const downloading=p.waitForEvent('download');await p.getByRole('button',{name:'Download template',exact:true}).click();const download=await downloading;assert.equal(download.suggestedFilename(),'classroom-birthdays-template.csv');await download.saveAs('/tmp/classroom-birthdays-template.csv');const csv=require('node:fs').readFileSync('/tmp/classroom-birthdays-template.csv','utf8');assert.match(csv,/Alex Rivera/);assert.match(csv,/02\/15/);assert.match(csv,/"Casey, Smith"/);
 const input=p.getByLabel('Student names and birthdays',{exact:true}),preview=p.getByRole('button',{name:'Preview birthdays',exact:true}),save=p.locator('.birthday-bulk-actions .primary');
 await input.fill('Student name\tBirthday\nAlex Rivera\t02/29\nNobody Else\t10/24\nJordan Lee\t04/31');await preview.click();assert.ok(await save.isDisabled());assert.match(await p.locator('#birthday-bulk-message').textContent(),/Fix 2 flagged/);
