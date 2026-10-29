@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.29.3","changes":["Format selected words independently in note titles and body text with a compact formatting bar, mixed fonts, and styles that persist across reloads."]},
  {"version":"2026.10.29.2","changes":["Edit teaching notes inline with rich text and Google Fonts, add saved countdown timers, and create balanced avatar groups from the Room tools menu."]},
  {"version":"2026.10.29.1","changes":["Open Classroom Studio directly from the homepage and use Room and Board views with saved teaching notes, checklists, and presentation mode."]},
  {"version":"2026.10.27.5","changes":["Add a colorful hover halo to the main version badge"]},
