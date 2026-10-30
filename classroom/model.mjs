@@ -1,12 +1,13 @@
-import {publicGoogleCalendar} from './upcoming.mjs?v=20261030-release12';
-import {validateGroupMaker} from './group-maker.mjs?v=20261030-release12';
-import {validateBoard} from './board-model.mjs?v=20261030-release12';
-import {validateBirthday} from './celebration-date.mjs?v=20261030-release12';
+import {calendarColor} from './calendar-colors.mjs?v=20261030-release13';
+import {publicGoogleCalendar} from './upcoming.mjs?v=20261030-release13';
+import {validateGroupMaker} from './group-maker.mjs?v=20261030-release13';
+import {validateBoard} from './board-model.mjs?v=20261030-release13';
+import {validateBirthday} from './celebration-date.mjs?v=20261030-release13';
 import {validateStudentExclusions} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {validateWeeklyJobs} from './weekly-jobs.mjs?v=20261020-names1';
-import {validateAvatar} from './avatars.mjs?v=20261030-release12';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261030-release12';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261030-release12';
+import {validateAvatar} from './avatars.mjs?v=20261030-release13';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261030-release13';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261030-release13';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
@@ -161,7 +162,7 @@ export function validateBackup(data) {
   const chartOrder=data.chartOrder;if(chartOrder!==undefined&&(!Array.isArray(chartOrder)||chartOrder.length>100||chartOrder.some(id=>typeof id!=='string')||new Set(chartOrder).size!==chartOrder.length))throw new Error('Invalid classroom order.');
   const teacherProfile=data.teacherProfile===undefined?null:{name:str(data.teacherProfile?.name,80).trim(),avatar:validateAvatar(data.teacherProfile?.avatar)};
   if(data.birthdayPreferences!==undefined&&(!data.birthdayPreferences||typeof data.birthdayPreferences.weekendEarly!=='boolean'))throw new Error('Invalid birthday preferences.');
-  const publicCalendar=data.publicCalendar===undefined?undefined:data.publicCalendar===null?null:{name:str(data.publicCalendar.name,80),url:publicGoogleCalendar(data.publicCalendar.url)};
+  const publicCalendar=data.publicCalendar===undefined?undefined:data.publicCalendar===null?null:{name:str(data.publicCalendar.name,80),url:publicGoogleCalendar(data.publicCalendar.url),...(data.publicCalendar.colorScheme!==undefined?{colorScheme:calendarColor(data.publicCalendar.colorScheme)}:{})};
   return {version:1,...(publicCalendar!==undefined?{publicCalendar}:{}),...(data.birthdayPreferences?{birthdayPreferences:{weekendEarly:data.birthdayPreferences.weekendEarly}}:{}),...(teacherProfile?{teacherProfile}:{}), ...(chartOrder?{chartOrder:chartOrder.filter(id=>charts.some(c=>c.id===id))}:{}), ...(lists.length?{studentLists:lists}:{}), charts, active:charts.some(c => c.id === data.active) ? data.active : charts[0].id};
 }
 

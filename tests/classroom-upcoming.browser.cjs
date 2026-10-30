@@ -6,6 +6,8 @@ const start=new Date(Date.now()+2*86400000),end=new Date(start.getTime()+3600000
 await p.route('**/functions/v1/public-calendar?**',r=>{requests++;return r.fulfill({status:fail?502:200,contentType:'application/json',body:JSON.stringify(fail?{error:'Could not refresh this calendar.'}:{events:[{id:'1',title:'School assembly',start:start.toISOString(),end:end.toISOString(),allDay:false,location:'Main hall',description:'Bring your class. <script>window.injected=true</script>'},{id:'2',title:'Parent meetings',start:new Date(start.getTime()+86400000).toISOString(),end:new Date(end.getTime()+86400000).toISOString(),allDay:false}],fetchedAt:new Date().toISOString()})});});
 await p.locator('#public-calendar-settings').click();
 await p.getByLabel('Calendar name',{exact:true}).fill('School dates');
+await p.getByRole('button',{name:'Color scheme',exact:true}).click();await p.getByRole('option',{name:'Lavender',exact:true}).click();
+assert.equal(await p.locator('.calendar-color-preview').evaluate(n=>getComputedStyle(n).getPropertyValue('--calendar-accent').trim()),'#8054ac');
 await p.getByLabel('Public calendar link',{exact:true}).fill('https://evil.example/calendar/embed?src=school');
 await p.getByRole('button',{name:'Save calendar',exact:true}).click();
 assert.match(await p.locator('.public-calendar-dialog [role=status]').textContent(),/public Google/);
@@ -13,9 +15,11 @@ await p.getByLabel('Public calendar link',{exact:true}).fill('https://calendar.g
 await p.getByRole('button',{name:'Save calendar',exact:true}).click();
 await p.getByRole('button',{name:'View upcoming school events'}).getByText('School assembly').waitFor();
 assert.equal(await p.locator('.upcoming-panel iframe').count(),0);
+assert.equal(await p.locator('.upcoming-calendar').evaluate(n=>getComputedStyle(n).getPropertyValue('--calendar-accent').trim()),'#8054ac');
 for(const width of [1280,390,320]){await p.setViewportSize({width,height:850});assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.ok(await p.locator('.upcoming-panel').evaluate(n=>n.getBoundingClientRect().height<150));await p.waitForTimeout(400);await p.screenshot({path:`/tmp/upcoming-compact-${width}.png`});}
 await p.getByRole('button',{name:'View upcoming school events'}).click();
 assert.equal(await p.locator('.upcoming-event-list article').count(),2);
+assert.equal(await p.locator('.upcoming-events-dialog').evaluate(n=>getComputedStyle(n).getPropertyValue('--calendar-accent').trim()),'#8054ac');
 await p.getByText('Event details',{exact:true}).click();assert.ok((await p.locator('.upcoming-description').textContent()).includes('<script>'));
 assert.equal(await p.evaluate(()=>window.injected),undefined);
 assert.match(await p.getByRole('link',{name:'Open full calendar'}).getAttribute('href'),/mode=MONTH/);
@@ -24,7 +28,7 @@ fail=false;await p.getByRole('button',{name:'Refresh',exact:true}).click();await
 await p.screenshot({path:'/tmp/upcoming-custom-events.png'});
 await p.getByRole('button',{name:'Close',exact:true}).click();
 await p.reload();await p.locator('#room').waitFor();await p.getByRole('button',{name:'View upcoming school events'}).getByText('School assembly').waitFor();
-await p.locator('#public-calendar-settings').click();assert.equal(await p.getByLabel('Calendar name',{exact:true}).inputValue(),'School dates');await p.getByRole('button',{name:'Disconnect',exact:true}).click();
+await p.locator('#public-calendar-settings').click();assert.equal(await p.getByLabel('Calendar name',{exact:true}).inputValue(),'School dates');assert.equal(await p.getByLabel('Calendar color scheme',{exact:true}).inputValue(),'purple');await p.getByRole('button',{name:'Disconnect',exact:true}).click();
 assert.equal(await p.locator('#public-calendar-settings').textContent(),'⋮');
 assert.equal(await p.evaluate(()=>JSON.parse(localStorage.getItem('sas-classroom-studio-v1')).publicCalendar),null);
 await p.evaluate(()=>{const key='sas-classroom-studio-v1',state=JSON.parse(localStorage.getItem(key));delete state.publicCalendar;localStorage.setItem(key,JSON.stringify(state));localStorage.setItem('sas-public-school-calendar-v1',JSON.stringify({name:'Migrated school',url:'https://calendar.google.com/calendar/embed?src=school%40group.calendar.google.com'}));});

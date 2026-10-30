@@ -1,5 +1,5 @@
-import {previewSISBirthdays,sisBirthdayStamp,applySISBirthdays,reportNameKey} from './sis-birthday-import.mjs?v=20261030-release12';
-import {birthdayPDFText} from './birthday-pdf.js?v=20261030-release12';
+import {previewSISBirthdays,sisBirthdayStamp,applySISBirthdays,reportNameKey} from './sis-birthday-import.mjs?v=20261030-release13';
+import {birthdayPDFText} from './birthday-pdf.js?v=20261030-release13';
 const make=(tag,text)=>{const node=document.createElement(tag);if(text!==undefined)node.textContent=text;return node;};
 const check=(text,onchange)=>{const label=make('label'),input=make('input');input.type='checkbox';label.className='check';label.append(input,document.createTextNode(text));input.onchange=onchange;return {label,input};};
 export function openSISBirthdays(getState,commit){

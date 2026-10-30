@@ -1,4 +1,4 @@
-import {avatarSVG} from './avatars.mjs?v=20261030-release12';
+import {avatarSVG} from './avatars.mjs?v=20261030-release13';
 let currentPreview=null;
 export function openAvatarPreview(person,{parent=document.body,pinned=false,returnFocus=document.activeElement}={}){
  currentPreview?.close();

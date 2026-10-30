@@ -16,9 +16,10 @@ import {newChart,validateBackup} from '../classroom/model.mjs';
 import {mergeDocuments} from '../classroom/sync-merge.mjs';
 test('calendar connection survives cloud validation, device merging, backups and disconnection',()=>{
  const chart=newChart(),base={version:1,active:chart.id,charts:[chart]},local=structuredClone(base),remote=structuredClone(base);
- remote.publicCalendar={name:'School events',url:'https://calendar.google.com/calendar/embed?src=school%40group.calendar.google.com'};
+ remote.publicCalendar={name:'School events',colorScheme:'rose',url:'https://calendar.google.com/calendar/embed?src=school%40group.calendar.google.com'};
  local.charts[0].name='Edited on another device';
- const merged=mergeDocuments(base,local,remote);assert.deepEqual(merged.conflicts,[]);assert.equal(merged.document.publicCalendar.name,'School events');assert.equal(merged.document.charts[0].name,'Edited on another device');
+ const merged=mergeDocuments(base,local,remote);assert.deepEqual(merged.conflicts,[]);assert.equal(merged.document.publicCalendar.name,'School events');assert.equal(merged.document.publicCalendar.colorScheme,'rose');assert.equal(merged.document.charts[0].name,'Edited on another device');
+ assert.throws(()=>validateBackup({...remote,publicCalendar:{...remote.publicCalendar,colorScheme:'invalid'}}));
  const restored=validateBackup(JSON.parse(JSON.stringify(merged.document)));assert.deepEqual(restored.publicCalendar,merged.document.publicCalendar);
  const disconnected=structuredClone(restored);disconnected.publicCalendar=null;
  assert.equal(mergeDocuments(restored,restored,disconnected).document.publicCalendar,null);
