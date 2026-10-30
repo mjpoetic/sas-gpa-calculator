@@ -188,3 +188,10 @@
  #room:has(.group-selection) .item>.resize-edge,#room[data-seat-selection=true] .resize-edge,.student-dragging .resize-edge,.teacher-dragging .resize-edge,.two-finger-panning .resize-edge{display:none}
 }
 @media print{.resize-edge{display:none!important}}
+
+/* Match the main site's cap and celebration, with a chalkboard-green tile. */
+.chart-first .header .studio-logo{display:flex;align-items:center;justify-content:center;flex:0 0 32px;width:32px;height:32px;min-height:32px;margin:0;padding:0;border:0;border-radius:8px;background:#214e3b;color:#fff;box-shadow:none}
+.chart-first .header .studio-logo:hover{background:#2b604a}
+.chart-first .header .studio-logo:focus-visible{outline:2px solid #6eaf8e;outline-offset:3px}
+.chart-first .header .studio-logo svg{display:block;width:18px;height:18px}
+.chart-first .brand>a{color:inherit;text-decoration:none}

@@ -1,4 +1,4 @@
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261030-release8';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261030-release9';
 
 // Work on a display copy so the student's saved outfit and expression survive.
 export function birthdayAvatar(value){const avatar={...defaultAvatar(),...value,enabled:true,expression:'grin',eyes:'happy',hairAccessory:'none'};if(avatar.extra!=='star')avatar.extra='none';if(avatar.headphones==='on'||avatar.accessory==='headphones'){avatar.headphones='none';if(avatar.accessory==='headphones')avatar.accessory='none';}return avatar;}
