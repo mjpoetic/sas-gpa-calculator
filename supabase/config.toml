@@ -5,3 +5,8 @@ project_id = "sas-classroom-studio"
 # policy, and separately authenticates cron requests with a server-only key.
 verify_jwt = false
 entrypoint = "./functions/birthday-reminders/index.ts"
+
+[functions.public-calendar]
+# Reads public Google iCal feeds only; no account or database access.
+verify_jwt = false
+entrypoint = "./functions/public-calendar/index.ts"

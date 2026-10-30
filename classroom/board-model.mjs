@@ -1,7 +1,7 @@
-import {normalizeTimerBox} from './timer-geometry.mjs?v=20261030-release10';
-import {TIMER_SOUNDS} from './timer-sounds.mjs?v=20261030-release10';
-import {validateRich} from './note-rich.mjs?v=20261030-release10';
-import {validateFont} from '../assets/font-options.mjs?v=20261030-release10';
+import {normalizeTimerBox} from './timer-geometry.mjs?v=20261030-release11';
+import {TIMER_SOUNDS} from './timer-sounds.mjs?v=20261030-release11';
+import {validateRich} from './note-rich.mjs?v=20261030-release11';
+import {validateFont} from '../assets/font-options.mjs?v=20261030-release11';
 export const BOARD_COLORS=['#f3f6fa','#e4edf1','#20384b','#f6eddf','#e5eee4'];
 export const NOTE_COLORS=['#fff1bb','#ffffff','#dceefb','#e1f0de','#f8e1e9','#eee4fa'];
 export function newNote(id,index=0){return {id,title:'',text:'',x:40+(index%5)*28,y:40+(index%5)*28,width:440,height:300,color:NOTE_COLORS[0],ink:'#20354e',fontSize:28,align:'left',locked:false,hidden:false};}
