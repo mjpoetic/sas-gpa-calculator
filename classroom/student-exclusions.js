@@ -1,5 +1,5 @@
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261029-release4';
-import {seatName} from './student-names.mjs?v=20261029-release4';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261030-release1';
+import {seatName} from './student-names.mjs?v=20261030-release1';
 export function openStudentExclusions(getChart,commit,kind,onSave=()=>{}){
  const owner=getChart(),d=document.createElement('dialog');d.className='workspace-dialog student-exclusions';d.id='student-exclusions-dialog';d.setAttribute('aria-labelledby','student-exclusions-title');
  const header=document.createElement('form');header.method='dialog';const title=document.createElement('h2');title.id='student-exclusions-title';title.textContent=kind==='cleaners'?'Exclude lunch cleaners':'Exclude from random picker';const close=document.createElement('button');close.textContent='×';close.setAttribute('aria-label','Close student exclusions');header.append(title,close);

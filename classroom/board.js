@@ -1,7 +1,7 @@
-import {inlineNoteToolbar,paintRich,readRich} from './note-editor.js?v=20261029-release4';
-import {fontCSS,loadFont} from '../assets/font-options.mjs?v=20261029-release4';
-import {timerCard,setupTimerTicks} from './board-timer.js?v=20261029-release4';
-import {BOARD_COLORS,NOTE_COLORS,newNote} from './board-model.mjs?v=20261029-release4';
+import {inlineNoteToolbar,paintRich,readRich} from './note-editor.js?v=20261030-release1';
+import {fontCSS,loadFont} from '../assets/font-options.mjs?v=20261030-release1';
+import {timerCard,setupTimerTicks} from './board-timer.js?v=20261030-release1';
+import {BOARD_COLORS,NOTE_COLORS,newNote} from './board-model.mjs?v=20261030-release1';
 const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const button=(text,fn)=>{const n=make('button','',text);n.type='button';n.onclick=fn;return n;};
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
