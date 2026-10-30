@@ -1,6 +1,6 @@
-import {makeGroups} from './group-maker.mjs?v=20261030-release7';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261030-release7';
-import {seatName} from './student-names.mjs?v=20261030-release7';
+import {makeGroups} from './group-maker.mjs?v=20261030-release8';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261030-release8';
+import {seatName} from './student-names.mjs?v=20261030-release8';
 const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const button=(text,fn)=>{const b=make('button','',text);b.type='button';b.onclick=fn;return b;};
 export function setupRoomTools(getChart,commit){
