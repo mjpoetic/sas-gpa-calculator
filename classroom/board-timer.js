@@ -1,4 +1,4 @@
-import {timerSeconds} from './board-model.mjs?v=20261030-release1';
+import {timerSeconds} from './board-model.mjs?v=20261030-release2';
 export function timerCard(timer,{make,button,mutate,gesture,presenting}){
  const node=make('article','board-note board-timer');node.dataset.timerId=timer.id;Object.assign(node.style,{left:timer.x+'px',top:timer.y+'px',width:timer.width+'px',height:timer.height+'px'});
  const update=fn=>mutate(b=>{const t=b.timers.find(x=>x.id===timer.id);if(t)fn(t);});

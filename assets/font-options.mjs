@@ -19,9 +19,16 @@ export function loadFont(font,weight=400) {
     const link=document.createElement('link');link.rel='stylesheet';
     const url=new URL('https://fonts.googleapis.com/css2');url.searchParams.set('family',font.family+':wght@'+weight);url.searchParams.set('display','swap');link.href=url.href;
     const timer=setTimeout(()=>{link.remove();loaded.delete(key);reject(new Error('Font download timed out. Using the system fallback.'));},10000);
-    link.onload=()=>{clearTimeout(timer);resolve();};link.onerror=()=>{clearTimeout(timer);link.remove();loaded.delete(key);reject(new Error('This Google Font weight is unavailable. Try Regular or another weight, and check the family name or connection.'));};document.head.append(link);
+    link.onload=async()=>{try{const faces=await document.fonts.load(`${weight} 16px "${font.family}"`);if(!faces.length)throw Error('Font unavailable');clearTimeout(timer);resolve();}catch{clearTimeout(timer);link.remove();loaded.delete(key);reject(new Error('Font could not be loaded. Check the name, weight, or connection.'));}};link.onerror=()=>{clearTimeout(timer);link.remove();loaded.delete(key);reject(new Error('This Google Font weight is unavailable. Try Regular or another weight, and check the family name or connection.'));};document.head.append(link);
   });loaded.set(key,promise);return promise;
 }
 
 export const fontWeights={100:'Thin',200:'Extra light',300:'Light',400:'Regular',500:'Medium',600:'Semibold',700:'Bold',800:'Extra bold',900:'Heavy'};
 export function validateWeight(value){if(!Object.hasOwn(fontWeights,value))throw new Error('Invalid font weight.');return Number(value);}
+
+export function autoFontField({input,source,weight,status,apply}) {
+ let sequence=0,timer;
+ const show=(text,color)=>{status.textContent=text;status.style.color=color||'';};
+ const check=()=>{const current=++sequence;clearTimeout(timer);if(source.value==='preset'||!input.value.trim()){show('');return;}show('… Checking font');timer=setTimeout(async()=>{try{const font=validateFont({source:source.value,family:input.value.trim()});await loadFont(font,Number(weight?.value||400));if(current!==sequence)return;apply(font);show('✓ Font available and applied','#15803d');}catch(e){if(current===sequence)show('× '+e.message,'#dc2626');}},500);};
+ input.addEventListener('input',check);source.addEventListener('change',check);weight?.addEventListener('change',check);input.form?.addEventListener('submit',e=>{e.preventDefault();check();});return check;
+}

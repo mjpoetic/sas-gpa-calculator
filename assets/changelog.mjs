@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.30.2","changes":["Fix cached certificate font controls and confirm Google font files before automatic application"]},
  {"version":"2026.10.30.1","changes":["Certificate fonts apply automatically with availability indicators"]},
  {"version":"2026.10.29.4","changes":["Polish notes with a floating formatting palette, familiar editing glyphs, colorful active states, and responsive placement that follows the note."]},
  {"version":"2026.10.29.3","changes":["Format selected words independently in note titles and body text with a compact formatting bar, mixed fonts, and styles that persist across reloads."]},

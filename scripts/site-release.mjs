@@ -43,6 +43,8 @@ if(process.argv[2]!=='--check'){
  await writeFile(root+'site-version.json',JSON.stringify(manifest,null,2)+'\n');
 }
 assert.equal(manifest.sourceHash,await sourceHash(),'Site files changed since the last release. Run node scripts/site-release.mjs with a new version and release notes.');
+const home=await read('index.html');
+assert.match(home,/assets\/index-[^"?]+\.js\?v=\d{8}-release\d+/, 'Main application script must use a release cache tag');
 for(const path of pages){
  const html=await read(path);
  assert.equal(html.match(/name="site-version" content="([^"]+)"/)?.[1],manifest.version,path+' version');
