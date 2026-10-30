@@ -1,6 +1,6 @@
-import {openAvatarPreview} from './avatar-preview.js?v=20261030-release6';
-import {enhance as enhanceColorPicker} from '../assets/color-palette.js?v=20261030-release6';
-import {hairGroups,supportsHairTips,teacherClothing,teacherAvatarParts,accessoryColorDefaults,avatarOptions,defaultAvatar,validateAvatar,randomAvatar,avatarSVG} from './avatars.mjs?v=20261030-release6';
+import {openAvatarPreview} from './avatar-preview.js?v=20261030-release7';
+import {enhance as enhanceColorPicker} from '../assets/color-palette.js?v=20261030-release7';
+import {hairGroups,supportsHairTips,teacherClothing,teacherAvatarParts,accessoryColorDefaults,avatarOptions,defaultAvatar,validateAvatar,randomAvatar,avatarSVG} from './avatars.mjs?v=20261030-release7';
 export function openAvatarEditor(student,{showAvatars,firstAvatar,onSave,onRemove,studentPass=false,teacher=false,assistant=false,removable=!!student.avatar}){
  // A double-click can emit both our rapid-tap fallback and native dblclick.
  const existing=document.querySelector('.avatar-editor[open]');if(existing)return;

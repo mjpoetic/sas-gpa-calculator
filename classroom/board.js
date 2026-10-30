@@ -1,7 +1,7 @@
-import {inlineNoteToolbar,paintRich,readRich} from './note-editor.js?v=20261030-release6';
-import {fontCSS,loadFont} from '../assets/font-options.mjs?v=20261030-release6';
-import {timerCard,setupTimerTicks} from './board-timer.js?v=20261030-release6';
-import {BOARD_COLORS,NOTE_COLORS,newNote} from './board-model.mjs?v=20261030-release6';
+import {inlineNoteToolbar,paintRich,readRich} from './note-editor.js?v=20261030-release7';
+import {fontCSS,loadFont} from '../assets/font-options.mjs?v=20261030-release7';
+import {timerCard,setupTimerTicks} from './board-timer.js?v=20261030-release7';
+import {BOARD_COLORS,NOTE_COLORS,newNote} from './board-model.mjs?v=20261030-release7';
 const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const button=(text,fn)=>{const n=make('button','',text);n.type='button';n.onclick=fn;return n;};
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -39,7 +39,7 @@ export function setupBoard({getChart,commit,uid,saveEdit}){
  function finishEditing(){editing=null;editorNode=null;inlineEditor.close();render();}
  function openEditor(id,part='body'){const n=board().notes.find(n=>n.id===id);if(!n)return;editing=selected=id;editorChart=getChart().id;editorNode=null;render();const node=canvas.querySelector(`[data-note-id="${id}"] ${part==='title'?'.note-title':'.note-content'}`);node?.focus({preventScroll:true});}
  function addNote(){if(board().notes.length>=100)return;const n=newNote(uid(),board().notes.length);mutate(b=>b.notes.push(n));openEditor(n.id);}
- function addTimer(){if((board().timers||[]).length>=20)return;finishEditing();mutate(b=>{b.timers??=[];b.timers.push({id:uid(),label:'Class timer',duration:300,remaining:300,endsAt:null,x:900,y:80,width:560,height:410,sound:false});});}
+ function addTimer(){if((board().timers||[]).length>=20)return;finishEditing();mutate(b=>{b.timers??=[];b.timers.push({id:uid(),label:'Class timer',duration:300,remaining:300,endsAt:null,x:800,y:80,width:720,height:460,sound:false,soundType:'chime',style:'digital',background:'#ffffff',accent:'#7767ed',font:{source:'preset',family:'system'}});});}
  document.addEventListener('sas-open-timer',()=>{switchView('board');if(!board().timers?.length)addTimer();});
  const tickTimers=setupTimerTicks(canvas,board);
  function renderList(){list.replaceChildren();if(!board().notes.length)list.append(make('p','hint','No notes yet. Add a note to get started.'));for(const n of board().notes){const row=make('div','board-note-row');row.append(make('span','',n.title||n.text.slice(0,45)||'Untitled note'),button(n.hidden?'Show':'Hide',()=>{mutate(b=>b.notes.find(x=>x.id===n.id).hidden=!n.hidden);renderList();}),button(n.locked?'Unlock':'Lock',()=>{mutate(b=>b.notes.find(x=>x.id===n.id).locked=!n.locked);renderList();}),button('Edit',()=>{listDialog.addEventListener('close',()=>openEditor(n.id),{once:true});listDialog.close();}));list.append(row);}}

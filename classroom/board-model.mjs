@@ -1,5 +1,6 @@
-import {validateRich} from './note-rich.mjs?v=20261030-release6';
-import {validateFont} from '../assets/font-options.mjs?v=20261030-release6';
+import {TIMER_SOUNDS} from './timer-sounds.mjs?v=20261030-release7';
+import {validateRich} from './note-rich.mjs?v=20261030-release7';
+import {validateFont} from '../assets/font-options.mjs?v=20261030-release7';
 export const BOARD_COLORS=['#f3f6fa','#e4edf1','#20384b','#f6eddf','#e5eee4'];
 export const NOTE_COLORS=['#fff1bb','#ffffff','#dceefb','#e1f0de','#f8e1e9','#eee4fa'];
 export function newNote(id,index=0){return {id,title:'',text:'',x:40+(index%5)*28,y:40+(index%5)*28,width:440,height:300,color:NOTE_COLORS[0],ink:'#20354e',fontSize:28,align:'left',locked:false,hidden:false};}
@@ -18,6 +19,6 @@ export function validateBoard(board,id){
 export function validateTimers(timers,id){
  if(!Array.isArray(timers)||timers.length>20)throw new Error('Invalid board timers.');
  const num=(v,min,max)=>{if(!Number.isFinite(v)||v<min||v>max)throw new Error('Invalid timer setting.');return v;};
- return timers.map(t=>{if(!t||typeof t.label!=='string'||t.label.length>120)throw new Error('Invalid timer.');const width=num(t.width,220,1200),height=num(t.height,140,800);return {id:id(t.id),label:t.label,duration:num(t.duration,1,86400),remaining:num(t.remaining,0,86400),endsAt:t.endsAt===null?null:num(t.endsAt,0,4102444800000),x:num(t.x,0,1600-width),y:num(t.y,0,900-height),width,height,sound:t.sound===true};});
+ return timers.map(t=>{if(!t||typeof t.label!=='string'||t.label.length>120)throw new Error('Invalid timer.');const appearance={};if(t.style!==undefined){if(!['digital','ring','bar','split'].includes(t.style))throw new Error('Invalid timer style.');appearance.style=t.style;}if(t.font!==undefined)appearance.font=validateFont(t.font);for(const key of ['background','accent'])if(t[key]!==undefined){if(!/^#[0-9a-f]{6}$/i.test(t[key]))throw new Error('Invalid timer color.');appearance[key]=t[key];}if(t.soundType!==undefined){if(!Object.hasOwn(TIMER_SOUNDS,t.soundType))throw new Error('Invalid timer sound.');appearance.soundType=t.soundType;}const width=num(t.width,220,1200),height=num(t.height,140,800);return {...appearance,id:id(t.id),label:t.label,duration:num(t.duration,1,86400),remaining:num(t.remaining,0,86400),endsAt:t.endsAt===null?null:num(t.endsAt,0,4102444800000),x:num(t.x,0,1600-width),y:num(t.y,0,900-height),width,height,sound:t.sound===true};});
 }
 export function timerSeconds(timer,now=Date.now()){return timer.endsAt===null?timer.remaining:Math.max(0,Math.ceil((timer.endsAt-now)/1000));}
