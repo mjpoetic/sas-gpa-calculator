@@ -1,8 +1,8 @@
-import {resizeTimerBox} from './timer-geometry.mjs?v=20261030-release11';
-import {inlineNoteToolbar,paintRich,readRich} from './note-editor.js?v=20261030-release11';
-import {fontCSS,loadFont} from '../assets/font-options.mjs?v=20261030-release11';
-import {timerCard,setupTimerTicks} from './board-timer.js?v=20261030-release11';
-import {BOARD_COLORS,NOTE_COLORS,newNote} from './board-model.mjs?v=20261030-release11';
+import {resizeTimerBox} from './timer-geometry.mjs?v=20261030-release12';
+import {inlineNoteToolbar,paintRich,readRich} from './note-editor.js?v=20261030-release12';
+import {fontCSS,loadFont} from '../assets/font-options.mjs?v=20261030-release12';
+import {timerCard,setupTimerTicks} from './board-timer.js?v=20261030-release12';
+import {BOARD_COLORS,NOTE_COLORS,newNote} from './board-model.mjs?v=20261030-release12';
 const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const button=(text,fn)=>{const n=make('button','',text);n.type='button';n.onclick=fn;return n;};
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -16,7 +16,7 @@ export function setupBoard({getChart,commit,uid,saveEdit}){
  const modes=make('div','studio-modes');modes.setAttribute('role','group');modes.setAttribute('aria-label','Studio view');
  const viewMenu=make('div','studio-view-menu');viewMenu.id='studio-view-menu';viewMenu.popover='auto';viewMenu.setAttribute('role','group');viewMenu.setAttribute('aria-label','Choose studio view');
  const viewTrigger=button('',()=>{if(viewMenu.matches(':popover-open')){viewMenu.hidePopover();return;}const r=viewTrigger.getBoundingClientRect();viewMenu.style.left=Math.max(8,Math.min(innerWidth-180,r.left))+'px';viewMenu.style.top=(r.bottom+6)+'px';viewMenu.showPopover();});viewTrigger.id='studio-view-open';viewTrigger.title='Switch between Room and Board';viewTrigger.setAttribute('aria-haspopup','true');viewTrigger.setAttribute('aria-controls',viewMenu.id);viewTrigger.setAttribute('aria-expanded','false');
- const roomButton=button('Room',()=>{viewMenu.hidePopover();switchView('room');viewTrigger.focus();}),boardButton=button('Board',()=>{viewMenu.hidePopover();switchView('board');viewTrigger.focus();});viewMenu.append(roomButton,boardButton);modes.append(viewTrigger);document.querySelector('.header').insertBefore(modes,document.getElementById('workspace-save-button'));document.body.append(viewMenu);viewMenu.addEventListener('toggle',e=>viewTrigger.setAttribute('aria-expanded',String(e.newState==='open')));window.addEventListener('resize',()=>{if(viewMenu.matches(':popover-open'))viewMenu.hidePopover();});
+ const roomButton=button('Room',()=>{viewMenu.hidePopover();switchView('room');viewTrigger.focus();}),boardButton=button('Board',()=>{viewMenu.hidePopover();switchView('board');viewTrigger.focus();});for(const [node,path] of [[roomButton,'M3 3h7v7H3ZM14 3h7v7h-7ZM3 14h7v7H3ZM14 14h7v7h-7Z'],[boardButton,'M4 4h16v16H4ZM8 8h8M8 12h8M8 16h5']]){node.dataset.glyphDone='true';const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');svg.setAttribute('aria-hidden','true');svg.classList.add('button-glyph');const p=document.createElementNS(svg.namespaceURI,'path');p.setAttribute('d',path);svg.append(p);node.prepend(svg);}viewMenu.append(roomButton,boardButton);modes.append(viewTrigger);document.querySelector('.header').insertBefore(modes,document.getElementById('workspace-save-button'));document.body.append(viewMenu);viewMenu.addEventListener('toggle',e=>viewTrigger.setAttribute('aria-expanded',String(e.newState==='open')));window.addEventListener('resize',()=>{if(viewMenu.matches(':popover-open'))viewMenu.hidePopover();});
 
  const host=make('section','studio-board');host.hidden=true;host.setAttribute('aria-label','Classroom board');
  const bar=make('div','board-toolbar'),title=make('div','board-heading');title.append(make('strong','','Classroom board'),make('span','','Notes and teaching tools, together.'));

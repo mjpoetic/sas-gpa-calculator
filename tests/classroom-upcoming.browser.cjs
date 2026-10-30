@@ -25,6 +25,12 @@ await p.screenshot({path:'/tmp/upcoming-custom-events.png'});
 await p.getByRole('button',{name:'Close',exact:true}).click();
 await p.reload();await p.locator('#room').waitFor();await p.getByRole('button',{name:'View upcoming school events'}).getByText('School assembly').waitFor();
 await p.locator('#public-calendar-settings').click();assert.equal(await p.getByLabel('Calendar name',{exact:true}).inputValue(),'School dates');await p.getByRole('button',{name:'Disconnect',exact:true}).click();
-assert.ok(await p.getByRole('button',{name:'View upcoming school events'}).isDisabled());
+assert.equal(await p.locator('#public-calendar-settings').textContent(),'⋮');
+assert.equal(await p.evaluate(()=>JSON.parse(localStorage.getItem('sas-classroom-studio-v1')).publicCalendar),null);
+await p.evaluate(()=>{const key='sas-classroom-studio-v1',state=JSON.parse(localStorage.getItem(key));delete state.publicCalendar;localStorage.setItem(key,JSON.stringify(state));localStorage.setItem('sas-public-school-calendar-v1',JSON.stringify({name:'Migrated school',url:'https://calendar.google.com/calendar/embed?src=school%40group.calendar.google.com'}));});
+await p.reload();await p.getByRole('button',{name:'View upcoming school events'}).getByText('School assembly').waitFor();
+assert.equal(await p.evaluate(()=>localStorage.getItem('sas-public-school-calendar-v1')),null);
+assert.equal(await p.evaluate(()=>JSON.parse(localStorage.getItem('sas-classroom-studio-v1')).publicCalendar.name),'Migrated school');
+for(const width of [1280,390,320]){await p.setViewportSize({width,height:850});await p.locator('#studio-view-open').click();assert.equal(await p.getByRole('button',{name:'Board',exact:true}).locator('svg').count(),1);await p.keyboard.press('Escape');if(width<1100){const sizes=await p.locator('.header .workspace-actions>button').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect(),s=n.querySelector('svg').getBoundingClientRect();return [r.width,r.height,s.width,s.height];}));assert.equal(new Set(sizes.map(s=>JSON.stringify(s))).size,1);}await p.waitForTimeout(300);await p.screenshot({path:`/tmp/calendar-polish-${width}.png`});}
 await p.locator('.upcoming-birthday-card').click();assert.equal(await p.locator('.birthday-directory .birthday-countdown').count(),1);
 assert.ok(requests>=4);assert.deepEqual(errors,[]);await b.close();console.log('Upcoming browser checks passed');})().catch(e=>{console.error(e);process.exit(1)});

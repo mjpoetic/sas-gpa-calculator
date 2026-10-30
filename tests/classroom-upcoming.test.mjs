@@ -11,3 +11,16 @@ test('normalizes public Google calendar URLs without preserving arbitrary option
  const id='school@group.calendar.google.com';for(const input of [`https://calendar.google.com/calendar/embed?src=${encodeURIComponent(id)}&mode=MONTH`,`https://www.google.com/calendar/ical/${encodeURIComponent(id)}/public/basic.ics`,`https://calendar.google.com/calendar/u/0?cid=${btoa(id)}`]){const url=new URL(publicGoogleCalendar(input));assert.equal(url.searchParams.get('src'),id);assert.equal(url.searchParams.get('mode'),'AGENDA');assert.equal(url.origin,'https://calendar.google.com');}
  for(const input of ['javascript:alert(1)','https://evil.example/calendar/embed?src=school','https://calendar.google.com.evil.example/calendar/embed?src=school','https://calendar.google.com/calendar/ical/school/private-secret/basic.ics','https://calendar.google.com/calendar/'])assert.throws(()=>publicGoogleCalendar(input));
 });
+
+import {newChart,validateBackup} from '../classroom/model.mjs';
+import {mergeDocuments} from '../classroom/sync-merge.mjs';
+test('calendar connection survives cloud validation, device merging, backups and disconnection',()=>{
+ const chart=newChart(),base={version:1,active:chart.id,charts:[chart]},local=structuredClone(base),remote=structuredClone(base);
+ remote.publicCalendar={name:'School events',url:'https://calendar.google.com/calendar/embed?src=school%40group.calendar.google.com'};
+ local.charts[0].name='Edited on another device';
+ const merged=mergeDocuments(base,local,remote);assert.deepEqual(merged.conflicts,[]);assert.equal(merged.document.publicCalendar.name,'School events');assert.equal(merged.document.charts[0].name,'Edited on another device');
+ const restored=validateBackup(JSON.parse(JSON.stringify(merged.document)));assert.deepEqual(restored.publicCalendar,merged.document.publicCalendar);
+ const disconnected=structuredClone(restored);disconnected.publicCalendar=null;
+ assert.equal(mergeDocuments(restored,restored,disconnected).document.publicCalendar,null);
+ assert.throws(()=>validateBackup({...base,publicCalendar:{name:'Bad',url:'https://evil.example/calendar'}}));
+});
