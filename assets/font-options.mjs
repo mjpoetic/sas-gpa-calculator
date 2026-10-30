@@ -28,7 +28,7 @@ export function validateWeight(value){if(!Object.hasOwn(fontWeights,value))throw
 
 export function autoFontField({input,source,weight,status,apply}) {
  let sequence=0,timer;
- const show=(text,color)=>{status.textContent=text;status.style.color=color||'';};
+ const show=(text,color)=>{status.textContent=text;status.style.color=color||'';const available=text.startsWith('✓'),unavailable=text.startsWith('×');input.setAttribute('aria-invalid',String(unavailable));input.style.borderColor=available||unavailable?color:'';input.style.boxShadow=available||unavailable?`0 0 0 1px ${color}`:'';input.style.backgroundColor=available?'rgba(22,163,74,0.10)':unavailable?'rgba(220,38,38,0.10)':'';};
  const check=()=>{const current=++sequence;clearTimeout(timer);if(source.value==='preset'||!input.value.trim()){show('');return;}show('… Checking font');timer=setTimeout(async()=>{try{const font=validateFont({source:source.value,family:input.value.trim()});await loadFont(font,Number(weight?.value||400));if(current!==sequence)return;apply(font);show('✓ Font available and applied','#15803d');}catch(e){if(current===sequence)show('× '+e.message,'#dc2626');}},500);};
  input.addEventListener('input',check);source.addEventListener('change',check);weight?.addEventListener('change',check);input.form?.addEventListener('submit',e=>{e.preventDefault();check();});return check;
 }
