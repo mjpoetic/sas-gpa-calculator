@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.30.10","changes":["Add next-birthday countdowns and a collapsible public Google Calendar agenda"]},
  {"version":"2026.10.30.9","changes":["Give Classroom Studio a chalkboard-green celebration logo"]},
  {"version":"2026.10.30.8","changes":["Make timers borderless glass widgets with proportional edge resizing, paused inline time editing, stronger alert sounds, volume control, and repeat-until-dismissed alarms."]},
  {"version":"2026.10.30.7","changes":["Customize group names and colors, present groups full screen, and use larger timer styles with font, background, accent, and ending-sound choices."]},

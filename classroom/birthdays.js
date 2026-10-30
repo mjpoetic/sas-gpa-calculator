@@ -1,9 +1,10 @@
-import {openBirthdayReminders} from './birthday-reminders.js?v=20261030-release9';
-import {openSISBirthdays} from './birthday-sis.js?v=20261030-release9';
-import {openBulkBirthdays} from './birthday-bulk.js?v=20261030-release9';
-import {paintBirthdayPortrait} from './birthday-portrait.js?v=20261030-release9';
-import {seatName} from './student-names.mjs?v=20261030-release9';
-import {validateBirthday,birthdayOccasion,nextBirthday} from './celebration-date.mjs?v=20261030-release9';
+import {birthdayCountdown} from './upcoming.js?v=20261030-release10';
+import {openBirthdayReminders} from './birthday-reminders.js?v=20261030-release10';
+import {openSISBirthdays} from './birthday-sis.js?v=20261030-release10';
+import {openBulkBirthdays} from './birthday-bulk.js?v=20261030-release10';
+import {paintBirthdayPortrait} from './birthday-portrait.js?v=20261030-release10';
+import {seatName} from './student-names.mjs?v=20261030-release10';
+import {validateBirthday,birthdayOccasion,nextBirthday} from './celebration-date.mjs?v=20261030-release10';
 const make=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 export function editBirthday(student,getChart,commit,preferences={}){
  const chartId=getChart().id,d=make('dialog');d.className='workspace-dialog';d.setAttribute('aria-label','Student birthday');
@@ -30,7 +31,7 @@ export function setupBirthdays(getChart,commit,getState=()=>({charts:[getChart()
  const st=c.students.find(s=>occasion(s)&&!dismissed.has(key(s))&&(()=>{try{return !localStorage.getItem(key(s));}catch{return true;}})());if(!st)return;active=true;const stamp=key(st);celebrate(st,()=>{dismissed.add(stamp);try{localStorage.setItem(stamp,'dismissed');}catch{}active=false;setTimeout(check,300);},occasion(st));};
  const button=make('button');button.id='birthdays-open';button.type='button';button.className='birthdays-launch';button.setAttribute('aria-label','Birthdays');button.title='Student birthdays';button.innerHTML='<svg class="button-glyph" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16v8H4ZM3 21h18M4 16q2 3 4 0q2 3 4 0q2 3 4 0q2 3 4 0M8 9v4m4-4v4m4-4v4"/><path d="M8 3q-3 4 0 4t0-4Zm4 0q-3 4 0 4t0-4Zm4 0q-3 4 0 4t0-4Z"/></g></svg><span>Birthdays</span>';button.onclick=()=>{
   const c=getChart(),d=make('dialog');d.className='workspace-dialog birthday-directory';d.setAttribute('aria-labelledby','birthday-directory-title');d.setAttribute('aria-label','Class birthdays');
-  const header=make('header'),title=make('h2','Class birthdays');title.id='birthday-directory-title';header.append(title,make('p','Choose a student to enter a birthday or celebrate now.'));
+  const header=make('header'),title=make('h2','Class birthdays');title.id='birthday-directory-title';header.append(title,make('p','Choose a student to enter a birthday or celebrate now.'),birthdayCountdown(c.students,getState().birthdayPreferences?.weekendEarly!==false));
   const actions=make('div');actions.className='birthday-directory-actions';
   const bulk=make('button','Bulk add birthdays');bulk.id='birthday-bulk-open';bulk.className='primary';bulk.onclick=()=>{d.close();openBulkBirthdays(getChart,commit);};
   const sis=make('button','Import SIS report across lists');sis.id='birthday-sis-open';sis.onclick=()=>{d.close();openSISBirthdays(getState,commit);};const settings=make('button','Birthday reminders');settings.id='birthday-reminders-open';settings.onclick=()=>{d.close();openBirthdayReminders(getState,commit);};actions.append(bulk,sis,settings);

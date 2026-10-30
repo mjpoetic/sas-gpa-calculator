@@ -1,11 +1,11 @@
-import {validateGroupMaker} from './group-maker.mjs?v=20261030-release9';
-import {validateBoard} from './board-model.mjs?v=20261030-release9';
-import {validateBirthday} from './celebration-date.mjs?v=20261030-release9';
+import {validateGroupMaker} from './group-maker.mjs?v=20261030-release10';
+import {validateBoard} from './board-model.mjs?v=20261030-release10';
+import {validateBirthday} from './celebration-date.mjs?v=20261030-release10';
 import {validateStudentExclusions} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {validateWeeklyJobs} from './weekly-jobs.mjs?v=20261020-names1';
-import {validateAvatar} from './avatars.mjs?v=20261030-release9';
-import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261030-release9';
-import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261030-release9';
+import {validateAvatar} from './avatars.mjs?v=20261030-release10';
+import {normalizeStudentName,validateNickname} from './student-names.mjs?v=20261030-release10';
+import {validateFont,validateWeight} from '../assets/font-options.mjs?v=20261030-release10';
 export let WIDTH=960,HEIGHT=680;
 export function setRoomSize(room={width:960,height:680}){WIDTH=room.width;HEIGHT=room.height;}
 export function validateRoom(room){if(!room||![room.width,room.height].every(n=>Number.isFinite(n)&&n>=480&&n<=1600))throw new Error('Room sides must be between 480 and 1600.');return {width:room.width,height:room.height};}
