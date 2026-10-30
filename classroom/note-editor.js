@@ -1,5 +1,5 @@
-import {fontCSS,loadFont,validateFont,fontOptions,suggestFonts} from '../assets/font-options.mjs?v=20261030-release3';
-import {validateRich,richTags} from './note-rich.mjs?v=20261030-release3';
+import {fontCSS,loadFont,validateFont,fontOptions,suggestFonts} from '../assets/font-options.mjs?v=20261030-release4';
+import {validateRich,richTags} from './note-rich.mjs?v=20261030-release4';
 const el=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
 const hex=color=>{const values=color?.match(/\d+/g);return values&&values.length>=3?'#'+values.slice(0,3).map(x=>Number(x).toString(16).padStart(2,'0')).join(''): /^#[\da-f]{6}$/i.test(color||'')?color:undefined;};
 export function readRich(host,fontSource='local'){

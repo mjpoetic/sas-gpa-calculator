@@ -1,8 +1,8 @@
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {pickerRound} from './picker-round.mjs?v=20261020-picker2';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261030-release3';
-import {seatName} from './student-names.mjs?v=20261030-release3';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261030-release4';
+import {seatName} from './student-names.mjs?v=20261030-release4';
 
 export function setupRandomPicker(getChart,commit) {
   const make=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node;};
