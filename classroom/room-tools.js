@@ -1,13 +1,17 @@
-import {makeGroups} from './group-maker.mjs?v=20261030-release4';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261030-release4';
-import {seatName} from './student-names.mjs?v=20261030-release4';
+import {makeGroups} from './group-maker.mjs?v=20261030-release6';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261030-release6';
+import {seatName} from './student-names.mjs?v=20261030-release6';
 const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const button=(text,fn)=>{const b=make('button','',text);b.type='button';b.onclick=fn;return b;};
 export function setupRoomTools(getChart,commit){
  const trigger=button('Tools ▾',()=>{if(!menu.hidden){hideMenu();return;}const r=trigger.getBoundingClientRect();menu.hidden=false;menu.style.left=Math.max(8,Math.min(innerWidth-240,r.right-240))+'px';menu.style.top=Math.min(r.bottom+6,innerHeight-280)+'px';menu.showPopover();trigger.setAttribute('aria-expanded','true');menu.querySelector('button')?.focus();});trigger.id='room-tools-open';trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','room-tools-menu');
  const menu=make('div','room-tools-menu');menu.id='room-tools-menu';menu.hidden=true;menu.popover='auto';menu.setAttribute('role','group');menu.setAttribute('aria-label','Room tools');
- for(const id of ['birthdays-open','random-picker-open','shuffle']){const b=document.getElementById(id);if(b)menu.append(b);}
- const launch=button('Group maker',()=>{hideMenu();openGroups();});launch.id='group-maker-open';menu.append(launch,button('Timer',()=>{hideMenu();document.dispatchEvent(new Event('sas-open-timer'));}));document.querySelector('.studio-modes').append(trigger);document.body.append(menu);
+ for(const id of ['birthdays-open','random-picker-open']){const b=document.getElementById(id);if(b)menu.append(b);}
+ const launch=button('Group maker',()=>{hideMenu();openGroups();});launch.id='group-maker-open';const timer=button('Timer',()=>{hideMenu();document.dispatchEvent(new Event('sas-open-timer'));});timer.id='room-timer-open';menu.append(launch,timer);
+ const actions=make('div','room-primary-actions'),shuffle=document.getElementById('shuffle');shuffle.childNodes.forEach(n=>{if(n.nodeType===3)n.remove();});const shuffleLabel=make('span','','Shuffle');shuffle.append(shuffleLabel);actions.append(shuffle,trigger);document.querySelector('.room-toolbar>div:first-child').append(actions);document.body.append(menu);
+ const toolbar=document.querySelector('.room-toolbar');const measure=()=>{document.body.style.setProperty('--room-toolbar-height',toolbar.getBoundingClientRect().height+'px');document.body.style.setProperty('--studio-header-height',document.querySelector('.header').getBoundingClientRect().height+'px');};new ResizeObserver(measure).observe(toolbar);new ResizeObserver(measure).observe(document.querySelector('.header'));measure();
+ const glyph=(node,path)=>{node.dataset.glyphDone='true';const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');svg.setAttribute('aria-hidden','true');svg.classList.add('button-glyph');const p=document.createElementNS(svg.namespaceURI,'path');p.setAttribute('d',path);svg.append(p);node.prepend(svg);};glyph(launch,'M8 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM16 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM2 21v-4a6 6 0 0 1 12 0v4m0-5a5 5 0 0 1 8 4v1');glyph(timer,'M9 2h6M12 2v3m7 0 2 2M12 9v5l3 2M21 14a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z');
+
  menu.addEventListener('toggle',e=>{if(e.newState==='closed'){menu.hidden=true;trigger.setAttribute('aria-expanded','false');}});window.addEventListener('resize',()=>hideMenu());
  function hideMenu(){if(menu.matches(':popover-open'))menu.hidePopover();menu.hidden=true;trigger.setAttribute('aria-expanded','false');}
  menu.addEventListener('click',e=>{if(e.target.closest('button'))hideMenu();});document.addEventListener('pointerdown',e=>{if(!menu.contains(e.target)&&!trigger.contains(e.target))hideMenu();});
