@@ -1,4 +1,4 @@
-import {nextBirthday} from './celebration-date.mjs?v=20261031-release4';
+import {nextBirthday} from './celebration-date.mjs?v=20261031-release5';
 export function upcomingBirthdays(students,today=new Date(),early=true){
  const day=d=>Date.UTC(d.getFullYear(),d.getMonth(),d.getDate());
  const rows=students.flatMap(student=>{const next=nextBirthday(student.birthday,today,early);return next?[{student,...next,days:Math.round((day(next.actual)-day(today))/86400000)}]:[];}).sort((a,b)=>a.days-b.days||a.student.name.localeCompare(b.student.name));
