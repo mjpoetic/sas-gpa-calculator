@@ -1,8 +1,8 @@
-import {resizeTimerBox} from './timer-geometry.mjs?v=20261031-release1';
-import {inlineNoteToolbar,paintRich,readRich} from './note-editor.js?v=20261031-release1';
-import {fontCSS,loadFont} from '../assets/font-options.mjs?v=20261031-release1';
-import {timerCard,setupTimerTicks} from './board-timer.js?v=20261031-release1';
-import {BOARD_COLORS,NOTE_COLORS,newNote} from './board-model.mjs?v=20261031-release1';
+import {resizeTimerBox} from './timer-geometry.mjs?v=20261031-release2';
+import {inlineNoteToolbar,paintRich,readRich} from './note-editor.js?v=20261031-release2';
+import {fontCSS,loadFont} from '../assets/font-options.mjs?v=20261031-release2';
+import {timerCard,setupTimerTicks} from './board-timer.js?v=20261031-release2';
+import {BOARD_COLORS,NOTE_COLORS,newNote} from './board-model.mjs?v=20261031-release2';
 const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const button=(text,fn)=>{const n=make('button','',text);n.type='button';n.onclick=fn;return n;};
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));

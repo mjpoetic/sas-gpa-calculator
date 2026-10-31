@@ -1,23 +1,23 @@
-import {setupUpcoming} from './upcoming.js?v=20261031-release1';
-import {setupRoomTools} from './room-tools.js?v=20261031-release1';
-import {setupBoard} from './board.js?v=20261031-release1';
-import {openAvatarPreview} from './avatar-preview.js?v=20261031-release1';
-import {planFurnitureSync,applyFurnitureSync} from './furniture-sync.mjs?v=20261031-release1';
-import {setupBirthdays,editBirthday} from './birthdays.js?v=20261031-release1';
-import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261031-release1';
+import {setupUpcoming} from './upcoming.js?v=20261031-release2';
+import {setupRoomTools} from './room-tools.js?v=20261031-release2';
+import {setupBoard} from './board.js?v=20261031-release2';
+import {openAvatarPreview} from './avatar-preview.js?v=20261031-release2';
+import {planFurnitureSync,applyFurnitureSync} from './furniture-sync.mjs?v=20261031-release2';
+import {setupBirthdays,editBirthday} from './birthdays.js?v=20261031-release2';
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261031-release2';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261031-release1';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261031-release1';
-import {openAvatarEditor} from './avatar-editor.js?v=20261031-release1';
-import {transferStudent} from './seat-transfer.mjs?v=20261031-release1';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261031-release1';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261031-release1';
-import {furnitureArt} from './furniture-art.mjs?v=20261031-release1';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261031-release1';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights,autoFontField} from '../assets/font-options.mjs?v=20261031-release1';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261031-release2';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261031-release2';
+import {openAvatarEditor} from './avatar-editor.js?v=20261031-release2';
+import {transferStudent} from './seat-transfer.mjs?v=20261031-release2';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261031-release2';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261031-release2';
+import {furnitureArt} from './furniture-art.mjs?v=20261031-release2';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261031-release2';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights,autoFontField} from '../assets/font-options.mjs?v=20261031-release2';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
@@ -299,7 +299,10 @@ function renderRoom() {
   for(const person of [chart().teacher,...(chart().assistants||[])].filter(Boolean))if(person.position&&person.avatar.enabled){const wrapper=element('div','teacher-free-placement'),portrait=createTeacherPortrait(undefined,person.id||null);portrait.classList.add('teacher-free-avatar');wrapper.append(portrait);paintTeacherSize(wrapper,person.id||null);attachTeacherResize(wrapper,person.id||null);room.append(wrapper);}
   if(selectedItems().length>1)renderGroupControls();updateZoom();updateObjectControls();
 }
+let geometrySelectionKey='';
 function renderInspector() {
+  const geometryKey=JSON.stringify([state.active,selection,[...selectedIds],[...selectedSeatKeys]]);
+  if(geometryKey!==geometrySelectionKey){$('item-geometry').open=false;geometrySelectionKey=geometryKey;}
   $('copy-furniture-room').hidden=!selectedItems().length||selection?.seat!=null||selectedSeatKeys.size>0;
   document.dispatchEvent(new CustomEvent('sas-selection-changed',{detail:{selected:!!selected()||selectedSeatKeys.size>0,seat:!!selected()&&selection?.seat!==null&&!multiMode}}));
   const fontTargets=selectedFontTargets();$('selection-font-controls').hidden=fontTargets.length<2;if(fontTargets.length>1&&$('selection-font-weight').options.length){const f=fontTargets[0].font||fontTargets[0].labelFont||appearance().font;$('selection-font-source').value=f.source;$('selection-font-preset-label').hidden=f.source!=='preset';$('selection-font-family-label').hidden=f.source==='preset';$('selection-font-preset').value=f.source==='preset'?f.family:'system';$('selection-font-family').value=f.source==='preset'?'':f.family;$('selection-font-weight').value=fontTargets[0].fontWeight||appearance().weight||400;$('selection-font-status').textContent=new Set(fontTargets.map(t=>JSON.stringify([t.font||t.labelFont||appearance().font,t.fontWeight||appearance().weight||400]))).size>1?'Mixed fonts. Apply replaces fonts on the selection.':'Changes apply only to the selection.';}

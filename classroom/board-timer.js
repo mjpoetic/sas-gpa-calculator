@@ -1,8 +1,8 @@
-import {normalizeTimerBox} from './timer-geometry.mjs?v=20261031-release1';
-import {unlockTimerAudio,playTimerSound} from './timer-audio.js?v=20261031-release1';
-import {timerSeconds} from './board-model.mjs?v=20261031-release1';
-import {fontCSS,loadFont,validateFont,fontOptions,suggestFonts} from '../assets/font-options.mjs?v=20261031-release1';
-import {TIMER_SOUNDS,timerSoundDuration} from './timer-sounds.mjs?v=20261031-release1';
+import {normalizeTimerBox} from './timer-geometry.mjs?v=20261031-release2';
+import {unlockTimerAudio,playTimerSound} from './timer-audio.js?v=20261031-release2';
+import {timerSeconds} from './board-model.mjs?v=20261031-release2';
+import {fontCSS,loadFont,validateFont,fontOptions,suggestFonts} from '../assets/font-options.mjs?v=20261031-release2';
+import {TIMER_SOUNDS,timerSoundDuration} from './timer-sounds.mjs?v=20261031-release2';
 const openTimerSettings=new Set();
 const svgNS='http://www.w3.org/2000/svg';
 const inkFor=hex=>{const [r,g,b]=hex.slice(1).match(/../g).map(n=>parseInt(n,16));return r*.299+g*.587+b*.114>155?'#24334b':'#ffffff';};
