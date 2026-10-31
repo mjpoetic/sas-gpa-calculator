@@ -1,8 +1,8 @@
-import {resizeTimerBox} from './timer-geometry.mjs?v=20261031-release3';
-import {inlineNoteToolbar,paintRich,readRich} from './note-editor.js?v=20261031-release3';
-import {fontCSS,loadFont} from '../assets/font-options.mjs?v=20261031-release3';
-import {timerCard,setupTimerTicks} from './board-timer.js?v=20261031-release3';
-import {BOARD_COLORS,NOTE_COLORS,newNote} from './board-model.mjs?v=20261031-release3';
+import {resizeTimerBox} from './timer-geometry.mjs?v=20261031-release4';
+import {inlineNoteToolbar,paintRich,readRich} from './note-editor.js?v=20261031-release4';
+import {fontCSS,loadFont} from '../assets/font-options.mjs?v=20261031-release4';
+import {timerCard,setupTimerTicks} from './board-timer.js?v=20261031-release4';
+import {BOARD_COLORS,NOTE_COLORS,newNote} from './board-model.mjs?v=20261031-release4';
 const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const button=(text,fn)=>{const n=make('button','',text);n.type='button';n.onclick=fn;return n;};
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -31,7 +31,7 @@ export function setupBoard({getChart,commit,uid,saveEdit}){
  const exit=button('Exit presentation',()=>setPresent(false));exit.className='board-exit';
  host.append(bar,viewport,exit);room.after(host);
  function dialog(name){const d=make('dialog','workspace-dialog board-dialog');d.setAttribute('aria-label',name);const h=make('form');h.method='dialog';h.append(make('h2','',name),button('×',()=>d.close()));h.lastChild.setAttribute('aria-label','Close '+name);d.append(h);document.body.append(d);return d;}
- const toolDialog=make('div','board-tool-menu');toolDialog.popover='auto';toolDialog.setAttribute('role','group');toolDialog.setAttribute('aria-label','Add a tool');document.body.append(toolDialog);toolDialog.addEventListener('toggle',e=>tools.setAttribute('aria-expanded',String(e.newState==='open')));const noteTool=button('Aa  Note',()=>{toolDialog.hidePopover();addNote();});noteTool.className='board-note-tool';const timerTool=button('Timer',()=>{toolDialog.hidePopover();addTimer();});timerTool.id='add-board-timer';toolDialog.append(noteTool,timerTool,make('p','hint','Instructions, agendas, and checklists. Noise meter and brain breaks will join this workspace later.'));
+ const toolDialog=make('div','board-tool-menu');toolDialog.popover='auto';toolDialog.setAttribute('role','group');toolDialog.setAttribute('aria-label','Add a tool');document.body.append(toolDialog);toolDialog.addEventListener('toggle',e=>tools.setAttribute('aria-expanded',String(e.newState==='open')));const noteTool=button('Note',()=>{toolDialog.hidePopover();addNote();});noteTool.className='board-note-tool';const timerTool=button('Timer',()=>{toolDialog.hidePopover();addTimer();});timerTool.id='add-board-timer';for(const [node,path] of [[noteTool,'M5 3h10l4 4v14H5ZM14 3v5h5M8 12h8M8 16h6'],[timerTool,'M9 2h6M12 2v3M18 6l2-2M12 9v5l3 2M21 14a9 9 0 1 1-18 0 9 9 0 0 1 18 0']]){node.dataset.glyphDone='true';const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');svg.setAttribute('aria-hidden','true');svg.classList.add('button-glyph');const p=document.createElementNS(svg.namespaceURI,'path');p.setAttribute('d',path);svg.append(p);node.prepend(svg);}toolDialog.append(noteTool,timerTool,make('p','hint','Instructions, agendas, and checklists. Noise meter and brain breaks will join this workspace later.'));
  const listDialog=dialog('Board notes'),list=make('div','board-note-list');listDialog.append(list);
  let editorNode=null;
  function patch(values){if(!editing||getChart().id!==editorChart)return;mutate(b=>{const n=b.notes.find(n=>n.id===editing);if(n)Object.assign(n,values);},true);}
@@ -59,7 +59,7 @@ export function setupBoard({getChart,commit,uid,saveEdit}){
   if(editing&&editorChart!==getChart().id){editing=null;editorNode=null;inlineEditor.close();}
   const activeTimer=document.activeElement?.closest('.timer-part');if(activeTimer&&canvas.contains(activeTimer)&&board().timers?.some(t=>t.id===activeTimer.closest('.board-timer').dataset.timerId))return;
   if(editing&&editorNode?.isConnected){const n=board().notes.find(n=>n.id===editing);if(n&&!n.hidden){editorNode.style.setProperty('--note-background',n.color);Object.assign(editorNode.style,{background:n.color,color:n.ink,fontSize:n.fontSize+'px',fontFamily:n.font?fontCSS(n.font):'',left:n.x+'px',top:n.y+'px',width:n.width+'px',height:n.height+'px'});editorNode.querySelector('.note-content').style.fontSize=n.fontSize+'px';inlineEditor.reposition();return;}editing=null;editorNode=null;inlineEditor.close();}
-  bg.value=board().color;canvas.style.background=board().color;canvas.replaceChildren();const visible=board().notes.filter(n=>!n.hidden);if(!visible.length&&!(board().timers||[]).length){canvas.append(empty);empty.hidden=presenting;}
+  bg.value=board().color;viewport.style.background=board().color;canvas.style.background=board().color;canvas.replaceChildren();const visible=board().notes.filter(n=>!n.hidden);if(!visible.length&&!(board().timers||[]).length){canvas.append(empty);empty.hidden=presenting;}
 
  for(const n of visible){const node=make('article','board-note');node.dataset.noteId=n.id;node.setAttribute('aria-label',n.title||'Classroom note');Object.assign(node.style,{left:n.x+'px',top:n.y+'px',width:n.width+'px',height:n.height+'px',background:n.color,color:n.ink,fontSize:n.fontSize+'px',textAlign:n.align});
   node.style.setProperty('--note-background',n.color);const top=make('div','note-top');const mover=button(n.locked?'Locked':'⠿ Move',()=>{});mover.className='note-move';mover.setAttribute('aria-label','Move '+(n.title||'note'));mover.disabled=n.locked;gesture(mover,n,node,'move');

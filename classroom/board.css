@@ -68,3 +68,12 @@
 .board-note .widget-more,.board-timer .timer-settings .widget-more{display:grid;place-items:center;width:34px;height:38px;min-height:38px!important;margin:0;padding:0!important;font:700 25px/1 Arial,sans-serif!important;border:0!important;border-radius:12px;background:#ffffff75!important;color:#35465d!important;box-shadow:inset 0 1px 0 #ffffff80,0 2px 8px #1c304215!important;opacity:.85;cursor:pointer}.board-note .widget-more:hover,.board-note .widget-more[aria-expanded=true]{opacity:1;background:#e6dfff!important;color:#5c438c!important}.board-note .widget-more:focus-visible{outline:2px solid #8364ce;outline-offset:2px}
 .board-timer .timer-settings{position:absolute;right:13px;bottom:13px;margin:0;z-index:25}.board-timer .timer-settings[data-open=true]{inset:12px;margin:0;padding:12px 8px 52px;border:0;background:#f0f4fbed;border-radius:20px;overflow:hidden;backdrop-filter:blur(26px)}.board-timer .timer-settings .timer-customize{position:absolute;right:0;bottom:0}.board-timer .timer-settings[data-open=true] .timer-customize{right:1px;bottom:1px}.board-timer .timer-settings-body{height:100%;overflow:auto;overscroll-behavior:contain}.board-timer .timer-controls{padding-bottom:8px;padding-left:44px;padding-right:44px}.board-presenting .note-actions{display:none}
 @media(prefers-reduced-transparency:reduce),(prefers-contrast:more){:root .board-note:not(.board-timer){background:var(--note-background,#fff)!important}.note-actions>div.widget-options{background:#f4f7ff}}
+
+/* Let the board background reach every edge while preserving canvas coordinates. */
+.chart-first[data-studio-view=board] main{width:100%;padding:0}
+.board-canvas{box-shadow:none}
+:root .board-tool-menu button{display:flex;align-items:center;gap:12px;background:var(--tool-fill)!important;color:var(--tool-ink)!important;border:1px solid var(--tool-edge)!important;box-shadow:inset 0 1px 0 #ffffff60,0 3px 9px #142d4315}
+.board-tool-menu .board-note-tool{--tool-fill:#fff0b8;--tool-ink:#674600;--tool-edge:#d4ac47}
+.board-tool-menu #add-board-timer{--tool-fill:#e5ddff;--tool-ink:#50328a;--tool-edge:#ab92db}
+:root .board-tool-menu button:hover{background:color-mix(in srgb,var(--tool-fill) 88%,var(--tool-ink))!important}
+.board-tool-menu .button-glyph{display:block;width:24px;height:24px;flex:0 0 24px;margin:0}
