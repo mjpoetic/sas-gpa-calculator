@@ -77,3 +77,6 @@
 .board-tool-menu #add-board-timer{--tool-fill:#e5ddff;--tool-ink:#50328a;--tool-edge:#ab92db}
 :root .board-tool-menu button:hover{background:color-mix(in srgb,var(--tool-fill) 88%,var(--tool-ink))!important}
 .board-tool-menu .button-glyph{display:block;width:24px;height:24px;flex:0 0 24px;margin:0}
+
+/* Keep note emphasis visible for families without a matching font face. */
+.note-title,.note-content{font-synthesis:weight style}

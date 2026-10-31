@@ -11,17 +11,20 @@ export function validateFont(font) {
 }
 export function fontCSS(font) {return font.source==='preset' ? fontOptions[font.family].css : `"${font.family}", ${fontOptions.system.css}`;}
 const loaded=new Map();
-export function loadFont(font,weight=400) {
+export function loadFont(font,weight=400,italic=false) {
   validateFont(font);
   if(font.source!=='google') return Promise.resolve();
-  const key=font.family+weight;if(loaded.has(key)) return loaded.get(key);
+  const key=font.family+':'+weight+':'+italic;if(loaded.has(key)) return loaded.get(key);
   const promise=new Promise((resolve,reject)=>{
     const link=document.createElement('link');link.rel='stylesheet';
-    const url=new URL('https://fonts.googleapis.com/css2');url.searchParams.set('family',font.family+':wght@'+weight);url.searchParams.set('display','swap');link.href=url.href;
+    const url=new URL('https://fonts.googleapis.com/css2');url.searchParams.set('family',font.family+(italic?':ital,wght@1,':':wght@')+weight);url.searchParams.set('display','swap');link.href=url.href;
     const timer=setTimeout(()=>{link.remove();loaded.delete(key);reject(new Error('Font download timed out. Using the system fallback.'));},10000);
-    link.onload=async()=>{try{const faces=await document.fonts.load(`${weight} 16px "${font.family}"`);if(!faces.length)throw Error('Font unavailable');clearTimeout(timer);resolve();}catch{clearTimeout(timer);link.remove();loaded.delete(key);reject(new Error('Font could not be loaded. Check the name, weight, or connection.'));}};link.onerror=()=>{clearTimeout(timer);link.remove();loaded.delete(key);reject(new Error('This Google Font weight is unavailable. Try Regular or another weight, and check the family name or connection.'));};document.head.append(link);
+    link.onload=async()=>{try{const faces=await document.fonts.load(`${italic?'italic ':''}${weight} 16px "${font.family}"`);if(!faces.length)throw Error('Font unavailable');clearTimeout(timer);resolve();}catch{clearTimeout(timer);link.remove();loaded.delete(key);reject(new Error('Font could not be loaded. Check the name, weight, or connection.'));}};link.onerror=()=>{clearTimeout(timer);link.remove();loaded.delete(key);reject(new Error('This Google Font weight is unavailable. Try Regular or another weight, and check the family name or connection.'));};document.head.append(link);
   });loaded.set(key,promise);return promise;
 }
+
+// Notes may mix styles within one family; unavailable variants use scoped synthesis.
+export function loadNoteFont(font){const regular=loadFont(font);if(font.source==='google')void regular.then(()=>Promise.allSettled([loadFont(font,700),loadFont(font,400,true),loadFont(font,700,true)])).catch(()=>{});return regular;}
 
 export const fontWeights={100:'Thin',200:'Extra light',300:'Light',400:'Regular',500:'Medium',600:'Semibold',700:'Bold',800:'Extra bold',900:'Heavy'};
 export function validateWeight(value){if(!Object.hasOwn(fontWeights,value))throw new Error('Invalid font weight.');return Number(value);}

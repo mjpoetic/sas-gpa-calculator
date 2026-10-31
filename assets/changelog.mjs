@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.31.7","changes":["Fix Google Font bold and italic in notes; add custom Google Fonts and inline font previews"]},
  {"version":"2026.10.31.6","changes":["Keep the last Room or Board view and active note after refreshing Classroom Studio."]},
  {"version":"2026.10.31.5","changes":["Fix note font selection, saved formatting, and editor focus; cancel font changes when the selection moves"]},
  {"version":"2026.10.31.4","changes":["Colorful board tool buttons and edge-to-edge board background"]},
