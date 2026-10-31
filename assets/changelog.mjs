@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.10.31.3","changes":["Give notes a borderless glass finish and tuck note and timer options into lower-right three-dot menus."]},
  {"version":"2026.10.31.2","changes":["Keep Size and position collapsed by default for every Classroom Studio item"]},
  {"version":"2026.10.31.1","changes":["Customize next-birthday colors with a three-dot settings control, live preview, and cloud sync"]},
  {"version":"2026.10.30.13","changes":["Customize calendar and event-card colors with six synced color schemes and a live preview"]},
