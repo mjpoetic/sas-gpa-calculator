@@ -1,6 +1,6 @@
-import {CALENDAR_COLORS,applyCalendarColor} from './calendar-colors.mjs?v=20261031-release5';
-import {upcomingBirthdays,publicGoogleCalendar} from './upcoming.mjs?v=20261031-release5';
-import {cloudConfig} from './cloud-config.js?v=20261031-release5';
+import {CALENDAR_COLORS,applyCalendarColor} from './calendar-colors.mjs?v=20261031-release6';
+import {upcomingBirthdays,publicGoogleCalendar} from './upcoming.mjs?v=20261031-release6';
+import {cloudConfig} from './cloud-config.js?v=20261031-release6';
 const make=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 export function birthdayCountdown(students,early=true,colorScheme='rose'){
  const rows=upcomingBirthdays(students,new Date(),early),box=make('div');box.className='birthday-countdown';applyCalendarColor(box,colorScheme);

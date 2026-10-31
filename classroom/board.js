@@ -1,8 +1,8 @@
-import {resizeTimerBox} from './timer-geometry.mjs?v=20261031-release5';
-import {inlineNoteToolbar,paintRich,readRich} from './note-editor.js?v=20261031-release5';
-import {fontCSS,loadFont} from '../assets/font-options.mjs?v=20261031-release5';
-import {timerCard,setupTimerTicks} from './board-timer.js?v=20261031-release5';
-import {BOARD_COLORS,NOTE_COLORS,newNote} from './board-model.mjs?v=20261031-release5';
+import {resizeTimerBox} from './timer-geometry.mjs?v=20261031-release6';
+import {inlineNoteToolbar,paintRich,readRich} from './note-editor.js?v=20261031-release6';
+import {fontCSS,loadFont} from '../assets/font-options.mjs?v=20261031-release6';
+import {timerCard,setupTimerTicks} from './board-timer.js?v=20261031-release6';
+import {BOARD_COLORS,NOTE_COLORS,newNote} from './board-model.mjs?v=20261031-release6';
 const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const button=(text,fn)=>{const n=make('button','',text);n.type='button';n.onclick=fn;return n;};
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -68,5 +68,14 @@ export function setupBoard({getChart,commit,uid,saveEdit}){
   if(n.rich)paintRich(content,n.rich,()=>{},()=>{const rich=readRich(content,n.font?.source==='google'?'google':'local');mutate(b=>b.notes.find(x=>x.id===n.id).rich=rich);});else n.text.split('\n').forEach((line,i)=>{const row=make('div','note-line');const check=line.match(/^- \[([ x])\] (.*)$/);if(check){row.classList.add('note-check');const box=make('input');box.type='checkbox';box.checked=check[1]==='x';box.setAttribute('aria-label',check[2]||'Checklist item');box.onchange=()=>mutate(b=>{const note=b.notes.find(x=>x.id===n.id),lines=note.text.split('\n');lines[i]='- ['+(box.checked?'x':' ')+'] '+check[2];note.text=lines.join('\n');});row.append(box);const label=make('span');inline(label,check[2]);row.append(label);if(box.checked)row.classList.add('checked');}else {const bullet=line.match(/^[-*] (.*)$/),number=line.match(/^(\d+\. )(.+)$/);if(bullet){row.classList.add('note-bullet');inline(row,bullet[1]);}else if(number){row.append(document.createTextNode(number[1]));inline(row,number[2]);}else inline(row,line||'\u00a0');}content.append(row);});
   const resize=button('↘',()=>{});resize.className='note-resize';resize.setAttribute('aria-label','Resize '+(n.title||'note'));resize.disabled=n.locked;gesture(resize,n,node,'resize');node.append(top,titleField,content,resize);if(editing===n.id&&!presenting){editorNode=node;node.classList.add('note-editing');titleField.contentEditable='true';titleField.setAttribute('role','textbox');titleField.oninput=()=>inlineEditor.save();titleField.onbeforeinput=e=>{if(e.inputType.startsWith('insert')&&titleField.innerText.length-(getSelection()?.toString().length||0)>=120)e.preventDefault();};titleField.onpaste=e=>{e.preventDefault();document.execCommand('insertText',false,e.clipboardData.getData('text/plain').replace(/\r?\n/g,' ').slice(0,Math.max(0,120-titleField.innerText.length+(getSelection()?.toString().length||0))));};titleField.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();content.focus();}if(e.key==='Escape'){e.preventDefault();finishEditing();}e.stopPropagation();};content.contentEditable='true';content.querySelectorAll('.note-placeholder').forEach(n=>n.remove());content.querySelectorAll('input[type=checkbox]').forEach(box=>{box.contentEditable='false';box.onchange=()=>inlineEditor.save();});content.onbeforeinput=e=>{if(content.innerText.length>=12000&&e.inputType.startsWith('insert'))e.preventDefault();};content.oninput=()=>inlineEditor.save();content.onpaste=e=>{e.preventDefault();document.execCommand('insertText',false,e.clipboardData.getData('text/plain').slice(0,Math.max(0,12000-content.innerText.length+(getSelection()?.toString().length||0))));};content.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();finishEditing();}e.stopPropagation();};inlineEditor.bind(content,n,titleField);}else{titleField.tabIndex=presenting?-1:0;titleField.onclick=()=>{if(!presenting)openEditor(n.id,'title');};titleField.onkeydown=e=>{if(!presenting&&['Enter',' '].includes(e.key)){e.preventDefault();e.stopPropagation();openEditor(n.id,'title');}};content.tabIndex=presenting?-1:0;content.onclick=e=>{if(!presenting&&!e.target.closest('input'))openEditor(n.id);};}node.ondblclick=e=>{if(!presenting&&editing!==n.id&&!e.target.closest('button,input'))openEditor(n.id,e.target.closest('.note-title')?'title':'body');};canvas.append(node);
  }for(const t of board().timers||[])canvas.append(timerCard(t,{make,button,mutate:fn=>{if(editing)finishEditing();mutate(fn);},edit:fn=>mutate(fn,true),gesture,presenting}));tickTimers();fit();}
- switchView('room');return {render};
+ switchView('room');return {render,
+  getViewState:()=>({view,editing}),
+  restoreViewState:saved=>{
+   switchView(saved?.view==='board'?'board':'room');
+   if(view==='board'&&typeof saved?.editing==='string'){
+    const note=board().notes.find(n=>n.id===saved.editing);
+    if(note&&!note.hidden&&!note.locked)openEditor(note.id);
+   }
+  }
+ };
 }
