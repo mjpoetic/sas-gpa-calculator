@@ -1,9 +1,9 @@
-import {CALENDAR_COLORS,applyCalendarColor} from './calendar-colors.mjs?v=20261030-release13';
-import {upcomingBirthdays,publicGoogleCalendar} from './upcoming.mjs?v=20261030-release13';
-import {cloudConfig} from './cloud-config.js?v=20261030-release13';
+import {CALENDAR_COLORS,applyCalendarColor} from './calendar-colors.mjs?v=20261031-release1';
+import {upcomingBirthdays,publicGoogleCalendar} from './upcoming.mjs?v=20261031-release1';
+import {cloudConfig} from './cloud-config.js?v=20261031-release1';
 const make=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
-export function birthdayCountdown(students,early=true){
- const rows=upcomingBirthdays(students,new Date(),early),box=make('div');box.className='birthday-countdown';
+export function birthdayCountdown(students,early=true,colorScheme='rose'){
+ const rows=upcomingBirthdays(students,new Date(),early),box=make('div');box.className='birthday-countdown';applyCalendarColor(box,colorScheme);
  if(!rows.length){box.append(make('strong','Next birthday'),make('span','Add birthdays to start the countdown.'));return box;}
  const {days,actual,celebration}=rows[0];box.append(make('strong',days===0?'🎂 Birthday today!':`🎂 Next birthday · ${days===1?'Tomorrow':`in ${days} days`}`),make('span',rows.map(r=>r.student.name).join(' & ')+` · ${actual.toLocaleDateString(undefined,{month:'short',day:'numeric'})}`));
  if(early&&celebration.getTime()!==actual.getTime())box.append(make('small',`Celebrate ${celebration.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})}`));return box;
@@ -20,9 +20,15 @@ export function setupUpcoming(getChart,getState,commit){
  function syncCalendar(){const next=getState().publicCalendar||null,signature=JSON.stringify(next);if(signature!==calendarSignature){dialog?.close();resetCalendar();saved=next;calendarSignature=signature;renderCalendar();load();}}
 
  const panel=make('details');panel.className='upcoming-panel';panel.open=true;
- const summary=make('summary','Next up'),body=make('div'),birthday=make('button'),calendar=make('section'),settings=make('button','Connect calendar'),card=make('button');
- body.className='upcoming-body';birthday.dataset.glyphDone='true';card.dataset.glyphDone='true';birthday.type='button';birthday.className='upcoming-birthday-card';birthday.title='View class birthdays';birthday.onclick=()=>document.getElementById('birthdays-open').click();calendar.className='upcoming-calendar';settings.type='button';settings.id='public-calendar-settings';settings.dataset.glyphDone='true';settings.setAttribute('aria-label','Calendar settings');settings.title='Calendar settings';settings.textContent='⋮';card.type='button';card.className='upcoming-event-card';card.setAttribute('aria-label','View upcoming school events');calendar.append(card,settings);body.append(birthday,calendar);panel.append(summary,body);document.querySelector('.workspace').before(panel);
- let signature='';function refreshBirthday(){const students=getChart().students,early=getState().birthdayPreferences?.weekendEarly!==false,next=JSON.stringify([students.map(s=>[s.name,s.birthday]),early,new Date().toDateString()]);if(next!==signature){signature=next;birthday.replaceChildren(birthdayCountdown(students,early));}}
+ const summary=make('summary','Next up'),body=make('div'),birthdayWrap=make('section'),birthdaySettings=make('button','⋮'),birthday=make('button'),calendar=make('section'),settings=make('button','Connect calendar'),card=make('button');
+ body.className='upcoming-body';birthday.dataset.glyphDone='true';card.dataset.glyphDone='true';birthday.type='button';birthday.className='upcoming-birthday-card';birthday.title='View class birthdays';birthday.onclick=()=>document.getElementById('birthdays-open').click();calendar.className='upcoming-calendar';settings.type='button';settings.id='public-calendar-settings';settings.dataset.glyphDone='true';settings.setAttribute('aria-label','Calendar settings');settings.title='Calendar settings';settings.textContent='⋮';card.type='button';card.className='upcoming-event-card';card.setAttribute('aria-label','View upcoming school events');calendar.append(card,settings);birthdayWrap.className='upcoming-birthday';birthdaySettings.id='birthday-widget-settings';birthdaySettings.type='button';birthdaySettings.dataset.glyphDone='true';birthdaySettings.setAttribute('aria-label','Birthday widget settings');birthdaySettings.title='Birthday widget settings';birthdayWrap.append(birthday,birthdaySettings);body.append(birthdayWrap,calendar);panel.append(summary,body);document.querySelector('.workspace').before(panel);
+ let signature='';function refreshBirthday(){const students=getChart().students,early=getState().birthdayPreferences?.weekendEarly!==false,next=JSON.stringify([students.map(s=>[s.name,s.birthday]),early,getState().birthdayPreferences?.colorScheme,new Date().toDateString()]);if(next!==signature){signature=next;birthday.replaceChildren(birthdayCountdown(students,early,getState().birthdayPreferences?.colorScheme));}}
+ birthdaySettings.onclick=()=>{
+  const d=make('dialog');d.className='workspace-dialog public-calendar-dialog birthday-color-dialog';d.setAttribute('aria-label','Birthday widget settings');
+  const scheme=make('select');scheme.setAttribute('aria-label','Birthday color scheme');for(const [value,colors] of Object.entries(CALENDAR_COLORS)){const option=make('option',colors.name);option.value=value;scheme.append(option);}scheme.value=getState().birthdayPreferences?.colorScheme||'rose';
+  const label=make('label','Color scheme');label.append(scheme);const preview=make('div');const paint=()=>preview.replaceChildren(birthdayCountdown(getChart().students,getState().birthdayPreferences?.weekendEarly!==false,scheme.value));scheme.onchange=paint;paint();
+  const save=make('button','Save birthday colors'),cancel=make('button','Cancel'),actions=make('div');save.className='primary';actions.className='birthday-directory-actions';save.onclick=()=>{commit(()=>{getState().birthdayPreferences={weekendEarly:true,...getState().birthdayPreferences,colorScheme:scheme.value};},'Birthday colors saved.');refreshBirthday();d.close();};cancel.onclick=()=>d.close();actions.append(save,cancel);d.append(make('h2','Birthday widget'),label,preview,make('p','Colors are saved with your classrooms and sync through your cloud account.'),actions);d.onclose=()=>d.remove();document.body.append(d);d.showModal();
+ };
  const activeEvents=()=>events.filter(event=>{const end=event.allDay?new Date(event.end+'T00:00:00'):new Date(event.end);return Math.max(end.getTime(),dateOf(event).getTime()+1)>Date.now();});
  function renderCalendar(){
   applyCalendarColor(calendar,saved?.colorScheme);card.replaceChildren();

@@ -25,3 +25,10 @@ test('calendar connection survives cloud validation, device merging, backups and
  assert.equal(mergeDocuments(restored,restored,disconnected).document.publicCalendar,null);
  assert.throws(()=>validateBackup({...base,publicCalendar:{name:'Bad',url:'https://evil.example/calendar'}}));
 });
+
+test('birthday colors survive validation and independent reminder edits',()=>{
+ const chart=newChart(),base={version:1,active:chart.id,charts:[chart],birthdayPreferences:{weekendEarly:true,colorScheme:'rose'}},local=structuredClone(base),remote=structuredClone(base);
+ local.birthdayPreferences.colorScheme='green';remote.birthdayPreferences.weekendEarly=false;
+ const result=mergeDocuments(base,local,remote);assert.deepEqual(result.conflicts,[]);assert.deepEqual(result.document.birthdayPreferences,{weekendEarly:false,colorScheme:'green'});
+ assert.throws(()=>validateBackup({...base,birthdayPreferences:{weekendEarly:true,colorScheme:'invalid'}}));
+});

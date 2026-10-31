@@ -1,4 +1,4 @@
-import {validateBirthday} from './celebration-date.mjs?v=20261030-release13';
+import {validateBirthday} from './celebration-date.mjs?v=20261031-release1';
 
 const nameKey=value=>String(value).normalize('NFC').trim().replace(/\s+/gu,' ').toLocaleLowerCase('en');
 export function parseBirthdayRows(text,{keepHeader=false}={}){
