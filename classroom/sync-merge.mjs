@@ -1,4 +1,4 @@
-import {validateBackup} from './model.mjs?v=20261031-release7';
+import {validateBackup} from './model.mjs?v=20261112-release1';
 const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 export function mergeDocuments(base,local,remote){
  const conflicts=[];

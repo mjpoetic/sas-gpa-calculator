@@ -1,6 +1,6 @@
-import {makeGroups} from './group-maker.mjs?v=20261031-release7';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261031-release7';
-import {seatName} from './student-names.mjs?v=20261031-release7';
+import {makeGroups} from './group-maker.mjs?v=20261112-release1';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261112-release1';
+import {seatName} from './student-names.mjs?v=20261112-release1';
 const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const button=(text,fn)=>{const b=make('button','',text);b.type='button';b.onclick=fn;return b;};
 export function setupRoomTools(getChart,commit){
@@ -16,7 +16,7 @@ export function setupRoomTools(getChart,commit){
  function hideMenu(){if(menu.matches(':popover-open'))menu.hidePopover();menu.hidden=true;trigger.setAttribute('aria-expanded','false');}
  menu.addEventListener('click',e=>{if(e.target.closest('button'))hideMenu();});document.addEventListener('pointerdown',e=>{if(!menu.contains(e.target)&&!trigger.contains(e.target))hideMenu();});
  menu.onkeydown=e=>{if(e.key==='Escape'){hideMenu();trigger.focus();}const buttons=[...menu.querySelectorAll('button')];if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();buttons[(buttons.indexOf(document.activeElement)+(e.key==='ArrowDown'?1:buttons.length-1))%buttons.length].focus();}};
- const panel=make('section','group-maker');panel.hidden=true;panel.setAttribute('aria-label','Group maker');const header=make('header','group-maker-header'),heading=make('div');const groupTitle=make('input','group-maker-title');groupTitle.value='Group maker';groupTitle.maxLength=120;groupTitle.setAttribute('aria-label','Group maker title');groupTitle.onchange=()=>{const text=groupTitle.value.trim()||'Group maker';update(s=>s.title=text);};heading.append(groupTitle,make('p','hint','Make balanced groups from this classroom’s roster.'));const close=button('Back to room',()=>closeGroups()),full=button('Full screen',()=>toggleFullscreen());full.id='groups-fullscreen';full.setAttribute('aria-pressed','false');const headerActions=make('div','group-header-actions');headerActions.append(full,close);header.append(heading,headerActions);
+ const panel=make('section','group-maker');panel.hidden=true;panel.setAttribute('aria-label','Group maker');const header=make('header','group-maker-header'),heading=make('div');const groupTitle=make('input','group-maker-title');groupTitle.value='Group maker';groupTitle.maxLength=120;groupTitle.setAttribute('aria-label','Group maker title');groupTitle.onchange=()=>{const text=groupTitle.value.trim()||'Group maker';update(s=>s.title=text);};heading.append(groupTitle,make('p','hint','Make balanced groups from this classroom’s roster. Drop a student onto another student to swap, or onto a group card to move.'));const close=button('Back to room',()=>closeGroups()),full=button('Full screen',()=>toggleFullscreen());full.id='groups-fullscreen';full.setAttribute('aria-pressed','false');const headerActions=make('div','group-header-actions');headerActions.append(full,close);header.append(heading,headerActions);
  const controls=make('div','group-maker-controls'),mode=make('select'),value=make('input');mode.setAttribute('aria-label','Group method');for(const [v,label]of [['count','Number of groups'],['size','Students per group']]){const o=make('option','',label);o.value=v;mode.append(o);}value.type='number';value.min=2;value.max=500;value.step=1;value.setAttribute('aria-label','Group amount');const modeLabel=make('label','','Arrange by');modeLabel.append(mode);const valueLabel=make('label','','Amount');valueLabel.append(value);
  const generate=button('Make groups',()=>generateGroups()),reshuffle=button('Reshuffle groups',()=>generateGroups()),status=make('p','group-maker-status');status.role='status';controls.append(modeLabel,valueLabel,generate,reshuffle);
  const roster=make('details','group-maker-roster'),summary=make('summary'),students=make('div','group-maker-students');roster.dataset.defaultCollapsed='';roster.append(summary,students);
@@ -31,7 +31,51 @@ export function setupRoomTools(getChart,commit){
  const settings=()=>getChart().groupMaker||{mode:'count',value:4,excluded:[],groups:[]};
  function update(fn){commit(()=>{getChart().groupMaker??={mode:'count',value:4,excluded:[],groups:[]};fn(getChart().groupMaker);});}
  function renderRoster(){const c=getChart(),s=settings(),excluded=new Set(s.excluded);students.replaceChildren();summary.textContent=`Students · ${c.students.filter(s=>!excluded.has(s.id)).length} of ${c.students.length} included`;for(const st of c.students){const label=make('label'),check=make('input');check.type='checkbox';check.checked=!excluded.has(st.id);check.onchange=()=>{update(s=>{const skip=new Set(s.excluded);if(check.checked)skip.delete(st.id);else skip.add(st.id);s.excluded=[...skip];s.groups=[];});renderRoster();renderResults();};label.append(check,document.createTextNode(seatName(st,c.students)));students.append(label);}}
- function renderResults(){results.replaceChildren();const c=getChart(),s=settings();for(const [index,ids]of s.groups.entries()){const members=ids.map(id=>c.students.find(st=>st.id===id)).filter(Boolean);if(!members.length)continue;const card=make('article','student-group'),custom=s.styles?.[index],name=custom?.name||`Group ${index+1}`,color=custom?.color||['#5579b8','#8b66b6','#288676','#b97630','#b45b7a','#458c9c'][index%6];card.style.setProperty('--group-accent',color);const groupHeader=make('div','student-group-heading'),nameInput=make('input','group-name'),colorInput=make('input','group-color');nameInput.value=name;nameInput.maxLength=80;nameInput.setAttribute('aria-label',`Group ${index+1} name`);colorInput.type='color';colorInput.value=color;colorInput.dataset.simplePalette='true';colorInput.setAttribute('aria-label',`Group ${index+1} color`);const customize=()=>{const nextName=nameInput.value.trim()||`Group ${index+1}`,nextColor=colorInput.value;update(state=>{state.styles??=[];while(state.styles.length<=index){const i=state.styles.length;state.styles.push({name:`Group ${i+1}`,color:['#5579b8','#8b66b6','#288676','#b97630','#b45b7a','#458c9c'][i%6]});}state.styles[index]={name:nextName,color:nextColor};});};nameInput.onchange=customize;colorInput.onchange=customize;groupHeader.append(nameInput,colorInput);card.append(groupHeader);const people=make('div','group-members');for(const st of members){const person=make('div','group-member'),avatar=make('div','group-member-avatar');avatar.setAttribute('aria-hidden','true');avatar.innerHTML=avatarSVG(st.avatar?.enabled?st.avatar:defaultAvatar());person.append(avatar,make('span','',seatName(st,c.students)));people.append(person);}card.append(people);results.append(card);}status.textContent=s.groups.length?`${s.groups.flat().filter(id=>c.students.some(st=>st.id===id)).length} students in ${results.children.length} groups. These groups are saved; seating stays as arranged.`:'Select students and choose Make groups. Group sizes will differ by at most one.';}
+ let draggedMember;
+ function dropTarget(event){
+  const card=event.target.closest('.student-group');
+  if(!draggedMember||!card||getChart().id!==draggedMember.chartId)return;
+  const group=Number(card.dataset.groupIndex);
+  const member=event.target.closest('.group-member')?.dataset.studentId;
+  if(member===draggedMember.id||(!member&&group===draggedMember.group))return;
+  return {group,member,element:member?event.target.closest('.group-member'):card};
+ }
+ function clearDropHighlight(){
+  results.querySelector('.group-drop-target')?.classList.remove('group-drop-target');
+ }
+ results.ondragover=event=>{
+  const target=dropTarget(event);
+  clearDropHighlight();
+  if(!target)return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect='move';
+  target.element.classList.add('group-drop-target');
+ };
+ results.ondragleave=event=>{
+  if(!results.contains(event.relatedTarget))clearDropHighlight();
+ };
+ results.ondrop=event=>{
+  const target=dropTarget(event),source=draggedMember;
+  clearDropHighlight();
+  if(!target)return;
+  event.preventDefault();
+  draggedMember=undefined;
+  const from=settings().groups[source.group],to=settings().groups[target.group];
+  const fromIndex=from?.indexOf(source.id)??-1;
+  const toIndex=to?.indexOf(target.member)??-1;
+  if(fromIndex<0||!to||(target.member&&toIndex<0))return;
+  update(()=>{
+   if(target.member){
+    from[fromIndex]=target.member;
+    to[toIndex]=source.id;
+   }else{
+    from.splice(fromIndex,1);
+    to.push(source.id);
+   }
+  });
+  renderResults();
+ };
+ function renderResults(){draggedMember=undefined;results.replaceChildren();const c=getChart(),s=settings();for(const [index,ids]of s.groups.entries()){const members=ids.map(id=>c.students.find(st=>st.id===id)).filter(Boolean);const card=make('article','student-group'),custom=s.styles?.[index],name=custom?.name||`Group ${index+1}`,color=custom?.color||['#5579b8','#8b66b6','#288676','#b97630','#b45b7a','#458c9c'][index%6];card.dataset.groupIndex=index;card.style.setProperty('--group-accent',color);const groupHeader=make('div','student-group-heading'),nameInput=make('input','group-name'),colorInput=make('input','group-color');nameInput.value=name;nameInput.maxLength=80;nameInput.setAttribute('aria-label',`Group ${index+1} name`);colorInput.type='color';colorInput.value=color;colorInput.dataset.simplePalette='true';colorInput.setAttribute('aria-label',`Group ${index+1} color`);const customize=()=>{const nextName=nameInput.value.trim()||`Group ${index+1}`,nextColor=colorInput.value;update(state=>{state.styles??=[];while(state.styles.length<=index){const i=state.styles.length;state.styles.push({name:`Group ${i+1}`,color:['#5579b8','#8b66b6','#288676','#b97630','#b45b7a','#458c9c'][i%6]});}state.styles[index]={name:nextName,color:nextColor};});};nameInput.onchange=customize;colorInput.onchange=customize;groupHeader.append(nameInput,colorInput);card.append(groupHeader);const people=make('div','group-members');for(const st of members){const person=make('div','group-member'),avatar=make('div','group-member-avatar');person.dataset.studentId=st.id;person.draggable=true;person.ondragstart=event=>{draggedMember={chartId:c.id,group:index,id:st.id};event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',st.id);};person.ondragend=()=>{draggedMember=undefined;clearDropHighlight();};avatar.setAttribute('aria-hidden','true');avatar.innerHTML=avatarSVG(st.avatar?.enabled?st.avatar:defaultAvatar());person.append(avatar,make('span','',seatName(st,c.students)));people.append(person);}card.append(people);results.append(card);}status.textContent=s.groups.length?`${s.groups.flat().filter(id=>c.students.some(st=>st.id===id)).length} students in ${results.children.length} groups. These groups are saved; seating stays as arranged.`:'Select students and choose Make groups. Group sizes will differ by at most one.';}
  function generateGroups(){if(getChart().id!==chartId){openGroups();return;}if(!value.checkValidity()){value.reportValidity();return;}try{const groups=makeGroups(getChart().students,{mode:mode.value,value:Number(value.value),excluded:settings().excluded});update(s=>{s.mode=mode.value;s.value=Number(value.value);s.groups=groups;});renderResults();}catch(error){status.textContent=error.message;}}
  function openGroups(){chartId=getChart().id;const s=settings();mode.value=s.mode;value.value=Math.max(2,s.value);groupTitle.value=s.title||'Group maker';panel.hidden=false;renderRoster();renderResults();close.focus();}
  panel.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();if(fullView)void exitFullscreen();else void closeGroups();}e.stopPropagation();};
