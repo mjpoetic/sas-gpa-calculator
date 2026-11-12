@@ -1,6 +1,6 @@
-import {makeGroups} from './group-maker.mjs?v=20261112-release2';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261112-release2';
-import {seatName} from './student-names.mjs?v=20261112-release2';
+import {makeGroups} from './group-maker.mjs?v=20261112-release3';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261112-release3';
+import {seatName} from './student-names.mjs?v=20261112-release3';
 const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const button=(text,fn)=>{const b=make('button','',text);b.type='button';b.onclick=fn;return b;};
 export function setupRoomTools(getChart,commit){
@@ -82,5 +82,5 @@ export function setupRoomTools(getChart,commit){
  document.addEventListener('sas-chart-edited',()=>{if(!panel.hidden){if(getChart().id!==chartId){void closeGroups();return;}renderResults();}});
  // Classroom switching can occur without a chart-edited event.
  new MutationObserver(()=>{if(!panel.hidden&&getChart().id!==chartId)void closeGroups();}).observe(document.getElementById('charts'),{childList:true});
- return {openGroups};
+ return {openGroups,isGroupMakerOpen:()=>!panel.hidden};
 }

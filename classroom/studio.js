@@ -1,23 +1,23 @@
-import {setupUpcoming} from './upcoming.js?v=20261112-release2';
-import {setupRoomTools} from './room-tools.js?v=20261112-release2';
-import {setupBoard} from './board.js?v=20261112-release2';
-import {openAvatarPreview} from './avatar-preview.js?v=20261112-release2';
-import {planFurnitureSync,applyFurnitureSync} from './furniture-sync.mjs?v=20261112-release2';
-import {setupBirthdays,editBirthday} from './birthdays.js?v=20261112-release2';
-import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261112-release2';
+import {setupUpcoming} from './upcoming.js?v=20261112-release3';
+import {setupRoomTools} from './room-tools.js?v=20261112-release3';
+import {setupBoard} from './board.js?v=20261112-release3';
+import {openAvatarPreview} from './avatar-preview.js?v=20261112-release3';
+import {planFurnitureSync,applyFurnitureSync} from './furniture-sync.mjs?v=20261112-release3';
+import {setupBirthdays,editBirthday} from './birthdays.js?v=20261112-release3';
+import {renderSummary,summaryLink,downloadSummaryImage} from './cleaner-summary.js?v=20261112-release3';
 import {eligibleStudents} from './student-eligibility.mjs?v=20261020-exclusions1';
 import {openStudentExclusions} from './student-exclusions.js?v=20261020-names1';
 import {setupRandomPicker} from './random-picker.js?v=20261021-dice1';
 import {weekStart,pickCleaners,cleanerHistory,cleanerPool,recordCleaners,setManualCleaners,deleteCleanerHistory} from './weekly-jobs.mjs?v=20261020-names1';
-import {enableTwoFingerPan} from './touch-pan.js?v=20261112-release2';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261112-release2';
-import {openAvatarEditor} from './avatar-editor.js?v=20261112-release2';
-import {transferStudent} from './seat-transfer.mjs?v=20261112-release2';
-import {controlSize,placeControls} from './control-placement.mjs?v=20261112-release2';
-import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261112-release2';
-import {furnitureArt} from './furniture-art.mjs?v=20261112-release2';
-import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261112-release2';
-import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights,autoFontField} from '../assets/font-options.mjs?v=20261112-release2';
+import {enableTwoFingerPan} from './touch-pan.js?v=20261112-release3';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261112-release3';
+import {openAvatarEditor} from './avatar-editor.js?v=20261112-release3';
+import {transferStudent} from './seat-transfer.mjs?v=20261112-release3';
+import {controlSize,placeControls} from './control-placement.mjs?v=20261112-release3';
+import {normalizeStudentName,rosterName,seatName} from './student-names.mjs?v=20261112-release3';
+import {furnitureArt} from './furniture-art.mjs?v=20261112-release3';
+import {teacherPoint,teacherDimensions,resizeTeacher,savedTeacherProfile,useSavedTeacher,saveTeacherProfile,teacherSeatTypes,placeTeacher,snapToWall, rotateGroup, separationConflicts, catalog, uid, newChart, layout, furniture, constrain, seats, assignUnseated, shuffle, validateBackup, defaultAppearance,groupBounds,moveGroup,scaleGroup,snapAngle,snapGroup,footprint,resizeFurniture,proportionalTypes,vacantPosition,setRoomSize,reshapeRoom,rotateRoom,WIDTH,HEIGHT} from './model.mjs?v=20261112-release3';
+import {fontOptions,validateFont,fontCSS,loadFont,suggestFonts,fontWeights,autoFontField} from '../assets/font-options.mjs?v=20261112-release3';
 import {connectCloud} from './cloud.js?v=20261020-names1';
 
 const $ = id => document.getElementById(id);
@@ -754,7 +754,7 @@ setupRandomPicker(chart,change);
 const viewKey=KEY+'-view';
 function rememberView(){
  const scroller=$('room').parentElement;
- const view={chart:state.active,board:boardView?.getViewState(),selection,ids:[...selectedIds],seats:[...selectedSeatKeys],multi:multiMode,
+ const view={chart:state.active,board:boardView?.getViewState(),groupMaker:roomTools.isGroupMakerOpen(),selection,ids:[...selectedIds],seats:[...selectedSeatKeys],multi:multiMode,
   panel:document.body.dataset.workspacePanel,library:!document.querySelector('.library').hidden,
   tab:['furniture','students','jobs','teachers'].find(name=>$(name+'-tab').getAttribute('aria-selected')==='true'),
   zoom:$('zoom').value,pan:panMode,left:scroller.scrollLeft,top:scroller.scrollTop,
@@ -784,6 +784,7 @@ function restoreView(){
  }
  updateZoom();setPan(!!view.pan);
  boardView?.restoreViewState(view.board);
+ if(view.groupMaker===true)roomTools.openGroups();
  if(['charts-dialog','settings-dialog','account-dialog'].includes(view.dialog)&&!document.querySelector('dialog[open]'))$(view.dialog).showModal();
  requestAnimationFrame(()=>{updateZoom();const scroller=$('room').parentElement;scroller.scrollLeft=Number.isFinite(view.left)?view.left:0;scroller.scrollTop=Number.isFinite(view.top)?view.top:0;
   for(const entry of Array.isArray(view.scrolls)?view.scrolls:[])if(['workspace-library','workspace-inspector','charts-dialog','settings-dialog','account-dialog'].includes(entry.id)&&Number.isFinite(entry.top))$(entry.id).scrollTop=entry.top;
@@ -831,4 +832,4 @@ $('digital-clock-style').onchange=()=>{const it=selected();if(it?.type==='digita
 
 boardView=setupBoard({getChart:chart,commit:change,uid,saveEdit:fn=>{checkpoint();fn();save();$('undo').disabled=!history.length;$('redo').disabled=!redoHistory.length;boardView?.render();}});
 
-setupRoomTools(chart,change);
+const roomTools=setupRoomTools(chart,change);

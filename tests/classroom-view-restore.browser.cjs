@@ -22,8 +22,17 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
  await p.getByRole('button',{name:'Close Classroom settings',exact:true}).click();
  await p.locator('#workspace-library .workspace-panel-close').click();await p.locator('#canvas-zoom-level').click();await p.locator('.seat').first().click();await p.reload();await p.waitForTimeout(400);
  assert.equal(await p.locator('.selected-seat').count(),1);assert.equal(await p.locator('#workspace-inspector').isVisible(),true);
+ await p.locator('#room-tools-open').click();
+ await p.locator('#group-maker-open').click();
+ const groupMaker=p.getByRole('region',{name:'Group maker'});
+ await groupMaker.waitFor();
+ await p.reload();
+ await groupMaker.waitFor();
+ await groupMaker.getByRole('button',{name:'Back to room'}).click();
+ await p.reload();
+ await p.waitForFunction(()=>document.querySelector('.selected-seat')&&document.querySelector('.group-maker')?.hidden);
  assert.deepEqual(errors,[]);await p.close();
  }
- console.log('Desktop/mobile refresh restores tools, week, dialog, zoom, pan, viewport, and seat selection.');
+ console.log('Desktop/mobile refresh restores tools, week, dialog, zoom, pan, viewport, seat selection, and Group maker.');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exit(1)});
