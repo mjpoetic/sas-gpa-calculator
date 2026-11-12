@@ -87,3 +87,22 @@
  outline:2px solid var(--group-accent);
  outline-offset:-2px;
 }
+
+.group-maker-fullscreen .group-maker-header > div:first-child,
+.group-maker-fullscreen .group-header-actions > :not(#groups-fullscreen),
+.group-maker-fullscreen .group-maker-controls,
+.group-maker-fullscreen .group-maker-roster,
+.group-maker-fullscreen .group-maker-status,
+.group-maker-fullscreen .group-color {
+  display: none;
+}
+
+.group-maker-fullscreen .group-maker-header {
+  justify-content: flex-end;
+}
+
+.group-maker-fullscreen #groups-fullscreen {
+  min-width: 36px;
+  font-size: 20px;
+  line-height: 1;
+}

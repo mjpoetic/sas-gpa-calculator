@@ -1,5 +1,6 @@
 // Add a short, user-facing entry here whenever the site version changes.
 export const releases=[
+ {"version":"2026.11.12.2","changes":["Show only group names and members in fullscreen"]},
  {"version":"2026.11.12.1","changes":["Drag students to swap places or move between groups in Group Maker"]},
  {"version":"2026.10.31.7","changes":["Fix Google Font bold and italic in notes; add custom Google Fonts and inline font previews"]},
  {"version":"2026.10.31.6","changes":["Keep the last Room or Board view and active note after refreshing Classroom Studio."]},

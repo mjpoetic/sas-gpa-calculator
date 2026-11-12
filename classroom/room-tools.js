@@ -1,6 +1,6 @@
-import {makeGroups} from './group-maker.mjs?v=20261112-release1';
-import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261112-release1';
-import {seatName} from './student-names.mjs?v=20261112-release1';
+import {makeGroups} from './group-maker.mjs?v=20261112-release2';
+import {avatarSVG,defaultAvatar} from './avatars.mjs?v=20261112-release2';
+import {seatName} from './student-names.mjs?v=20261112-release2';
 const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const button=(text,fn)=>{const b=make('button','',text);b.type='button';b.onclick=fn;return b;};
 export function setupRoomTools(getChart,commit){
@@ -22,9 +22,9 @@ export function setupRoomTools(getChart,commit){
  const roster=make('details','group-maker-roster'),summary=make('summary'),students=make('div','group-maker-students');roster.dataset.defaultCollapsed='';roster.append(summary,students);
  const results=make('div','group-maker-results');panel.append(header,controls,roster,status,results);document.querySelector('.room-panel').append(panel);
  let chartId=null,fullView=false;const panelHome=panel.parentElement;
- function restoreFullscreen(){fullView=false;panel.classList.remove('group-maker-fullscreen');if(panel.parentElement!==panelHome)panelHome.append(panel);full.textContent='Full screen';full.setAttribute('aria-pressed','false');}
+ function restoreFullscreen(){fullView=false;panel.classList.remove('group-maker-fullscreen');if(panel.parentElement!==panelHome)panelHome.append(panel);full.textContent='Full screen';full.removeAttribute('aria-label');full.setAttribute('aria-pressed','false');}
  async function exitFullscreen(){if(document.fullscreenElement===panel)try{await document.exitFullscreen();}catch{}restoreFullscreen();}
- async function toggleFullscreen(){if(fullView){await exitFullscreen();full.focus();return;}fullView=true;document.body.append(panel);panel.classList.add('group-maker-fullscreen');full.textContent='Exit full screen';full.setAttribute('aria-pressed','true');try{await panel.requestFullscreen?.();}catch{}full.focus();}
+ async function toggleFullscreen(){if(fullView){await exitFullscreen();full.focus();return;}fullView=true;document.body.append(panel);panel.classList.add('group-maker-fullscreen');full.textContent='×';full.setAttribute('aria-label','Exit full screen');full.setAttribute('aria-pressed','true');try{await panel.requestFullscreen?.();}catch{}full.focus();}
  async function closeGroups(){if(fullView)await exitFullscreen();panel.hidden=true;trigger.focus();}
  document.addEventListener('fullscreenchange',()=>{if(fullView&&document.fullscreenElement!==panel)restoreFullscreen();});
 
